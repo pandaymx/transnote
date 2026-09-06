@@ -24,8 +24,8 @@
 | T3 | 文档/块 CRUD + 版本号 | server/modules/document + blocks 表 | ✅ |
 | T4 | 块编辑器（Web） | packages/core + apps/web（T3 API 已就绪） | ⬜ |
 | T5 | 看板 CRUD + 拖拽 | server/modules/board（apps/web 待 T4 前端） | ✅ |
-| T6 | Word 解析 + 分块 | server/modules/conversion（POI + DocElement，T5 API 可承接卡片） | ⬜ |
-| T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取 | ⬜ |
+| T6 | Word 解析 + 分块 | server/modules/conversion（POI 5.5.1 + DocElement 树） | ✅ |
+| T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取（解析输出已就绪） | ⬜ |
 | T8 | Word→看板 全链路 + 人工校对 | conversion + review API | ⬜ |
 | T9 | 看板→Word 导出 | POI XWPF 模板渲染 + 产物 | ⬜ |
 | T10 | Tauri 桌面壳 | apps/desktop | ⬜ |
@@ -230,6 +230,9 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **Boot 4 把 MockMvc 拆成独立 starter**：`spring-boot-starter-webmvc-test` 必须显式声明；且 `@AutoConfigureMockMvc` 包名改为 `org.springframework.boot.webmvc.test.autoconfigure`（不再是 ...web.servlet.autoconfigure）。
 - **脚本验证命令禁接 grep 管道**（吞退出码）：统一 `if ! cmd > log 2>&1; then tail log; exit 1; fi` 模式。
 - T2 工作区 API 约定（文档未定义，已按 §7.3 风格落地）：`POST/GET /api/v1/workspaces`、`GET/PATCH/DELETE /api/v1/workspaces/{id}`；错误 404（不存在）/422（校验、slug 冲突）。
+- T6 解析端点（契约未定义，按 §7.3 风格自拟）：`POST /api/v1/conversions/parse`（multipart file → DocElement 树 + 分块），正式 word-to-board 流程（conversion_jobs 落库）在 T8。
+- **POI 5.5.1 坑**：① XWPFParagraph 无 `getNumPr()`，走 `getCTP().getPPr().getNumPr()`；② CT 数值属性 `setVal` 需 BigInteger；③ 模块级 poi 依赖用 implementation 不透传，webmvc 集成测试要再 `testImplementation(libs.poi.ooxml)`；④ 新模块必须加 Boot BOM platform，否则 starter 版本解析为空。
+- commitlint subject 禁首字母大写词（sentence/start-case）：subject 里英文词全小写或用全大写缩写（Word → word）。
 - T5 看板 API（契约 §7.3）：`POST/GET /api/v1/boards`、`GET/PATCH/DELETE /{id}`、`POST /{id}/columns`、`DELETE /{id}/columns/{columnId}`、`POST/GET /{id}/cards`（筛选 columnId/assigneeId/priority）、`PATCH /{id}/cards/{cardId}`（**含 columnId/position = 拖拽一次提交**，可同时改字段）。已删除列筛选返回空列表而非 404（筛选语义）。
 - T5 看板 API（契约 §7.3）：`POST/GET /api/v1/boards`、`GET/PATCH/DELETE /{id}`、`POST /{id}/columns`、`DELETE /{id}/columns/{columnId}`、`POST/GET /{id}/cards`（筛选 columnId/assigneeId/priority）、`PATCH /{id}/cards/{cardId}`（**含 columnId/position = 拖拽一次提交**，可同时改字段）。已删除列筛选返回空列表而非 404（筛选语义）。
 - **Boot 4 MockMvc 包名变更**：`AutoConfigureMockMvc` 在 `org.springframework.boot.webmvc.test.autoconfigure`（Boot 3 的 `org.springframework.boot.test.autoconfigure.web.servlet` 已不存在）；依赖 `spring-boot-starter-webmvc-test`。

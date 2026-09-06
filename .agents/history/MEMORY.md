@@ -58,3 +58,5 @@
 - [ ] T4 块编辑器（Web）：需先搭 bun workspaces 前端（T1.2）+ packages/core 编辑器
 - [x] T5 看板 CRUD（70691e9 + 154b810 + 6a7d66b）：V3 迁移 + board 模块（板/列/卡 + 拖拽一次提交 + 筛选）+ REST + 测试 + 冒烟通过
 - [ ] T6 Word 解析 + 分块（conversion 模块，POI）：Word→DocElement 树；对接看板卡片
+- [x] T6 Word 解析 + 分块（cbc5086 + d39e439）：conversion 模块（POI 5.5.1 + DocElement 树 + Chunker）+ 解析调试端点 + 测试 + 冒烟通过
+- [ ] T7 LLM Provider + 抽取（LlmProvider 抽象 + JSON Schema）：消费 DocElement 树
