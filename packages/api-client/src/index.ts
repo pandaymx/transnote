@@ -129,6 +129,32 @@ export class TransnoteClient {
     });
   }
 
+  /** 卡片部分更新；patch 带 columnId/position 时按后端"拖拽"语义（换列+重排一次提交）。 */
+  updateCard(
+    boardId: string,
+    cardId: string,
+    patch: {
+      title?: string;
+      description?: string;
+      dueDate?: string;
+      priority?: number;
+      labels?: string[];
+      columnId?: string;
+      position?: number;
+    },
+  ): Promise<BoardCard> {
+    return request(this.baseUrl,`/api/v1/boards/${boardId}/cards/${cardId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  }
+
+  deleteCard(boardId: string, cardId: string): Promise<void> {
+    return request(this.baseUrl,`/api/v1/boards/${boardId}/cards/${cardId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ---- Conversions（契约 §7.2）----
   submitWordToBoard(
     workspaceId: string,

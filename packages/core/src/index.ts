@@ -93,6 +93,76 @@ export function useAddCard(boardId: string) {
   });
 }
 
+export interface CardPatch {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  priority?: number;
+  labels?: string[];
+  columnId?: string;
+  position?: number;
+}
+
+/** 卡片更新（编辑/拖拽），乐观更新 + 失败回滚（契约 §9.2 看板交互）。 */
+export function useUpdateCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ cardId, patch }: { cardId: string; patch: CardPatch }) =>
+      api().updateCard(boardId, cardId, patch),
+    onMutate: async ({ cardId, patch }) => {
+      await qc.cancelQueries({ queryKey: QK.cards(boardId) });
+      const prev = qc.getQueryData<BoardCard[]>(QK.cards(boardId));
+      if (prev) {
+        qc.setQueryData<BoardCard[]>(
+          QK.cards(boardId),
+          prev.map((c) =>
+            c.id === cardId
+              ? {
+                  ...c,
+                  ...(patch.title !== undefined ? { title: patch.title } : {}),
+                  ...(patch.description !== undefined ? { description: patch.description } : {}),
+                  ...(patch.dueDate !== undefined ? { dueDate: patch.dueDate } : {}),
+                  ...(patch.priority !== undefined ? { priority: patch.priority } : {}),
+                  ...(patch.labels !== undefined ? { labels: patch.labels } : {}),
+                  ...(patch.columnId !== undefined ? { columnId: patch.columnId } : {}),
+                  ...(patch.position !== undefined ? { position: patch.position } : {}),
+                }
+              : c,
+          ),
+        );
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(QK.cards(boardId), ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: QK.cards(boardId) }),
+  });
+}
+
+/** 卡片删除，乐观移除 + 失败回滚。 */
+export function useDeleteCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cardId: string) => api().deleteCard(boardId, cardId),
+    onMutate: async (cardId) => {
+      await qc.cancelQueries({ queryKey: QK.cards(boardId) });
+      const prev = qc.getQueryData<BoardCard[]>(QK.cards(boardId));
+      if (prev) {
+        qc.setQueryData<BoardCard[]>(
+          QK.cards(boardId),
+          prev.filter((c) => c.id !== cardId),
+        );
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(QK.cards(boardId), ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: QK.cards(boardId) }),
+  });
+}
+
 // ---- Conversion ----
 export function useWordToBoard(workspaceId: string) {
   return useMutation({
