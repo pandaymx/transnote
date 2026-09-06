@@ -1,3 +1,10 @@
+## [1.1.0](https://github.com/pandaymx/transnote/compare/v1.0.0...v1.1.0) (2026-09-06)
+
+### Features
+
+* **server:** 本地开发 cors 允许 web 与 tauri 调用 ([a384071](https://github.com/pandaymx/transnote/commit/a3840714775ce89524706b459309f7d14fb1747e))
+* **web:** next.js 应用骨架与 api-client/core 状态层（工作区/看板/转换页） ([81ea3ba](https://github.com/pandaymx/transnote/commit/81ea3ba4aee9875187196b3a8d8fe4230e69edd1))
+
 ## 1.0.0 (2026-09-06)
 
 ### Features
