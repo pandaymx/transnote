@@ -1,6 +1,19 @@
 spring:
   application:
     name: transnote-server
+  datasource:
+    url: jdbc:postgresql://localhost:5433/transnote   # 宿主 5433（5432 被 ai-copilot 占用）
+    username: dev
+    password: dev
+  jpa:
+    hibernate:
+      ddl-auto: none   # schema 由迁移管理（Flyway 接入待 T2 前决策）
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: true
 
 server:
   port: 8080
