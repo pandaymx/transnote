@@ -293,7 +293,7 @@ public class ConversionService {
           boardId,
           columnId,
           item.getTaskTitle(),
-          item.getDescription(),
+          toDescriptionJson(item.getDescription()),
           null, // assigneeId：无用户体系，暂空（T2.1 后映射）
           item.getAssignee(), // assigneeName：人名过渡字段（T8 决策）
           item.getDueDate(),
@@ -373,6 +373,27 @@ public class ConversionService {
     }
     int dot = fileName.lastIndexOf('.');
     return dot < 0 ? "" : fileName.substring(dot + 1);
+  }
+
+  /**
+   * 看板卡片 description 为 JSONB（富文本块结构，V3 约定）：Word 抽取出的纯文本描述需包装为 JSON（已是合法 JSON 则原样保留）；空白返回 null 走实体默认
+   * "{}"。
+   */
+  private String toDescriptionJson(String text) {
+    if (text == null || text.isBlank()) {
+      return null;
+    }
+    String trimmed = text.trim();
+    try {
+      objectMapper.readTree(trimmed);
+      return trimmed;
+    } catch (RuntimeException notJson) {
+      try {
+        return objectMapper.writeValueAsString(Map.of("text", trimmed));
+      } catch (RuntimeException e) {
+        return null;
+      }
+    }
   }
 
   /** 校对动作（§8.4 PATCH /review 载荷项）。 */

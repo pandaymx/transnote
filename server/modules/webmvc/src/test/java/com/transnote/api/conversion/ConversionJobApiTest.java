@@ -120,6 +120,45 @@ class ConversionJobApiTest {
                 org.hamcrest.Matchers.containsString("paragraph_index")));
   }
 
+  /** T8 回归：任务段落描述为纯文本，建卡时须包装为 JSONB（description 列 JSONB 约束）。 */
+  @Test
+  void wordToBoard_withDescription_storesJsonDescription() throws Exception {
+    UUID ws = workspaceId();
+    MockMultipartFile file;
+    try (XWPFDocument doc = new XWPFDocument();
+        ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      doc.createParagraph().createRun().setText("\u2611 完成接口联调");
+      doc.createParagraph().createRun().setText("需要先部署测试环境");
+      doc.write(out);
+      file =
+          new MockMultipartFile(
+              "file",
+              "带描述任务.docx",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              out.toByteArray());
+    }
+    MvcResult submit =
+        mockMvc
+            .perform(
+                multipart("/api/v1/conversions/word-to-board")
+                    .file(file)
+                    .param("workspaceId", ws.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("COMPLETED"))
+            .andReturn();
+    JsonNode data = objectMapper.readTree(submit.getResponse().getContentAsString()).path("data");
+    UUID boardId = UUID.fromString(data.path("boardId").asText());
+
+    // 卡片 description 必须是合法 JSON（含原始文本）
+    mockMvc
+        .perform(get("/api/v1/boards/{boardId}/cards", boardId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].title").value("完成接口联调"))
+        .andExpect(
+            jsonPath("$.data[0].description", org.hamcrest.Matchers.containsString("需要先部署测试环境")));
+  }
+
   @Test
   void rejectsInvalidExtension() throws Exception {
     UUID ws = workspaceId();
