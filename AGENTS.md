@@ -145,7 +145,7 @@ scope 白名单不是形式主义——它逼着每次提交想清楚「改的�
 - 已集成 **semantic-release**（参照 lanchat 现役配置）：`bun run release` 自动生成 `CHANGELOG.md` + 打语义化版本 tag；本地/MVP 阶段只做 CHANGELOG + git tag，**不推送 npm / GitHub**（接入远程仓库时补 `repositoryUrl` 与 `@semantic-release/github`，见 `release.config.js` 注释）。
 - **不发版时不要手动改版本号，也不要手动打 tag**（版本号只由 semantic-release 从提交信息计算）。
 - 起点标记：仓库首个 release 前已打 `git tag v0.0.0`（标记之后才开始累计变更）。
-- 依赖版本（实测可跑，2026-09 验证）：semantic-release `^25` + `conventional-changelog-conventionalcommits` `^10` + `@semantic-release/changelog` `^7` + `@semantic-release/git` `^11`；若遇 `Missing helper` 错误再锁 `^8`（早期 lanchat 经验）。
+- 依赖版本（实测可跑，2026-09-06 已发 v0.0.1）：semantic-release `25.0.9` + `@semantic-release/changelog` `7.0.0` + `@semantic-release/git` `11.0.1` + `conventional-changelog-conventionalcommits` `9.3.1`（**必须根显式声明**——它是插件的 peerDependency，bun 不会自动装；9.3.1 是 release-notes-generator 官方锁定，与 writer 8.4.0 兼容；装 10.x 会报 `Missing helper`，早期「锁 ^8」经验已过时）。
 
 ---
 
@@ -165,6 +165,9 @@ scope 白名单不是形式主义——它逼着每次提交想清楚「改的�
 | Java 版本不满足 | Spring Boot 4.x 需要 Java 17+（推荐 25），JDK 8 直接编译失败 | `sdk default java 25.0.4-graal` 并设 JAVA_HOME |
 | Windows 侧 JDK 混入 PATH | WSL PATH 含 `/mnt/d/programmer/java/jdk8u452-b09/bin`，`java` 不可用 | 在 WSL 内显式管理 JAVA_HOME，不依赖 Windows PATH |
 | lefthook 子进程找不到命令 | SSH push / 钩子触发的子进程不继承交互式 PATH | 钩子命令里显式 `export PATH="$HOME/.bun/bin:$PATH"` 等 |
+| bun 不自动安装 peer 依赖 | semantic-release 插件锁定的 `conventional-changelog-conventionalcommits` 缺失 → `Missing helper` / module not found | 根显式 `bun add -d conventional-changelog-conventionalcommits@9.3.1` |
+| bun 的 prepare 环境无 node_modules/.bin | `"prepare": "lefthook install"` 报 command not found（npm 会注入 .bin，bun 不会） | prepare 写成 `"prepare": "bunx lefthook install"` |
+| bun remove 误伤传递依赖 | `bun remove` 一个显式包后，其他显式 devDeps（如 commitlint）可能从 package.json 消失 | remove 后检查 package.json devDependencies 完整性，必要时重装 |
 
 ---
 
