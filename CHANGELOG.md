@@ -1,3 +1,10 @@
+## [1.4.0](https://github.com/pandaymx/transnote/compare/v1.3.0...v1.4.0) (2026-09-06)
+
+### Features
+
+* **conversion:** 转换历史列表接口与前端历史区块 ([1f3e6bc](https://github.com/pandaymx/transnote/commit/1f3e6bc0824b6d5aeadc0717323a45cb287b141c))
+* **web:** 看板页导出 word 入口与 convert 页看板自动带入 ([47061a9](https://github.com/pandaymx/transnote/commit/47061a91b9b5721a2484657d16fed7361ba8e4f4))
+
 ## [1.3.0](https://github.com/pandaymx/transnote/compare/v1.2.2...v1.3.0) (2026-09-06)
 
 ### Features
