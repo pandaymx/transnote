@@ -24,9 +24,10 @@ bad() { FAIL=$((FAIL + 1)); echo "  ❌ $1"; }
 # ---------- 1. commitlint scope 白名单与 AGENTS.md 一致性 ----------
 echo "== 1. commitlint scope 白名单 vs AGENTS.md =="
 if [ -f commitlint.config.js ]; then
-  # GNU sed 的范围会多打印一行（subject-max-length），故排除键名/severity 词
-  cfg_scopes="$(sed -n "/'scope-enum'/,/]/p" commitlint.config.js | grep -o "'[a-z-]*'" | tr -d "'" | grep -vE '^(scope-enum|always|subject-max-length)$' | sort -u)"
-  md_scopes="$(sed -n '/scope 只能是/,/^```$/p' AGENTS.md | grep -o '`[a-z-]*`' | tr -d '`' | sort -u)"
+  # GNU sed 的范围会多打印一行（subject-max-length），故排除键名/severity 词；
+  # 代码围栏 ``` 会被 grep -o 匹配出空串，先过滤空行
+  cfg_scopes="$(sed -n "/'scope-enum'/,/]/p" commitlint.config.js | grep -o "'[a-z-]*'" | tr -d "'" | grep -v '^$' | grep -vE '^(scope-enum|always|subject-max-length)$' | sort -u)"
+  md_scopes="$(sed -n '/scope 只能是/,/^```$/p' AGENTS.md | grep -o '`[a-z-]*`' | tr -d '`' | grep -v '^$' | sort -u)"
   if [ "$cfg_scopes" = "$md_scopes" ]; then
     ok "scope 白名单一致（$(echo "$md_scopes" | tr '\n' ' ')）"
   else
