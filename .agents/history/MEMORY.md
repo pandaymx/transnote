@@ -46,7 +46,7 @@
 - [x] 项目定名 **TransNote**（仓库 `~/code/transnote`，Java 包 `com.transnote.*`）
 - [x] commitlint + lefthook 落地（2026-09-06 实测：@commitlint/cli 21.2.2 / lefthook 2.1.12；坏提交 feat(badscope) 已被 commit-msg 拦截；pre-commit 密钥扫描）
 - [x] 集成 semantic-release 并完成首次发布 v0.0.1（2026-09-06：25.0.9 + changelog 7.0.0 + git 11.0.1 + conventionalcommits 9.3.1 显式安装；`bun run release` 自动生成 CHANGELOG + `chore(release)` 提交 + tag；repositoryUrl 用 `file://` 本地占位，接 GitHub 时替换）
-- [ ] T1：Monorepo 脚手架（bun workspaces + server Gradle wrapper + infra/docker-compose.yml）
+- [ ] T1（进行中）：已建 server Gradle wrapper + Spring Boot 4.1.1 基础工程 + spotless；剩余 bun workspaces 依赖声明（T1.2）与 infra/docker-compose.yml（T1.3）
 - [ ] 设 JAVA_HOME / sdkman 默认指向 GraalVM 25（Java 25 + Spring Boot 4.1.1 已定版）
 - [ ] 接入 commitlint + lefthook（lefthook.yml + commitlint.config.js + hook install）
 - [ ] git init + 首次提交（chore(repo): 初始化 .agents 与工程约定）
