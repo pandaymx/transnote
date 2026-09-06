@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/pandaymx/transnote/compare/v1.2.2...v1.3.0) (2026-09-06)
+
+### Features
+
+* **web:** 看板卡片拖拽换列与内联编辑（乐观更新） ([9bcc378](https://github.com/pandaymx/transnote/commit/9bcc378944a3dceeab034a2425eaa825839c9768))
+
 ## [1.2.2](https://github.com/pandaymx/transnote/compare/v1.2.1...v1.2.2) (2026-09-06)
 
 ### Bug Fixes
