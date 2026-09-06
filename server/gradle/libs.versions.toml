@@ -16,6 +16,7 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
