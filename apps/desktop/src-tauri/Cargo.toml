@@ -4,6 +4,10 @@ version = "0.0.0"
 description = "TransNote 桌面端（Tauri 2）"
 edition = "2021"
 
+[lib]
+name = "transnote_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
