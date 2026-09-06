@@ -279,3 +279,13 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - 坑：**Boot 4.1.1 BOM 的 flyway 12.4.0 不支持 PG18**（报 `Unsupported Database: PostgreSQL 18.6`）；必须 toml 显式覆盖 **12.11.0**，且 Flyway 10+ 的 PostgreSQL 支持是独立模块 `flyway-database-postgresql`（仅 starter 不含）。
 - 坑：shell 脚本里 `cmd | grep | head` 管道会吞掉 `set -e` 的失败退出码——构建失败也会继续提交。验证类命令不要接 grep 管道，或检查 `${PIPESTATUS[0]}`。
 - 已完成：V1 workspace 表（id uuid PK default gen_random_uuid / name / slug unique / created_at / updated_at）；认证后置无 owner_id。
+
+## 仓库管理（GitHub 接入）
+
+- **远程**：`github` = git@github.com:pandaymx/transnote.git（私有，ssh）；`origin` = 本地 bare 备份 `~/code/transnote.git`。推送双写：`git push github main && git push origin main`（或先 github 后由 release 提交 fetch 回来再推 origin）。
+- **CI**（.github/workflows/ci.yml，push main / PR 触发，3 job 全绿基线）：
+  - Server build & test：postgres:18 service container + temurin 25（setup-java v5）+ spotlessCheck + clean build；数据源经 SPRING_DATASOURCE_URL 覆盖为 5432（本地 5433）。
+  - Commit message lint：bun install --frozen-lockfile + commitlint --from HEAD~20。
+  - Semantic release：仅 push main，needs 前两者；permissions 需 contents/issues/pull-requests 全 write（success 评论步骤缺权限会失败）；产出 CHANGELOG + tag + GitHub Release（release.config.js repositoryUrl 已指向 GitHub）。
+- **发版**：feat → minor（v1.0.0 已发布，commit 874bb2b 触发）；fix → patch；`[skip ci]` 提交不触发 CI 循环。
+- WSL 推送用 ssh（gh 已配置 "Arm WSL SSH" key）；本地腾讯镜像 gradle wrapper 在 CI 可正常访问。
