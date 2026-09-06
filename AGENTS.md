@@ -247,6 +247,7 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - T8 坑：① thenReturn 实参内禁止任何 mockito stubbing（先建对象再 stub）；② 已应用迁移改 DDL 后 Flyway validate 失败 → 开发库 `DROP SCHEMA public CASCADE; CREATE SCHEMA public` 重建重放（或 repair）；③ evidence/sourceEvidence 是 JSONB 字符串，jsonPath 断言用 containsString；④ @CreationTimestamp 字段必须同步在 V 迁移建列；⑤ ConversionJob promptVersion 在 complete 时取自 extractor.getLastPromptVersion()，不能读 job 自身。
 - T10 Golden：样例生成器写 build/golden-gen（勿用 @TempDir，JUnit 随机清理）；expected.json 为期望清单；阈值统计口径=期望任务顺序比对，多余抽取容忍；g16 空勾选放末尾。
 - T4a 前端：① bun install --frozen-lockfile 首次必须更新 lockfile（先裸跑一次再锁）；② Next 产物 .next/ 必须进 .gitignore（曾误提交 242 文件）；③ api-client request() 全调用须传 baseUrl；④ 含 $ 的 bash 命令必须写 .sh 经 wsl -e bash 执行（PowerShell 会吞 $ 变量）；⑤ 前端 CORS 由 server WebConfig 放行 localhost:3000/tauri。
+- T4b Tauri：① 缺 icons/icon.png 时 tauri-build 编译失败（占位 PNG 即可）；② main.rs 引用 lib 必须在 Cargo.toml 声明 [lib] name + crate-type(staticlib/cdylib/rlib)；③ 本机 WSL 无 webkit2gtk，rust 编译验证放 CI（ubuntu + apt libwebkit2gtk-4.1-dev）。
 
 ### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
 
