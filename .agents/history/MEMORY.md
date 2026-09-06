@@ -62,3 +62,6 @@
 - [ ] T7 LLM Provider + 抽取（LlmProvider 抽象 + JSON Schema）：消费 DocElement 树
 - [x] T7 LLM Provider + 抽取（d781050 + c0923fa）：LlmProvider 抽象 + TaskExtractor（LLM/规则回退）+ prompt 模板 + 单测 + 冒烟通过
 - [ ] T8 Word→看板 全链路（conversion_jobs/items 落库 + review API + MinIO）
+- [x] T8 Word→看板 全链路（25539df + 5bdb01c）：job/items 落库 + 置信度分流 + review + 自动建板 + 冒烟通过
+- [ ] T9 看板→Word 导出（board_to_word：聚合统计 + POI 渲染 + 模板 task-list/weekly-report）
+- [ ] T4 前端（Bun + Next.js web / Tauri 桌面）

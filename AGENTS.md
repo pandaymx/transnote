@@ -26,7 +26,7 @@
 | T5 | 看板 CRUD + 拖拽 | server/modules/board（apps/web 待 T4 前端） | ✅ |
 | T6 | Word 解析 + 分块 | server/modules/conversion（POI 5.5.1 + DocElement 树） | ✅ |
 | T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取（规则回退基线可用） | ✅ |
-| T8 | Word→看板 全链路 + 人工校对 | conversion_jobs 落库 + review API（抽取已就绪） | ⬜ |
+| T8 | Word→看板 全链路 + 人工校对 | job/items 落库 + 置信度分流 + review + 自动建板（V4） | ✅ |
 | T9 | 看板→Word 导出 | POI XWPF 模板渲染 + 产物 | ⬜ |
 | T10 | Tauri 桌面壳 | apps/desktop | ⬜ |
 | T11 | Golden 回归集 + CI | conversion 测试集 + CI | ⬜ |
@@ -241,6 +241,8 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **Boot 4 MockMvc 包名变更**：`AutoConfigureMockMvc` 在 `org.springframework.boot.webmvc.test.autoconfigure`（Boot 3 的 `org.springframework.boot.test.autoconfigure.web.servlet` 已不存在）；依赖 `spring-boot-starter-webmvc-test`。
 - T5 看板 API（契约 §7.3）：`POST/GET /api/v1/boards`、`GET/PATCH/DELETE /{id}`、`POST /{id}/columns`、`DELETE /{id}/columns/{columnId}`、`POST/GET /{id}/cards`（筛选 columnId/assigneeId/priority）、`PATCH /{id}/cards/{cardId}`（**含 columnId/position = 拖拽一次提交**，可同时改字段）。已删除列筛选返回空列表而非 404（筛选语义）。
 - T3 文档/块 API（契约 §7.3 未定义处已按风格落地）：`POST/GET /api/v1/documents?workspaceId=`、`GET/PATCH/DELETE /{id}`、`PATCH /{id}/blocks`（updates: upsert|delete|move）；响应块节点含 position/version。GET versions 端点未实现（需快照表，T6 后置）。
+- T8 转换链路：`POST /api/v1/conversions/word-to-board`（multipart file + workspaceId + targetBoardId?）→ 同步抽取分流（全部 ≥0.8 自动建板 COMPLETED，否则 REVIEW）；`GET jobs/{id}`、`PATCH jobs/{id}/review`（CONFIRMED/REJECTED，携带 taskTitle 视为 EDITED）、`GET jobs/{id}/result`。卡片写 source_evidence（[{paragraph_index, quote}] 原文追溯）+ assignee_name（无用户体系过渡字段）。
+- T8 坑：① thenReturn 实参内禁止任何 mockito stubbing（先建对象再 stub）；② 已应用迁移改 DDL 后 Flyway validate 失败 → 开发库 `DROP SCHEMA public CASCADE; CREATE SCHEMA public` 重建重放（或 repair）；③ evidence/sourceEvidence 是 JSONB 字符串，jsonPath 断言用 containsString；④ @CreationTimestamp 字段必须同步在 V 迁移建列；⑤ ConversionJob promptVersion 在 complete 时取自 extractor.getLastPromptVersion()，不能读 job 自身。
 
 ### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
 
