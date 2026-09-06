@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/pandaymx/transnote/compare/v1.5.2...v1.6.0) (2026-09-06)
+
+### Features
+
+* **ci:** 桌面端 deb 打包 job（tauri bundle + 产物上传） ([4d6bb76](https://github.com/pandaymx/transnote/commit/4d6bb76e499a28461617660619b6a01d305369e2))
+
 ## [1.5.2](https://github.com/pandaymx/transnote/compare/v1.5.1...v1.5.2) (2026-09-06)
 
 ### Bug Fixes
