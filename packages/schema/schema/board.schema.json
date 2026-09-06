@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://transnote.dev/schema/board.schema.json",
+  "title": "Board",
+  "description": "看板（契约 §7.1/§9.2）。TS 类型由本文件同步。",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "workspaceId": { "type": "string", "format": "uuid" },
+    "title": { "type": "string" },
+    "layout": { "type": "string", "enum": ["kanban", "list"] },
+    "createdAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["id", "workspaceId", "title"]
+}

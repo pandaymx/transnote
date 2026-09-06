@@ -43,6 +43,19 @@ jobs:
         working-directory: server
         run: ./gradlew clean build --no-daemon --console=plain
 
+  web:
+    name: Web build & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+      - name: 安装依赖
+        run: bun install --frozen-lockfile
+      - name: 类型检查
+        run: bunx tsc --noEmit -p apps/web
+      - name: Next 构建
+        run: bun --cwd apps/web build
+
   commitlint:
     name: Commit message lint
     runs-on: ubuntu-latest

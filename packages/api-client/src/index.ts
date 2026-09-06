@@ -1,0 +1,191 @@
+/**
+ * TransNote API 客户端（契约 §9.2：所有 API 调用走本包，禁止组件内直接 fetch）。
+ * OpenAPI 生成后置，当前为手写类型安全封装；响应统一解包 {code,data,message}。
+ */
+import type {
+  ApiEnvelope,
+  Board,
+  BoardCard,
+  BoardColumn,
+  ConversionJob,
+  ConversionResult,
+  ConversionStatus,
+  ReviewStatus,
+  Workspace,
+} from '@transnote/schema';
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code: number;
+
+  constructor(status: number, code: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
+export interface ReviewItemInput {
+  id: string;
+  reviewStatus: ReviewStatus;
+  taskTitle?: string;
+}
+
+const EMPTY_BODY = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+/** 纯 fetch 封装：JSON 序列化 / 解包 envelope / 统一错误。 */
+async function request<T>(
+  baseUrl: string,
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const url = `${baseUrl}${path}`;
+  const method = (init.method ?? 'GET').toUpperCase();
+  const headers = new Headers(init.headers);
+  let body = init.body;
+  if (!EMPTY_BODY.has(method) && body === undefined) {
+    headers.set('Content-Type', 'application/json');
+  }
+  const res = await fetch(url, { ...init, method, headers, body });
+  if (!res.ok) {
+    let code = -1;
+    let message = `HTTP ${res.status}`;
+    try {
+      const err = (await res.json()) as Partial<ApiEnvelope<unknown>>;
+      code = err.code ?? -1;
+      message = err.message ?? message;
+    } catch {
+      // 非 JSON 错误体
+    }
+    throw new ApiError(res.status, code, message);
+  }
+  if (res.status === 204) {
+    return undefined as T;
+  }
+  const envelope = (await res.json()) as ApiEnvelope<T>;
+  return envelope.data;
+}
+
+export class TransnoteClient {
+  constructor(readonly baseUrl: string) {}
+
+  // ---- Workspaces ----
+  listWorkspaces(): Promise<Workspace[]> {
+    return request(this.baseUrl,'/api/v1/workspaces');
+  }
+
+  createWorkspace(name: string, description?: string): Promise<Workspace> {
+    return request(this.baseUrl,'/api/v1/workspaces', {
+      method: 'POST',
+      body: JSON.stringify({ name, description }),
+    });
+  }
+
+  // ---- Boards ----
+  listBoards(workspaceId: string): Promise<Board[]> {
+    return request(this.baseUrl,`/api/v1/boards?workspaceId=${encodeURIComponent(workspaceId)}`);
+  }
+
+  createBoard(workspaceId: string, title: string): Promise<Board> {
+    return request(this.baseUrl,'/api/v1/boards', {
+      method: 'POST',
+      body: JSON.stringify({ workspaceId, title, layout: 'kanban' }),
+    });
+  }
+
+  getBoard(id: string): Promise<Board & { columns: BoardColumn[] }> {
+    return request(this.baseUrl,`/api/v1/boards/${id}`);
+  }
+
+  addColumn(boardId: string, title: string): Promise<BoardColumn> {
+    return request(this.baseUrl,`/api/v1/boards/${boardId}/columns`, {
+      method: 'POST',
+      body: JSON.stringify({ title }),
+    });
+  }
+
+  listCards(
+    boardId: string,
+    columnId?: string,
+  ): Promise<BoardCard[]> {
+    const q = columnId ? `?columnId=${encodeURIComponent(columnId)}` : '';
+    return request(this.baseUrl,`/api/v1/boards/${boardId}/cards${q}`);
+  }
+
+  addCard(
+    boardId: string,
+    card: {
+      columnId: string;
+      title: string;
+      description?: string;
+      dueDate?: string;
+      priority?: number;
+    },
+  ): Promise<BoardCard> {
+    return request(this.baseUrl,`/api/v1/boards/${boardId}/cards`, {
+      method: 'POST',
+      body: JSON.stringify(card),
+    });
+  }
+
+  // ---- Conversions（契约 §7.2）----
+  submitWordToBoard(
+    workspaceId: string,
+    file: File,
+    targetBoardId?: string,
+  ): Promise<{ jobId: string; status: ConversionStatus; boardId?: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    if (targetBoardId) {
+      form.append('targetBoardId', targetBoardId);
+    }
+    return request(this.baseUrl,
+      `/api/v1/conversions/word-to-board?workspaceId=${encodeURIComponent(workspaceId)}`,
+      { method: 'POST', body: form },
+    );
+  }
+
+  getJob(jobId: string, workspaceId: string): Promise<ConversionJob> {
+    return request(this.baseUrl,
+      `/api/v1/conversions/jobs/${jobId}?workspaceId=${encodeURIComponent(workspaceId)}`,
+    );
+  }
+
+  reviewJob(
+    jobId: string,
+    workspaceId: string,
+    items: ReviewItemInput[],
+  ): Promise<ConversionJob> {
+    return request(this.baseUrl,
+      `/api/v1/conversions/jobs/${jobId}/review?workspaceId=${encodeURIComponent(workspaceId)}`,
+      { method: 'PATCH', body: JSON.stringify({ items }) },
+    );
+  }
+
+  getJobResult(jobId: string, workspaceId: string): Promise<ConversionResult> {
+    return request(this.baseUrl,
+      `/api/v1/conversions/jobs/${jobId}/result?workspaceId=${encodeURIComponent(workspaceId)}`,
+    );
+  }
+
+  boardToWord(
+    workspaceId: string,
+    boardId: string,
+    template: 'task-list' | 'weekly-report',
+  ): Promise<{ jobId: string; status: ConversionStatus; boardId?: string }> {
+    return request(this.baseUrl,
+      `/api/v1/conversions/board-to-word?workspaceId=${encodeURIComponent(workspaceId)}`,
+      { method: 'POST', body: JSON.stringify({ boardId, template, withLlm: false }) },
+    );
+  }
+
+  /** 下载导出产物（docx 二进制）。 */
+  async downloadAsset(assetUrl: string): Promise<Blob> {
+    const res = await fetch(`${this.baseUrl}${assetUrl}`);
+    if (!res.ok) {
+      throw new ApiError(res.status, -1, `下载失败 HTTP ${res.status}`);
+    }
+    return res.blob();
+  }
+}

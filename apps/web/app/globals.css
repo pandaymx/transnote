@@ -1,0 +1,4 @@
+/* 极简全局样式（App Router 需要 globals.css） */
+* {
+  box-sizing: border-box;
+}
