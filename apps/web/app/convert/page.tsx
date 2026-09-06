@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -22,6 +22,14 @@ function ConvertInner() {
   const [targetBoardId, setTargetBoardId] = useState(params.get('board') ?? '');
   const [jobId, setJobId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // 看板页跳转（tab=export）时自动带入看板到导出区
+  useEffect(() => {
+    const boardParam = params.get('board');
+    if (boardParam) setTargetBoardId(boardParam);
+    if (boardParam && params.get('tab') === 'export') setExportBoardId(boardParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.get('board'), params.get('tab')]);
 
   const submit = useWordToBoard(wsId);
   const { data: job, isLoading: jobLoading } = useJob(jobId ?? '', wsId, !!jobId);

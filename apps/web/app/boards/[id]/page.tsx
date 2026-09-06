@@ -66,6 +66,17 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             返回
           </button>
           <button
+            className="btn secondary"
+            onClick={() => {
+              if (board) {
+                setWorkspace(board.workspaceId);
+                router.push(`/convert?ws=${board.workspaceId}&board=${board.id}&tab=export`);
+              }
+            }}
+          >
+            导出 Word
+          </button>
+          <button
             className="btn"
             onClick={() => {
               if (board) {
