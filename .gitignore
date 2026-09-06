@@ -33,3 +33,4 @@ out/
 # ---- Next.js ----
 apps/web/.next/
 .next/
+apps/desktop/dist/

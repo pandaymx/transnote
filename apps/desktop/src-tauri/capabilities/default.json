@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "TransNote 桌面端默认能力",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
