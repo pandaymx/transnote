@@ -19,7 +19,7 @@
 | # | 主题 | 交付物 | 状态 |
 |---|---|---|---|
 | T1 | Monorepo 脚手架 + Docker Compose 环境 | 根 bun workspaces + server Gradle 骨架 + infra/compose | ⬜ |
-| T2 | 工作区表 + CRUD（**认证/RBAC 后置**，公司内网暂免登录） | server/modules/identity（workspace 部分） | 🚧 |
+| T2 | 工作区表 + CRUD（**认证/RBAC 后置**，公司内网暂免登录） | server/modules/identity（workspace 部分） | ✅ |
 | T2.1 | 用户/认证/JWT/成员 RBAC（后置） | server/modules/identity | ⬜ |
 | T3 | 文档/块 CRUD + 版本号 | server/modules/document + blocks 表 | ⬜ |
 | T4 | 块编辑器（Web） | packages/core + apps/web | ⬜ |
@@ -223,6 +223,13 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **PG 18 官方镜像挂载变更**：必须挂 `/var/lib/postgresql` 根（数据在子目录），挂旧路径 `/var/lib/postgresql/data` 直接报错退出。
 - **宿主 5432 被 `ai-copilot-postgres-1` 占用**：transnote PG 定 **5433**（compose + application.yml + 文档 DB_URL 三处一致）。
 - **本机其他项目容器**（ai-copilot/wakapi/pgadmin4 等）不要动，端口规划绕开。
+
+### §10 Boot 4 测试与构建坑（2026-09-06 追加）
+
+- **Gradle 9 需显式提供 JUnit Platform launcher**：纯 java 模块（如 identity）test 失败报 "Failed to load JUnit Platform" → `testRuntimeOnly("org.junit.platform:junit-platform-launcher")`（版本 BOM 管）。
+- **Boot 4 把 MockMvc 拆成独立 starter**：`spring-boot-starter-webmvc-test` 必须显式声明；且 `@AutoConfigureMockMvc` 包名改为 `org.springframework.boot.webmvc.test.autoconfigure`（不再是 ...web.servlet.autoconfigure）。
+- **脚本验证命令禁接 grep 管道**（吞退出码）：统一 `if ! cmd > log 2>&1; then tail log; exit 1; fi` 模式。
+- T2 工作区 API 约定（文档未定义，已按 §7.3 风格落地）：`POST/GET /api/v1/workspaces`、`GET/PATCH/DELETE /api/v1/workspaces/{id}`；错误 404（不存在）/422（校验、slug 冲突）。
 
 ### §9 Flyway 迁移约定（2026-09-06 定）
 
