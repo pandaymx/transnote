@@ -20,3 +20,10 @@ spring:
 
 server:
   port: 8080
+
+transnote:
+  llm:
+    enabled: false               # true 时启用 OpenAI 兼容 LLM 抽取（§8.3）
+    base-url: ${LLM_BASE_URL:}
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:deepseek-chat}
