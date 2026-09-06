@@ -137,7 +137,7 @@ flowchart TD
 
 | 做（MVP 内） | 不做（后置） |
 |---|---|
-| 认证（邮箱/手机号 + JWT）、工作区、基础 RBAC | 第三方登录、SSO、企业版管理 |
+| 工作区（公司内网暂免登录，认证后置） | 认证（邮箱/手机号 + JWT）、RBAC、第三方登录、SSO |
 | 块级编辑器：paragraph/heading/todo/列表/引用/分隔线/代码块 | 表格/图片/数据库视图/评论/模板市场 |
 | 文档 CRUD + 版本历史（按块 version） | 全文检索（Phase 2）、回收站深度功能 |
 | 看板：列/卡片/标签/拖拽/优先级/截止/负责人 | 日历视图、看板自动化、依赖图 |
@@ -431,8 +431,9 @@ const state = await api.get(`/api/v1/conversions/jobs/${job.jobId}`);
 
 | # | 任务 | 归属模块 | 验收标准（DoD） |
 |---|---|---|---|
-| T1 | Monorepo 脚手架 + Docker Compose 环境 | infra | `pnpm install`、`docker compose up`、server 启动连上 PG/Redis/MinIO |
-| T2 | 认证 + 工作区 + RBAC | identity | 注册/登录/刷新可用；非成员访问工作区数据返回 403 |
+| T1 | Monorepo 脚手架 + Docker Compose 环境 | infra | `bun install`、`docker compose up`、server 启动连上 PG/Valkey/MinIO |
+| T2 | 工作区表 + CRUD（**认证后置**，ADR-11） | identity（workspace） | 建工作区/列表/改名；`workspace_id` 过滤就位；表单校验；对应单测 |
+| T2.1 | 用户/认证/JWT/成员 RBAC（后置） | identity | 注册/登录/刷新可用；非成员访问工作区数据返回 403 |
 | T3 | 文档/块 CRUD + 版本号 | document | 块 upsert/delete/move 正确；version 递增；获取整文档树正确 |
 | T4 | 块编辑器（Web） | packages/core + apps/web | 段落/标题/todo/列表/引用/代码块可编辑；拖拽排序；刷新不丢 |
 | T5 | 看板 CRUD + 拖拽 | board + apps/web | 建列/卡片；拖拽换列/排序一次提交成功；筛选生效 |

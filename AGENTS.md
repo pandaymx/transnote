@@ -12,14 +12,15 @@
 
 **MVP 判据（一句话）**：在 Web 上能建文档、写块、建看板并拖卡片；上传一个 .docx 能自动变成待办看板（负责人/截止/优先级），看板能一键导出成排版良好的 .docx，且每条任务可跳回原文段落。
 
-**当前阶段**：Phase 0 准备——AGENTS.md 与 `.agents/` 已就位，技术栈已拍板（Java 25 + Spring Boot 4.1.1 + Gradle），代码尚未开始。任务进度见 §1.1。
+**当前阶段**：Phase 1 MVP——T1 后端基础工程已完成（Spring Boot 4.1.1 + spotless + infra compose，均过钩子提交）；Web 层定 **Servlet**（ADR-10）。当前任务：T2 工作区模块（认证后置，ADR-11）。任务进度见 §1.1。
 
 ### 1.1 任务进度（权威拆分在 `docs/类Notion平台_MVP开发交接文档.md` §11）
 
 | # | 主题 | 交付物 | 状态 |
 |---|---|---|---|
 | T1 | Monorepo 脚手架 + Docker Compose 环境 | 根 bun workspaces + server Gradle 骨架 + infra/compose | ⬜ |
-| T2 | 认证 + 工作区 + RBAC | server/modules/identity | ⬜ |
+| T2 | 工作区表 + CRUD（**认证/RBAC 后置**，公司内网暂免登录） | server/modules/identity（workspace 部分） | 🚧 |
+| T2.1 | 用户/认证/JWT/成员 RBAC（后置） | server/modules/identity | ⬜ |
 | T3 | 文档/块 CRUD + 版本号 | server/modules/document + blocks 表 | ⬜ |
 | T4 | 块编辑器（Web） | packages/core + apps/web | ⬜ |
 | T5 | 看板 CRUD + 拖拽 | server/modules/board + apps/web | ⬜ |
@@ -39,7 +40,7 @@
 |---|---|---|
 | 后端语言 | **Java 25（LTS）** | 当前 WSL 已有 GraalVM 25（sdkman `25.0.2-graal` / `25.0.4-graal`），设为默认；勿用 JDK 8 |
 | 构建工具 | **Gradle（wrapper 优先）** | **明确不用 Maven**；`server/` 用 Gradle 多模块或单模块按需 |
-| 后端框架 | **Spring Boot 4.1.1** + Spring Modulith | 模块化单体（ADR-1）；Boot 4 基于 Spring Framework 7 / Jakarta EE 11，Web 用 `spring-boot-starter-webmvc`（不再是 `starter-web`） |
+| 后端框架 | **Spring Boot 4.1.1** + Spring Modulith | 模块化单体（ADR-1）；Boot 4 基于 Spring Framework 7 / Jakarta EE 11，Web 用 `spring-boot-starter-webmvc`（不再是 `starter-web`）；**Servlet 模型，不用 Reactive/WebFlux（ADR-10）** |
 | 数据库 | PostgreSQL 18（blocks 用 JSONB；PG 19 未 GA 不采用） | 连接串走环境变量 |
 | 缓存 | Valkey 9.1.2（Redis 协议兼容，Linux 基金会托管，替代 Redis 7） | 会话/协作文档内存态 |
 | 对象存储 | MinIO（S3 兼容） | 附件/转换产物 |

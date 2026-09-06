@@ -17,7 +17,7 @@
 | | M0.2 | 提交规范落地 | commitlint + lefthook 配置并实测 | 坏提交被拦截；`bunx commitlint` 通过规范样例 | |
 | | M0.3 | 后端环境 | Java 25 默认（sdkman）、Gradle wrapper、空 Spring Boot 4.1.1 项目 | `./gradlew bootRun` 起服务、`/actuator/health` 或自建 health 200 | |
 | | M0.4 | 依赖环境 | bun workspaces 骨架 + infra/docker-compose | PG/Redis/MinIO 一键起；根 `package.json` 声明 workspaces | |
-| **P1 MVP** | M1 | 认证与工作区 | T2 identity | 注册/登录/JWT/refresh 可用；非成员访问返回 403 | 6~8 周 |
+| **P1 MVP** | M1 | 工作区与文档内核（认证后置，ADR-11） | T2 工作区 + T3 | 可建工作区；blocks 表与块 CRUD 可用 | 6~8 周 |
 | | M2 | 文档内核 | T3 document + blocks 表 | 块树 CRUD 正确；JSONB 存储；version 递增 | |
 | | M3 | 块编辑器 | T4 core + web | 段落/标题/todo/列表/引用/代码块可编辑；拖拽排序；刷新不丢 | |
 | | M4 | 看板 | T5 board | 建列/卡片；拖拽换列/排序一次提交；筛选生效 | |
@@ -45,7 +45,7 @@
 
 ```mermaid
 flowchart LR
-    M01["M0 地基"] --> T2["T2 认证/RBAC"]
+    M01["M0 地基"] --> T2["T2 工作区（认证后置）"]
     T2 --> T3["T3 文档内核"]
     T3 --> T4["T4 块编辑器(Web)"]
     T4 --> T5["T5 看板"]
@@ -78,7 +78,7 @@ flowchart LR
 | 周 | 目标 | 产出 |
 |---|---|---|
 | 第 1 周 | P0 全部（M0.1~M0.4） | 仓库可提交、坏提交被拦截、后端空服务跑通、依赖环境就绪 |
-| 第 2 周 | T2（认证）+ T3（文档内核）开始 | 能注册登录建工作区；blocks 表与块 CRUD API 可用 |
+| 第 2 周 | T2（工作区）+ T3（文档内核）开始 | 能建工作区；blocks 表与块 CRUD API 可用 |
 
 > 首次冲刺完成即满足「能注册登录、能建文档写块」的第一版可用雏形。
 

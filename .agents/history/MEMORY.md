@@ -1,6 +1,6 @@
 # TransNote 项目长期笔记
 
-> 这是 `~/code/transnote` 的项目级长期记忆。当前阶段：**Phase 0 准备**。
+> 这是 `~/code/transnote` 的项目级长期记忆。当前阶段：**Phase 1 MVP（T1 后端基础工程完成，T2 工作区进行中）**。
 > 完整权威定义在 `AGENTS.md` + `docs/类Notion平台_MVP开发交接文档.md`。
 
 ## 关键 ADR（架构决策记录）
@@ -19,13 +19,15 @@
 | ADR-7 | Web/桌面共享 core 包（bun workspaces monorepo），移动端独立 UI 但共享 API 契约 |
 | ADR-8 | 构建工具用 **Gradle**（不用 Maven）；前端包管理用 **bun**（不用 pnpm/npm） |
 | ADR-9 | Git 钩子用 **lefthook**（不用 husky，与 lanchat 一致）；提交校验 @commitlint/cli + config-conventional |
+| ADR-10 | Web 层用 **Servlet（spring-boot-starter-webmvc）**，不用 Reactive/WebFlux；并发由 Java 25 虚拟线程承载，AI 转换/协作透传是阻塞 IO 任务，Reactive 收益不成立、成本高 |
+| ADR-11 | T2 拆分：**先建工作区表**（公司内网暂免认证），用户/认证/RBAC 后置；数据访问仍预留 `workspace_id` 过滤与 @RequireWorkspace 设计 |
 
 ## 里程碑状态
 
 | Milestone | 状态 | 说明 |
 |---|---|---|
-| Phase 0 准备（.agents + AGENTS.md + CLAUDE.md） | 🚧 进行中 | 2026-09-06 落盘，待用户确认项目名与后续步骤 |
-| Phase 1 MVP（T1–T12） | ⬜ 未开始 | 任务清单见 AGENTS.md §1.1 |
+| Phase 0 准备（.agents + AGENTS.md + CLAUDE.md） | ✅ 完成 | 2026-09-06 落盘，项目定名 TransNote |
+| Phase 1 MVP（T1–T12） | 🚧 进行中 | T1 后端基础工程（Spring Boot 4.1.1 + spotless + infra compose）已完成；T2 工作区进行中 |
 | Phase 2 协作/桌面/搜索 | ⬜ | |
 | Phase 3 移动端/打磨 | ⬜ | |
 
@@ -34,7 +36,7 @@
 - 后端：**Java 25（LTS）+ Spring Boot 4.1.1** + Spring Modulith，构建 **Gradle**（Boot 4：Web 用 `spring-boot-starter-webmvc`）
 - 前端：Next.js 14/15 + React + TS；桌面 Tauri 2；移动 Flutter 3（Phase 3，**Windows 侧开发**——WSL 不适合 Flutter 工具链/设备调试，见 AGENTS.md §7）
 - 包管理：**bun workspaces**（`apps/*`、`packages/*`）；Git 钩子 **lefthook**；提交校验 commitlint
-- 存储：PostgreSQL 16（JSONB）+ Redis 7 + MinIO；搜索 ES 8（后置）
+- 存储：PostgreSQL 18（JSONB）+ Valkey 9.1.2（替代 Redis 7）+ MinIO latest；搜索 ES 9.5.3（后置）
 - AI：OpenAI 兼容多 provider（LlmProvider 抽象）+ 人工校对门 + Golden 回归
 
 ## 持续关注（踩坑沉淀，开发后持续追加）
@@ -45,8 +47,10 @@
 
 - [x] 项目定名 **TransNote**（仓库 `~/code/transnote`，Java 包 `com.transnote.*`）
 - [x] commitlint + lefthook 落地（2026-09-06 实测：@commitlint/cli 21.2.2 / lefthook 2.1.12；坏提交 feat(badscope) 已被 commit-msg 拦截；pre-commit 密钥扫描）
-- [x] 集成 semantic-release 并完成首次发布 v0.0.1（2026-09-06：25.0.9 + changelog 7.0.0 + git 11.0.1 + conventionalcommits 9.3.1 显式安装；`bun run release` 自动生成 CHANGELOG + `chore(release)` 提交 + tag；repositoryUrl 用 `file://` 本地占位，接 GitHub 时替换）
-- [ ] T1（进行中）：已建 server Gradle wrapper + Spring Boot 4.1.1 基础工程 + spotless；剩余 bun workspaces 依赖声明（T1.2）与 infra/docker-compose.yml（T1.3）
-- [ ] 设 JAVA_HOME / sdkman 默认指向 GraalVM 25（Java 25 + Spring Boot 4.1.1 已定版）
-- [ ] 接入 commitlint + lefthook（lefthook.yml + commitlint.config.js + hook install）
-- [ ] git init + 首次提交（chore(repo): 初始化 .agents 与工程约定）
+- [x] 集成 semantic-release 并完成首次发布 v0.0.1（2026-09-06：conventionalcommits 9.3.1 显式安装；`bun run release` 自动生成 CHANGELOG + `chore(release)` 提交 + tag；repositoryUrl 用 `file://` 本地占位，接 GitHub 时替换）
+- [x] git init + 首次提交 + 坏提交拦截实测（f79ddf4）
+- [x] T1（主体）：server Gradle wrapper + Spring Boot 4.1.1 基础工程（d1e238b）+ spotless 8.10.1（f454131）+ infra/docker-compose.yml（PG18/Valkey9.1.2/MinIO，2b4b7d0）
+- [x] 决策 Servlet Web（ADR-10）与 T2 拆分工作区先行（ADR-11）
+- [ ] T1.2（剩余）：bun workspaces 根依赖声明细化（apps/packages 已建目录）
+- [ ] T2：工作区表 + CRUD（server/modules/identity 的 workspace 部分；认证/RBAC 后置）
+- [ ] 设 JAVA_HOME / sdkman 默认指向 GraalVM 25
