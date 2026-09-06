@@ -1,3 +1,9 @@
+## [1.5.2](https://github.com/pandaymx/transnote/compare/v1.5.1...v1.5.2) (2026-09-06)
+
+### Bug Fixes
+
+* **conversion:** word 转换带描述任务建卡失败回归修复 ([6548a56](https://github.com/pandaymx/transnote/commit/6548a56e5eb444114c8d4ce01d07ff83547cbc25))
+
 ## [1.5.1](https://github.com/pandaymx/transnote/compare/v1.5.0...v1.5.1) (2026-09-06)
 
 ### Bug Fixes
