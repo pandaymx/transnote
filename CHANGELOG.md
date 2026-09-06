@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/pandaymx/transnote/compare/v1.4.0...v1.5.0) (2026-09-06)
+
+### Features
+
+* **desktop:** 桌面壳三视图（工作区/看板/看板详情，复用 core） ([68dd9f9](https://github.com/pandaymx/transnote/commit/68dd9f995fe962d9f73aa62a2033e344c2816a9f))
+
 ## [1.4.0](https://github.com/pandaymx/transnote/compare/v1.3.0...v1.4.0) (2026-09-06)
 
 ### Features
