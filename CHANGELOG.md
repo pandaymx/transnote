@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/pandaymx/transnote/compare/v1.6.0...v1.7.0) (2026-09-06)
+
+### Features
+
+* **ci:** tag 发版自动打包并挂载 GitHub Release ([cef6c12](https://github.com/pandaymx/transnote/commit/cef6c12575483580e962d074a038b70cc6313957))
+
 ## [1.6.0](https://github.com/pandaymx/transnote/compare/v1.5.2...v1.6.0) (2026-09-06)
 
 ### Features
