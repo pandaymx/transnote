@@ -1,0 +1,245 @@
+{
+  "samples" : [ {
+    "file" : "g01_checkbox_plain.docx",
+    "tasks" : [ {
+      "title" : "完成接口联调",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "备份数据库",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "压测验证",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g02_checkbox_done.docx",
+    "tasks" : [ {
+      "title" : "完成接口联调",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "备份数据库",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "压测验证",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "发布上线",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g03_checkbox_heading_cat.docx",
+    "tasks" : [ {
+      "title" : "设计评审",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "接口定义",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "环境准备",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "代码提交",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g04_checkbox_desc.docx",
+    "tasks" : [ {
+      "title" : "完成接口联调",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "备份数据库",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g05_checkbox_many.docx",
+    "tasks" : [ {
+      "title" : "任务一",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "任务二",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "任务三",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "任务四",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "任务五",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "任务六",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g06_checkbox_single.docx",
+    "tasks" : [ {
+      "title" : "唯一任务",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g07_list_numbered.docx",
+    "tasks" : [ {
+      "title" : "编写接口文档",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "评审方案",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "排期确认",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g08_list_checkbox.docx",
+    "tasks" : [ {
+      "title" : "编写接口文档",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "评审方案",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "完成接口联调",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g09_table_tasks.docx",
+    "tasks" : [ {
+      "title" : "压测验证",
+      "assignee" : "王五",
+      "dueDate" : "2026-09-12"
+    } ]
+  }, {
+    "file" : "g10_table_no_header.docx",
+    "tasks" : [ {
+      "title" : "压测验证",
+      "assignee" : "王五",
+      "dueDate" : "2026-09-12"
+    } ]
+  }, {
+    "file" : "g11_table_cn_header.docx",
+    "tasks" : [ {
+      "title" : "压测验证",
+      "assignee" : "王五",
+      "dueDate" : "2026-09-12"
+    } ]
+  }, {
+    "file" : "g12_table_blank_cells.docx",
+    "tasks" : [ {
+      "title" : "压测验证",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g13_table_mixed.docx",
+    "tasks" : [ {
+      "title" : "完成接口联调",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "备份数据库",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "压测验证",
+      "assignee" : "王五",
+      "dueDate" : "2026-09-12"
+    } ]
+  }, {
+    "file" : "g14_table_heading.docx",
+    "tasks" : [ {
+      "title" : "压测验证",
+      "assignee" : "王五",
+      "dueDate" : "2026-09-12"
+    } ]
+  }, {
+    "file" : "g15_table_single.docx",
+    "tasks" : [ {
+      "title" : "压测验证",
+      "assignee" : "王五",
+      "dueDate" : "2026-09-12"
+    } ]
+  }, {
+    "file" : "g16_checkbox_empty.docx",
+    "tasks" : [ {
+      "title" : "完成接口联调",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "备份数据库",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g17_heading_only.docx",
+    "tasks" : [ ]
+  }, {
+    "file" : "g18_plain_text.docx",
+    "tasks" : [ ]
+  }, {
+    "file" : "g19_empty.docx",
+    "tasks" : [ ]
+  }, {
+    "file" : "g20_list_heading.docx",
+    "tasks" : [ {
+      "title" : "编写接口文档",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "评审方案",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "完成接口联调",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  }, {
+    "file" : "g21_table_iso_dates.docx",
+    "tasks" : [ {
+      "title" : "压测验证",
+      "assignee" : "王五",
+      "dueDate" : "2026-09-12"
+    } ]
+  }, {
+    "file" : "g22_long_titles.docx",
+    "tasks" : [ {
+      "title" : "完成支付模块接口联调并补充异常分支测试用例覆盖",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "备份生产数据库并验证恢复流程完整性",
+      "assignee" : null,
+      "dueDate" : null
+    }, {
+      "title" : "压测验证系统在千级并发下的稳定性表现",
+      "assignee" : null,
+      "dueDate" : null
+    } ]
+  } ]
+}
