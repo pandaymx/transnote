@@ -1,3 +1,9 @@
+## [1.8.1](https://github.com/pandaymx/transnote/compare/v1.8.0...v1.8.1) (2026-09-06)
+
+### Bug Fixes
+
+* **ci:** release 资产路径匹配 artifact 子目录（deb/rpm/nsis/msi） ([2c26629](https://github.com/pandaymx/transnote/commit/2c26629d69bc472cce78e3ccb7f40ffc84f9a4b7))
+
 ## [1.8.0](https://github.com/pandaymx/transnote/compare/v1.7.0...v1.8.0) (2026-09-06)
 
 ### Features
