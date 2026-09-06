@@ -248,6 +248,7 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - T10 Golden：样例生成器写 build/golden-gen（勿用 @TempDir，JUnit 随机清理）；expected.json 为期望清单；阈值统计口径=期望任务顺序比对，多余抽取容忍；g16 空勾选放末尾。
 - T4a 前端：① bun install --frozen-lockfile 首次必须更新 lockfile（先裸跑一次再锁）；② Next 产物 .next/ 必须进 .gitignore（曾误提交 242 文件）；③ api-client request() 全调用须传 baseUrl；④ 含 $ 的 bash 命令必须写 .sh 经 wsl -e bash 执行（PowerShell 会吞 $ 变量）；⑤ 前端 CORS 由 server WebConfig 放行 localhost:3000/tauri。
 - T4b Tauri：① 缺 icons/icon.png 时 tauri-build 编译失败（占位 PNG 即可）；② main.rs 引用 lib 必须在 Cargo.toml 声明 [lib] name + crate-type(staticlib/cdylib/rlib)；③ 本机 WSL 无 webkit2gtk，rust 编译验证放 CI（ubuntu + apt libwebkit2gtk-4.1-dev）。
+- T4c 看板交互：① 后端 UpdateCardRequest 的 columnId/position 任一出现即"拖拽"语义（isDrag）；② 乐观更新三件套 onMutate 快照/onError 回滚/onSettled invalidate；③ pkill -f 'transnote.server' 会误杀 gradle 子进程（正则匹配 transnote-server jar），清理用 pkill -f 'TransnoteApplication'；④ 冒烟 JSON 必须写 .sh 用单引号（PowerShell/wsl 内联会注入字面 \" 导致 Jackson escape 报错）。
 
 ### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
 
