@@ -34,3 +34,7 @@ out/
 apps/web/.next/
 .next/
 apps/desktop/dist/
+
+# ---- Next 生成文件（dev/build 双模式噪音）----
+apps/web/next-env.d.ts
+**/tsconfig.tsbuildinfo
