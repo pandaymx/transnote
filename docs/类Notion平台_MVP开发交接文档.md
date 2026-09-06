@@ -19,7 +19,7 @@
 
 ## 2. 交接快照（TL;DR）
 
-- **后端**：Java 25 + Spring Boot 4.1.1，**模块化单体**（Spring Modulith），PostgreSQL 16（blocks 用 JSONB）
+- **后端**：Java 25 + Spring Boot 4.1.1，**模块化单体**（Spring Modulith），PostgreSQL 18（blocks 用 JSONB）
 - **Web**：Next.js 14/15（App Router）+ React + TypeScript
 - **桌面**：Tauri 2（Rust 壳）复用 Web 的 React core，补本地文件/离线/托盘能力
 - **移动**：Flutter 3（Phase 3 再做，本交接仅预留 API 与同步契约）
@@ -67,20 +67,20 @@ monorepo/
 ```yaml
 services:
   postgres:
-    image: postgres:16
-    environment: { POSTGRES_DB: notion_like, POSTGRES_USER: dev, POSTGRES_PASSWORD: dev }
+    image: postgres:18
+    environment: { POSTGRES_DB: transnote, POSTGRES_USER: dev, POSTGRES_PASSWORD: dev }
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
-  redis:
-    image: redis:7
+  valkey:
+    image: valkey/valkey:9.1.2   # Redis 协议兼容，替代 redis:7
     ports: ["6379:6379"]
   minio:
-    image: minio/minio
+    image: minio/minio:latest
     command: server /data --console-address ":9001"
     ports: ["9000:9000", "9001:9001"]
     environment: { MINIO_ROOT_USER: dev, MINIO_ROOT_PASSWORD: devdevdev }
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.3   # 后置依赖，默认不启用
     environment: [ "discovery.type=single-node", "xpack.security.enabled=false" ]
     ports: ["9200:9200"]
 ```
@@ -89,8 +89,8 @@ services:
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `DB_URL` / `DB_USER` / `DB_PASS` | `jdbc:postgresql://localhost:5432/notion_like` / dev / dev | PostgreSQL |
-| `REDIS_URL` | `redis://localhost:6379` | Redis |
+| `DB_URL` / `DB_USER` / `DB_PASS` | `jdbc:postgresql://localhost:5432/transnote` / dev / dev | PostgreSQL 18 |
+| `REDIS_URL` | `redis://localhost:6379` | Valkey 9.1.2（协议兼容，连接串 scheme 仍为 redis://） |
 | `MINIO_ENDPOINT` / `MINIO_BUCKET` | `http://localhost:9000` / `assets` | 对象存储 |
 | `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | 空（必填） | OpenAI 兼容接口，可指向 DeepSeek/通义/豆包等 |
 | `JWT_SECRET` | 空（必填，≥32 字符） | HS256 密钥 |
@@ -117,8 +117,8 @@ flowchart TD
         A6["search / notification / asset"]
     end
     subgraph Data["数据与基础设施"]
-        PG[("PostgreSQL 16 · JSONB")]
-        RD[("Redis 7")]
+        PG[("PostgreSQL 18 · JSONB")]
+        RD[("Valkey 9.1")]
         ES[("Elasticsearch 8")]
         MQ[("Redis Stream / Kafka")]
         MO[("MinIO · S3")]

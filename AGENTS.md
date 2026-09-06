@@ -40,8 +40,8 @@
 | 后端语言 | **Java 25（LTS）** | 当前 WSL 已有 GraalVM 25（sdkman `25.0.2-graal` / `25.0.4-graal`），设为默认；勿用 JDK 8 |
 | 构建工具 | **Gradle（wrapper 优先）** | **明确不用 Maven**；`server/` 用 Gradle 多模块或单模块按需 |
 | 后端框架 | **Spring Boot 4.1.1** + Spring Modulith | 模块化单体（ADR-1）；Boot 4 基于 Spring Framework 7 / Jakarta EE 11，Web 用 `spring-boot-starter-webmvc`（不再是 `starter-web`） |
-| 数据库 | PostgreSQL 16（blocks 用 JSONB） | 连接串走环境变量 |
-| 缓存 | Redis 7 | 会话/协作文档内存态 |
+| 数据库 | PostgreSQL 18（blocks 用 JSONB；PG 19 未 GA 不采用） | 连接串走环境变量 |
+| 缓存 | Valkey 9.1.2（Redis 协议兼容，Linux 基金会托管，替代 Redis 7） | 会话/协作文档内存态 |
 | 对象存储 | MinIO（S3 兼容） | 附件/转换产物 |
 | 搜索 | Elasticsearch 8 | Phase 2 引入 |
 | Web 前端 | Next.js 14/15 + React + TypeScript | App Router；编辑器/看板组件 `'use client'` |
@@ -155,7 +155,7 @@ scope 白名单不是形式主义——它逼着每次提交想清楚「改的�
 - Java 25（LTS）：sdkman 管理（当前有 `25.0.2-graal` / `25.0.4-graal` / `8.0.502-zulu`），**默认切到 25**（`sdk default java 25.0.4-graal`）；勿用 JDK 8。`JAVA_HOME` 需显式设置，Gradle 优先用 wrapper。
 - Node `v26.7.0`（`/usr/sbin/node`）；bun 在 `~/.bun/bin`（**不在默认 PATH**，命令跑不通先 `export PATH="$HOME/.bun/bin:$PATH"`）；前端包管理用 **bun workspaces**。
 - git 已配置 `user.name=皮皮萌宝` / `user.email=panda1943575780@outlook.com`。
-- Docker：`infra/docker-compose.yml` 起 PostgreSQL / Redis / MinIO（开发期）。
+- Docker：`infra/docker-compose.yml` 起 PostgreSQL / Valkey / MinIO（开发期）。
 - **移动端（Flutter）在 Windows 侧开发**：flutter 工具链在 Windows `D:\programmer\flutter\bin`（Android SDK / adb / 模拟器全走 Windows）；WSL 内**不装不跑** Flutter 工具链。同一 git 仓库用 worktree 在 Windows 侧检出 `mobile` 相关分支开发（见 `.agents/workflow/scratchpad-concurrency.md`），提交归一到同一仓库；WSL 侧不直接写 `mobile/`。
 
 **已踩过的坑 / 环境注意（持续追加）**：
@@ -185,7 +185,7 @@ bunx commitlint --edit    # 校验提交信息（hook 会自动跑）
 ./gradlew test            # 后端单测
 ./gradlew compileJava     # 编译检查
 
-docker compose -f infra/docker-compose.yml up -d   # 起依赖（PG/Redis/MinIO）
+docker compose -f infra/docker-compose.yml up -d   # 起依赖（PG/Valkey/MinIO）
 
 bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑）
 ```

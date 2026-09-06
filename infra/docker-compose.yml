@@ -1,0 +1,52 @@
+# TransNote 开发依赖环境（2026-09-06 定版）
+# PostgreSQL 18（19 未 GA）、Valkey 9.1.2（替代 Redis 7）、MinIO latest（S3 兼容）
+# 用法：docker compose -f infra/docker-compose.yml up -d
+services:
+  postgres:
+    image: postgres:18
+    container_name: transnote-postgres
+    environment:
+      POSTGRES_DB: transnote
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d transnote"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  valkey:
+    image: valkey/valkey:9.1.2
+    container_name: transnote-valkey
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkeydata:/data
+    command: ["valkey-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest   # 跟随最新 RELEASE（生产环境建议固定 RELEASE.yyyy-mm-dd 标签）
+    container_name: transnote-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: dev
+      MINIO_ROOT_PASSWORD: devdevdev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+volumes:
+  pgdata:
+  valkeydata:
+  miniodata:
