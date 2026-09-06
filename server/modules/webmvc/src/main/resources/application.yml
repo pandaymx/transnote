@@ -27,3 +27,5 @@ transnote:
     base-url: ${LLM_BASE_URL:}
     api-key: ${LLM_API_KEY:}
     model: ${LLM_MODEL:deepseek-chat}
+  asset:
+    storage-dir: ${TRANS_NOTE_ASSET_DIR:./data/assets}   # MVP 本地；生产切 MinIO/S3（§8.4）

@@ -3,6 +3,7 @@ package com.transnote.api;
 import com.transnote.board.BoardCardNotFoundException;
 import com.transnote.board.BoardColumnNotFoundException;
 import com.transnote.board.BoardNotFoundException;
+import com.transnote.conversion.service.ConversionNotFoundException;
 import com.transnote.document.BlockNotFoundException;
 import com.transnote.document.DocumentNotFoundException;
 import com.transnote.identity.workspace.WorkspaceConflictException;
@@ -28,7 +29,8 @@ public class GlobalExceptionHandler {
     BlockNotFoundException.class,
     BoardNotFoundException.class,
     BoardColumnNotFoundException.class,
-    BoardCardNotFoundException.class
+    BoardCardNotFoundException.class,
+    ConversionNotFoundException.class
   })
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public ApiResponse<Void> handleNotFound(RuntimeException ex) {

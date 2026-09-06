@@ -1,0 +1,147 @@
+package com.transnote.api.conversion;
+
+import com.transnote.api.ApiResponse;
+import com.transnote.conversion.model.ConversionItem;
+import com.transnote.conversion.model.ConversionJob;
+import com.transnote.conversion.service.ConversionService;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+/** 转换任务端点（契约 §7.2 / §8.4）：Word→看板 提交 / 查询 / 校对 / 结果。 */
+@RestController
+@RequestMapping("/api/v1/conversions")
+public class ConversionJobController {
+
+  private final ConversionService conversionService;
+
+  public ConversionJobController(ConversionService conversionService) {
+    this.conversionService = conversionService;
+  }
+
+  /** §8.4 步骤 1-6：上传 Word → 解析抽取 → 高置信自动建板 / 低置信进 REVIEW。 */
+  @PostMapping(value = "/word-to-board", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<SubmitResponse> wordToBoard(
+      @RequestParam UUID workspaceId,
+      @RequestParam(required = false) UUID targetBoardId,
+      @RequestParam MultipartFile file)
+      throws IOException {
+    ConversionJob job =
+        conversionService.submitWordToBoard(
+            workspaceId, file.getOriginalFilename(), file.getBytes(), targetBoardId);
+    return ApiResponse.ok(new SubmitResponse(job.getId(), job.getStatus(), job.getTargetBoardId()));
+  }
+
+  /** 任务查询（含 items）。 */
+  @GetMapping("/jobs/{jobId}")
+  public ApiResponse<JobResponse> job(@PathVariable UUID jobId, @RequestParam UUID workspaceId) {
+    ConversionJob job = conversionService.getJob(jobId, workspaceId);
+    return ApiResponse.ok(
+        JobResponse.from(
+            job, conversionService.itemsOf(jobId).stream().map(ItemResponse::from).toList()));
+  }
+
+  /** §8.4 步骤 6：校对（CONFIRMED/REJECTED，携带 taskTitle 视为编辑）。 */
+  @PatchMapping("/jobs/{jobId}/review")
+  public ApiResponse<JobResponse> review(
+      @PathVariable UUID jobId,
+      @RequestParam UUID workspaceId,
+      @RequestBody ReviewRequest request) {
+    List<ConversionService.ReviewAction> actions =
+        request.items() == null
+            ? List.of()
+            : request.items().stream()
+                .map(
+                    i ->
+                        new ConversionService.ReviewAction(i.id(), i.reviewStatus(), i.taskTitle()))
+                .toList();
+    ConversionJob job = conversionService.review(jobId, workspaceId, actions);
+    return ApiResponse.ok(
+        JobResponse.from(
+            job, conversionService.itemsOf(jobId).stream().map(ItemResponse::from).toList()));
+  }
+
+  /** 转换结果（§7.2：boardId；Board→Word 的 assetUrl 后置）。 */
+  @GetMapping("/jobs/{jobId}/result")
+  public ApiResponse<ResultResponse> result(
+      @PathVariable UUID jobId, @RequestParam UUID workspaceId) {
+    ConversionJob job = conversionService.getJob(jobId, workspaceId);
+    return ApiResponse.ok(new ResultResponse(job.getId(), job.getStatus(), job.getTargetBoardId()));
+  }
+
+  public record SubmitResponse(UUID jobId, String status, UUID boardId) {}
+
+  public record ItemResponse(
+      UUID id,
+      String taskTitle,
+      String description,
+      String assignee,
+      LocalDate dueDate,
+      Short priority,
+      String category,
+      String dependsOn,
+      String evidence,
+      double confidence,
+      String reviewStatus) {
+    static ItemResponse from(ConversionItem item) {
+      return new ItemResponse(
+          item.getId(),
+          item.getTaskTitle(),
+          item.getDescription(),
+          item.getAssignee(),
+          item.getDueDate(),
+          item.getPriority(),
+          item.getCategory(),
+          item.getDependsOn(),
+          item.getEvidence(),
+          item.getConfidence(),
+          item.getReviewStatus());
+    }
+  }
+
+  public record JobResponse(
+      UUID jobId,
+      String status,
+      String direction,
+      String fileName,
+      String promptVersion,
+      String llmModel,
+      UUID boardId,
+      String errorMessage,
+      OffsetDateTime createdAt,
+      OffsetDateTime completedAt,
+      List<ItemResponse> items) {
+    static JobResponse from(ConversionJob job, List<ItemResponse> items) {
+      return new JobResponse(
+          job.getId(),
+          job.getStatus(),
+          job.getDirection(),
+          job.getFileName(),
+          job.getPromptVersion(),
+          job.getLlmModel(),
+          job.getTargetBoardId(),
+          job.getErrorMessage(),
+          job.getCreatedAt(),
+          job.getCompletedAt(),
+          items);
+    }
+  }
+
+  public record ResultResponse(UUID jobId, String status, UUID boardId) {}
+
+  public record ReviewRequest(List<ReviewItem> items) {
+    public record ReviewItem(UUID id, String reviewStatus, String taskTitle) {}
+  }
+}
