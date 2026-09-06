@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/pandaymx/transnote/compare/v1.2.1...v1.2.2) (2026-09-06)
+
+### Bug Fixes
+
+* **desktop:** 声明 rust lib 名与移动端 crate-type ([fe07025](https://github.com/pandaymx/transnote/commit/fe07025cd812376263bf676cb9e9f38e8f9064ca))
+
 ## [1.2.1](https://github.com/pandaymx/transnote/compare/v1.2.0...v1.2.1) (2026-09-06)
 
 ### Bug Fixes
