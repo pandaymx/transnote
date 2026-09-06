@@ -21,8 +21,8 @@
 | T1 | Monorepo 脚手架 + Docker Compose 环境 | 根 bun workspaces + server Gradle 骨架 + infra/compose | ⬜ |
 | T2 | 工作区表 + CRUD（**认证/RBAC 后置**，公司内网暂免登录） | server/modules/identity（workspace 部分） | ✅ |
 | T2.1 | 用户/认证/JWT/成员 RBAC（后置） | server/modules/identity | ⬜ |
-| T3 | 文档/块 CRUD + 版本号 | server/modules/document + blocks 表 | ⬜ |
-| T4 | 块编辑器（Web） | packages/core + apps/web | ⬜ |
+| T3 | 文档/块 CRUD + 版本号 | server/modules/document + blocks 表 | ✅ |
+| T4 | 块编辑器（Web） | packages/core + apps/web（T3 API 已就绪） | ⬜ |
 | T5 | 看板 CRUD + 拖拽 | server/modules/board + apps/web | ⬜ |
 | T6 | Word 解析 + 分块 | server/modules/conversion（POI + DocElement） | ⬜ |
 | T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取 | ⬜ |
@@ -230,6 +230,33 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **Boot 4 把 MockMvc 拆成独立 starter**：`spring-boot-starter-webmvc-test` 必须显式声明；且 `@AutoConfigureMockMvc` 包名改为 `org.springframework.boot.webmvc.test.autoconfigure`（不再是 ...web.servlet.autoconfigure）。
 - **脚本验证命令禁接 grep 管道**（吞退出码）：统一 `if ! cmd > log 2>&1; then tail log; exit 1; fi` 模式。
 - T2 工作区 API 约定（文档未定义，已按 §7.3 风格落地）：`POST/GET /api/v1/workspaces`、`GET/PATCH/DELETE /api/v1/workspaces/{id}`；错误 404（不存在）/422（校验、slug 冲突）。
+- T3 文档/块 API（契约 §7.3 未定义处已按风格落地）：`POST/GET /api/v1/documents?workspaceId=`、`GET/PATCH/DELETE /{id}`、`PATCH /{id}/blocks`（updates: upsert|delete|move）；响应块节点含 position/version。GET versions 端点未实现（需快照表，T6 后置）。
+
+### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
+
+- **Boot 4 原生 Jackson 3（tools.jackson.\*）**：Jackson 2 自动配置拆到可选 `spring-boot-jackson2`（deprecated）；模块注入 ObjectMapper 用 `tools.jackson.databind.ObjectMapper`，捕获异常用 `tools.jackson.core.JacksonException`（无 JsonProcessingException）；依赖坐标 `tools.jackson.core:jackson-databind`（BOM 管版本）。
+- **PG jsonb 绑定 42804**：String 字段 + `columnDefinition="jsonb"` 直接 setString 报 "column is of type jsonb but expression is of type character varying" → 字段必须加 `@JdbcTypeCode(SqlTypes.JSON)`。
+- **Spring Data 派生查询**：`findByWorkspaceId` 在实体只有 `workspace` 关联时报 UnknownPathException → 显式 `findByWorkspace_Id`。
+- **@Version 初始值**：INSERT 后 version=0；要"从 1 起"字段初始化 `= 1`。注意 addChild/move 重排（saveAll）也会让父块 version 递增——断言时按实际更新次数算。
+- **uuid[] 映射**：`List<UUID>` + `@JdbcTypeCode(SqlTypes.ARRAY)` + `columnDefinition="uuid[]"` 可用（T3 已验证）。
+- T3 文档/块 API（契约 §7.3 未定义处已按风格落地）：`POST/GET /api/v1/documents?workspaceId=`、`GET/PATCH/DELETE /{id}`、`PATCH /{id}/blocks`（updates: upsert|delete|move）；响应块节点含 position/version。GET versions 端点未实现（需快照表，T6 后置）。
+
+### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
+
+- **Boot 4 原生 Jackson 3（tools.jackson.\*）**：Jackson 2 自动配置拆到可选 `spring-boot-jackson2`（deprecated）；模块注入 ObjectMapper 用 `tools.jackson.databind.ObjectMapper`，捕获异常用 `tools.jackson.core.JacksonException`（无 JsonProcessingException）；依赖坐标 `tools.jackson.core:jackson-databind`（BOM 管版本）。
+- **PG jsonb 绑定 42804**：String 字段 + `columnDefinition="jsonb"` 直接 setString 报 "column is of type jsonb but expression is of type character varying" → 字段必须加 `@JdbcTypeCode(SqlTypes.JSON)`。
+- **Spring Data 派生查询**：`findByWorkspaceId` 在实体只有 `workspace` 关联时报 UnknownPathException → 显式 `findByWorkspace_Id`。
+- **@Version 初始值**：INSERT 后 version=0；要"从 1 起"字段初始化 `= 1`。注意 addChild/move 重排（saveAll）也会让父块 version 递增——断言时按实际更新次数算。
+- **uuid[] 映射**：`List<UUID>` + `@JdbcTypeCode(SqlTypes.ARRAY)` + `columnDefinition="uuid[]"` 可用（T3 已验证）。
+- T3 文档/块 API（契约 §7.3 未定义处已按风格落地）：`POST/GET /api/v1/documents?workspaceId=`、`GET/PATCH/DELETE /{id}`、`PATCH /{id}/blocks`（updates: upsert|delete|move）；响应块节点含 position/version。GET versions 端点未实现（需快照表，T6 后置）。
+
+### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
+
+- **Boot 4 原生 Jackson 3（tools.jackson.\*）**：Jackson 2 自动配置拆到可选 `spring-boot-jackson2`（deprecated）；模块注入 ObjectMapper 用 `tools.jackson.databind.ObjectMapper`，捕获异常用 `tools.jackson.core.JacksonException`（无 JsonProcessingException）；依赖坐标 `tools.jackson.core:jackson-databind`（BOM 管版本）。
+- **PG jsonb 绑定 42804**：String 字段 + `columnDefinition="jsonb"` 直接 setString 报 "column is of type jsonb but expression is of type character varying" → 字段必须加 `@JdbcTypeCode(SqlTypes.JSON)`。
+- **Spring Data 派生查询**：`findByWorkspaceId` 在实体只有 `workspace` 关联时报 UnknownPathException → 显式 `findByWorkspace_Id`。
+- **@Version 初始值**：INSERT 后 version=0；要"从 1 起"字段初始化 `= 1`。注意 addChild/move 重排（saveAll）也会让父块 version 递增——断言时按实际更新次数算。
+- **uuid[] 映射**：`List<UUID>` + `@JdbcTypeCode(SqlTypes.ARRAY)` + `columnDefinition="uuid[]"` 可用（T3 已验证）。
 
 ### §9 Flyway 迁移约定（2026-09-06 定）
 

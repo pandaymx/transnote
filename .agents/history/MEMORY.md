@@ -54,3 +54,5 @@
 - [ ] T1.2（剩余）：bun workspaces 根依赖声明细化（apps/packages 已建目录）
 - [x] T2 工作区 CRUD（fc81ba7）：identity 模块（实体/仓库/服务）+ REST API + 测试 + 冒烟通过
 - [ ] 设 JAVA_HOME / sdkman 默认指向 GraalVM 25
+- [x] T3 文档/块 CRUD（5068b80 + 5efe9e3）：V2 迁移 + document 模块（upsert/delete/move/树）+ REST + 测试 + 冒烟通过
+- [ ] T4 块编辑器（Web）：需先搭 bun workspaces 前端（T1.2）+ packages/core 编辑器
