@@ -1,7 +1,5 @@
 package com.transnote.document.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.transnote.document.BlockNotFoundException;
 import com.transnote.document.DocumentNotFoundException;
 import com.transnote.document.model.Block;
@@ -18,6 +16,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /** 块服务：upsert/delete/move/整文档树。version 由 @Version 乐观锁自动递增。 */
 @Service
@@ -258,7 +258,7 @@ public class BlockService {
     }
     try {
       objectMapper.readTree(json);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalArgumentException(field + " 不是合法 JSON");
     }
   }

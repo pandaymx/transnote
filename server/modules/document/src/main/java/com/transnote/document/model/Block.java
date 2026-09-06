@@ -38,9 +38,11 @@ public class Block {
   @Column(nullable = false, length = MAX_TYPE_LENGTH)
   private String type;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(nullable = false, columnDefinition = "jsonb")
   private String content = "{}";
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(nullable = false, columnDefinition = "jsonb")
   private String properties = "{}";
 
@@ -53,7 +55,7 @@ public class Block {
 
   @Version
   @Column(nullable = false)
-  private long version;
+  private long version = 1;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)

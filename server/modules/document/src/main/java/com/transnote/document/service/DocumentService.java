@@ -46,7 +46,7 @@ public class DocumentService {
   }
 
   public List<Document> listByWorkspace(UUID workspaceId) {
-    return repository.findByWorkspaceIdOrderByUpdatedAtDesc(workspaceId);
+    return repository.findByWorkspace_IdOrderByUpdatedAtDesc(workspaceId);
   }
 
   @Transactional

@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation(project(":modules:shared"))
     implementation(project(":modules:identity"))
+    implementation(project(":modules:document"))
     // Spring Boot 4 BOM（boot 插件内置，无需 dependency-management 插件）
     implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
     implementation(libs.spring.boot.starter.webmvc)

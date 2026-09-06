@@ -1,5 +1,7 @@
 package com.transnote.api;
 
+import com.transnote.document.BlockNotFoundException;
+import com.transnote.document.DocumentNotFoundException;
 import com.transnote.identity.workspace.WorkspaceConflictException;
 import com.transnote.identity.workspace.WorkspaceNotFoundException;
 import java.util.stream.Collectors;
@@ -17,9 +19,13 @@ public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-  @ExceptionHandler(WorkspaceNotFoundException.class)
+  @ExceptionHandler({
+    WorkspaceNotFoundException.class,
+    DocumentNotFoundException.class,
+    BlockNotFoundException.class
+  })
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ApiResponse<Void> handleNotFound(WorkspaceNotFoundException ex) {
+  public ApiResponse<Void> handleNotFound(RuntimeException ex) {
     return ApiResponse.error(404, ex.getMessage());
   }
 
