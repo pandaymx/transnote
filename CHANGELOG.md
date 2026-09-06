@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/pandaymx/transnote/compare/v1.5.0...v1.5.1) (2026-09-06)
+
+### Bug Fixes
+
+* **api-client:** json 请求显式 content-type 修复浏览器 415 ([cc97bac](https://github.com/pandaymx/transnote/commit/cc97bacdada22533b09dca7b4d2d637fe4ef81a6))
+
 ## [1.5.0](https://github.com/pandaymx/transnote/compare/v1.4.0...v1.5.0) (2026-09-06)
 
 ### Features
