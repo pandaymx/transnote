@@ -280,8 +280,11 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 ## 仓库管理（GitHub 接入）
 
 - **远程**：`github` = git@github.com:pandaymx/transnote.git（私有，ssh）；`origin` = 本地 bare 备份 `~/code/transnote.git`。推送双写：`git push github main && git push origin main`（或先 github 后由 release 提交 fetch 回来再推 origin）。
-- **CI**（.github/workflows/ci.yml，push main / PR 触发，3 job 全绿基线）：
+- **CI**（.github/workflows/ci.yml，push main / PR 触发，6 job 全绿基线）：
   - Server build & test：postgres:18 service container + temurin 25（setup-java v5）+ spotlessCheck + clean build；数据源经 SPRING_DATASOURCE_URL 覆盖为 5432（本地 5433）。
+  - Web build & typecheck：bun install --frozen-lockfile + tsc + next build。
+  - Desktop rust & typecheck：tsc + dtolnay/rust-toolchain@stable + apt libwebkit2gtk-4.1-dev/libappindicator3-dev/librsvg2-dev/patchelf + cargo check。
+  - Desktop bundle（deb，needs desktop）：`bunx tauri build --bundles deb --config '{"version":<git tag>}'` → 上传 `bundle/deb/*.deb` artifact（upload-artifact@v4；Node20 deprecation annotation 为无害告警）。产物名 `TransNote_<tag>_amd64.deb`（含 usr/bin/transnote-desktop + .desktop 入口 + hicolor 128 图标）。
   - Commit message lint：bun install --frozen-lockfile + commitlint --from HEAD~20。
   - Semantic release：仅 push main，needs 前两者；permissions 需 contents/issues/pull-requests 全 write（success 评论步骤缺权限会失败）；产出 CHANGELOG + tag + GitHub Release（release.config.js repositoryUrl 已指向 GitHub）。
 - **发版**：feat → minor（v1.0.0 已发布，commit 874bb2b 触发）；fix → patch；`[skip ci]` 提交不触发 CI 循环。
