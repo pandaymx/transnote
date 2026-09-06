@@ -56,3 +56,5 @@
 - [ ] 设 JAVA_HOME / sdkman 默认指向 GraalVM 25
 - [x] T3 文档/块 CRUD（5068b80 + 5efe9e3）：V2 迁移 + document 模块（upsert/delete/move/树）+ REST + 测试 + 冒烟通过
 - [ ] T4 块编辑器（Web）：需先搭 bun workspaces 前端（T1.2）+ packages/core 编辑器
+- [x] T5 看板 CRUD（70691e9 + 154b810 + 6a7d66b）：V3 迁移 + board 模块（板/列/卡 + 拖拽一次提交 + 筛选）+ REST + 测试 + 冒烟通过
+- [ ] T6 Word 解析 + 分块（conversion 模块，POI）：Word→DocElement 树；对接看板卡片
