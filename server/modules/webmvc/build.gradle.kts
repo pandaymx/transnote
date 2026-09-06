@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":modules:identity"))
     implementation(project(":modules:document"))
     implementation(project(":modules:board"))
+    implementation(project(":modules:conversion"))
     // Spring Boot 4 BOM（boot 插件内置，无需 dependency-management 插件）
     implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
     implementation(libs.spring.boot.starter.webmvc)
@@ -20,4 +21,5 @@ dependencies {
     runtimeOnly(libs.postgresql)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.boot.starter.webmvc.test)   // Boot 4：MockMvc 独立 starter
+    testImplementation(libs.poi.ooxml)   // 集成测试程序化生成样例 docx
 }
