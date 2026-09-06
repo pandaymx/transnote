@@ -1,3 +1,14 @@
+## [1.8.0](https://github.com/pandaymx/transnote/compare/v1.7.0...v1.8.0) (2026-09-06)
+
+### Features
+
+* **ci:** release 创建时附带安装包资产（Linux deb/rpm + Windows nsis/msi） ([bae09b0](https://github.com/pandaymx/transnote/commit/bae09b0a6ad7b73765d8c4d0394178fef65e2edb))
+
+### Bug Fixes
+
+* **ci:** bundle.icon 补 icon.ico/icns（windows bundler 按配置找 ico） ([abb7e96](https://github.com/pandaymx/transnote/commit/abb7e9622d2c9ab9451059e10f6cc180882352bd))
+* **ci:** windows 打包补全图标资源（icon.ico/icns + 多尺寸） ([2842cda](https://github.com/pandaymx/transnote/commit/2842cda8cc836b34719b62913c480cd4044842c6))
+
 ## [1.7.0](https://github.com/pandaymx/transnote/compare/v1.6.0...v1.7.0) (2026-09-06)
 
 ### Features
