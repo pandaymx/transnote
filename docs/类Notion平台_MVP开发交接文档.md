@@ -367,6 +367,15 @@ public interface LlmProvider {
 
 **Prompt 要点**：系统提示词固定模板（见 `server/modules/conversion/src/main/resources/prompts/`），含 JSON Schema + 2 个 few-shot 示例；`temperature=0.1`；强制要求每条任务带 `evidence`（段落索引数组），无法引用原文的字段置 `null` 并降置信度。
 
+### 8.3 LLM 启用（OpenAI 兼容，env 注入）
+
+- 默认关闭（`transnote.llm.enabled=false`），规则抽取兜底，保证无 key 可用。
+- 启用：环境变量
+  - `LLM_BASE_URL`（如 DeepSeek：`https://api.deepseek.com/v1`；默认为空）
+  - `LLM_API_KEY`（服务商密钥）
+  - `LLM_MODEL`（默认 `deepseek-chat`）
+- Provider 走 OpenAI 兼容 chat/completions（§7.2），`llm_model`/`prompt_version` 落库到 conversion_jobs，items 为结构化抽取结果（即 §8.6 重放数据源）。
+
 ### 8.4 Word → 看板实现步骤
 
 1. 上传 → MinIO 存原文件 → 建 `conversion_jobs(WORD_TO_BOARD, PENDING)`。
