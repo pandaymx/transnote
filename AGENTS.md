@@ -292,3 +292,8 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **发版**：feat → minor（v1.0.0 已发布，commit 874bb2b 触发）；fix → patch；`[skip ci]` 提交不触发 CI 循环。
 - WSL 推送用 ssh（gh 已配置 "Arm WSL SSH" key）；本地腾讯镜像 gradle wrapper 在 CI 可正常访问。
 | T10 | Golden 回归集 | 22 样例 title100/assignee100/due100（阈值95/90/90） | ✅ |
+
+## 线性合并约定（必须遵守）
+- main 只接受线性历史：禁止 merge 提交，远程同步一律 `git pull --rebase`（已配置 pull.rebase=true / merge.ff=only / branch.main.rebase=true）。
+- 本地拉取 release 回写提交（semantic-release 的 [skip ci]）与自己的提交并行时：`git rebase github/main` 后 `git push --force-with-lease`。
+- GitHub 分支保护已启用 required_linear_history（allow_force_pushes=true，开发期允许线性化改写）。
