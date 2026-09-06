@@ -11,7 +11,8 @@ FOUND=0
 while IFS= read -r f; do
   [ -z "$f" ] && continue
   for p in "${PATTERNS[@]}"; do
-    if grep -Eqi "$p" "$f"; then
+    # -e 防止以 "-" 开头的模式（如私钥头）被 grep 当作选项
+    if grep -Eqi -e "$p" "$f"; then
       echo "⚠️ 疑似密钥泄漏：$f （模式：$p）"
       FOUND=1
     fi
