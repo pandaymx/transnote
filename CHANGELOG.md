@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/pandaymx/transnote/compare/v1.2.0...v1.2.1) (2026-09-06)
+
+### Bug Fixes
+
+* **desktop:** 补充 tauri 占位图标修复 cargo check ([dd06759](https://github.com/pandaymx/transnote/commit/dd06759d93b11c330ac55de56ea02e25ebe51754))
+
 ## [1.2.0](https://github.com/pandaymx/transnote/compare/v1.1.0...v1.2.0) (2026-09-06)
 
 ### Features
