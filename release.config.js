@@ -18,11 +18,12 @@ module.exports = {
       '@semantic-release/github',
       {
         // Release 创建时附带安装包（GitHub 发布后 asset 不可再增补，必须创建时带上）
+        // upload-artifact@v4 保留 glob 父目录名，故路径带 deb/rpm/nsis/msi 子目录
         assets: [
-          { path: 'release-assets/linux/TransNote_*_amd64.deb', name: 'TransNote-linux-amd64.deb' },
-          { path: 'release-assets/linux/TransNote-*.rpm', name: 'TransNote-linux-x86_64.rpm' },
-          { path: 'release-assets/windows/*-setup.exe', name: 'TransNote-windows-setup.exe' },
-          { path: 'release-assets/windows/*.msi', name: 'TransNote-windows-x64.msi' },
+          { path: 'release-assets/linux/deb/*.deb', name: 'TransNote-linux-amd64.deb' },
+          { path: 'release-assets/linux/rpm/*.rpm', name: 'TransNote-linux-x86_64.rpm' },
+          { path: 'release-assets/windows/nsis/*-setup.exe', name: 'TransNote-windows-setup.exe' },
+          { path: 'release-assets/windows/msi/*.msi', name: 'TransNote-windows-x64.msi' },
         ],
       },
     ]
