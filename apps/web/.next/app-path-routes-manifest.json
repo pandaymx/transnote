@@ -1,8 +1,0 @@
-{
-  "/_global-error/page": "/_global-error",
-  "/_not-found/page": "/_not-found",
-  "/boards/[id]/page": "/boards/[id]",
-  "/boards/page": "/boards",
-  "/convert/page": "/convert",
-  "/page": "/"
-}
