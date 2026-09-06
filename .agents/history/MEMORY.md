@@ -60,3 +60,5 @@
 - [ ] T6 Word 解析 + 分块（conversion 模块，POI）：Word→DocElement 树；对接看板卡片
 - [x] T6 Word 解析 + 分块（cbc5086 + d39e439）：conversion 模块（POI 5.5.1 + DocElement 树 + Chunker）+ 解析调试端点 + 测试 + 冒烟通过
 - [ ] T7 LLM Provider + 抽取（LlmProvider 抽象 + JSON Schema）：消费 DocElement 树
+- [x] T7 LLM Provider + 抽取（d781050 + c0923fa）：LlmProvider 抽象 + TaskExtractor（LLM/规则回退）+ prompt 模板 + 单测 + 冒烟通过
+- [ ] T8 Word→看板 全链路（conversion_jobs/items 落库 + review API + MinIO）

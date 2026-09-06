@@ -25,8 +25,8 @@
 | T4 | 块编辑器（Web） | packages/core + apps/web（T3 API 已就绪） | ⬜ |
 | T5 | 看板 CRUD + 拖拽 | server/modules/board（apps/web 待 T4 前端） | ✅ |
 | T6 | Word 解析 + 分块 | server/modules/conversion（POI 5.5.1 + DocElement 树） | ✅ |
-| T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取（解析输出已就绪） | ⬜ |
-| T8 | Word→看板 全链路 + 人工校对 | conversion + review API | ⬜ |
+| T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取（规则回退基线可用） | ✅ |
+| T8 | Word→看板 全链路 + 人工校对 | conversion_jobs 落库 + review API（抽取已就绪） | ⬜ |
 | T9 | 看板→Word 导出 | POI XWPF 模板渲染 + 产物 | ⬜ |
 | T10 | Tauri 桌面壳 | apps/desktop | ⬜ |
 | T11 | Golden 回归集 + CI | conversion 测试集 + CI | ⬜ |
@@ -230,6 +230,9 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **Boot 4 把 MockMvc 拆成独立 starter**：`spring-boot-starter-webmvc-test` 必须显式声明；且 `@AutoConfigureMockMvc` 包名改为 `org.springframework.boot.webmvc.test.autoconfigure`（不再是 ...web.servlet.autoconfigure）。
 - **脚本验证命令禁接 grep 管道**（吞退出码）：统一 `if ! cmd > log 2>&1; then tail log; exit 1; fi` 模式。
 - T2 工作区 API 约定（文档未定义，已按 §7.3 风格落地）：`POST/GET /api/v1/workspaces`、`GET/PATCH/DELETE /api/v1/workspaces/{id}`；错误 404（不存在）/422（校验、slug 冲突）。
+- T7 抽取端点（契约未定义按 §7.3 风格自拟）：`POST /api/v1/conversions/extract`（multipart → tasks + promptVersion）；LLM 未启用回退规则抽取（rule-v1）；启用方式 `transnote.llm.enabled=true` + LLM_BASE_URL/LLM_API_KEY/LLM_MODEL。
+- 装配约定：conversion 为纯领域模块（无 Spring 注解），TaskExtractor 等编排 Bean 在 webmvc 装配层注册（LlmConfig @Bean + ObjectProvider）。
+- Jackson 3 的 `readTree` 抛 RuntimeException（无 IOException），catch 子句写 `IOException | RuntimeException` 会编译失败（不可达分支）。
 - T6 解析端点（契约未定义，按 §7.3 风格自拟）：`POST /api/v1/conversions/parse`（multipart file → DocElement 树 + 分块），正式 word-to-board 流程（conversion_jobs 落库）在 T8。
 - **POI 5.5.1 坑**：① XWPFParagraph 无 `getNumPr()`，走 `getCTP().getPPr().getNumPr()`；② CT 数值属性 `setVal` 需 BigInteger；③ 模块级 poi 依赖用 implementation 不透传，webmvc 集成测试要再 `testImplementation(libs.poi.ooxml)`；④ 新模块必须加 Boot BOM platform，否则 starter 版本解析为空。
 - commitlint subject 禁首字母大写词（sentence/start-case）：subject 里英文词全小写或用全大写缩写（Word → word）。
