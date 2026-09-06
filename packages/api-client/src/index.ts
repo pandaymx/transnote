@@ -45,7 +45,13 @@ async function request<T>(
   const method = (init.method ?? 'GET').toUpperCase();
   const headers = new Headers(init.headers);
   let body = init.body;
-  if (!EMPTY_BODY.has(method) && body === undefined) {
+  // JSON 字符串 body 需显式 Content-Type；FormData 交给浏览器自动带 boundary
+  if (
+    !EMPTY_BODY.has(method) &&
+    body !== undefined &&
+    !(body instanceof FormData) &&
+    typeof body === 'string'
+  ) {
     headers.set('Content-Type', 'application/json');
   }
   const res = await fetch(url, { ...init, method, headers, body });
