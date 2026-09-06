@@ -27,7 +27,7 @@
 | T6 | Word 解析 + 分块 | server/modules/conversion（POI 5.5.1 + DocElement 树） | ✅ |
 | T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取（规则回退基线可用） | ✅ |
 | T8 | Word→看板 全链路 + 人工校对 | job/items 落库 + 置信度分流 + review + 自动建板（V4） | ✅ |
-| T9 | 看板→Word 导出 | POI XWPF 模板渲染 + 产物 | ⬜ |
+| T9 | 看板→Word 导出 | 聚合统计 + task-list/weekly-report 模板渲染 + 产物下载（V5） | ✅ |
 | T10 | Tauri 桌面壳 | apps/desktop | ⬜ |
 | T11 | Golden 回归集 + CI | conversion 测试集 + CI | ⬜ |
 | T12 | WebSocket 协作基础（快照+全量拉取） | server/modules/collab | ⬜ |
@@ -242,6 +242,8 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - T5 看板 API（契约 §7.3）：`POST/GET /api/v1/boards`、`GET/PATCH/DELETE /{id}`、`POST /{id}/columns`、`DELETE /{id}/columns/{columnId}`、`POST/GET /{id}/cards`（筛选 columnId/assigneeId/priority）、`PATCH /{id}/cards/{cardId}`（**含 columnId/position = 拖拽一次提交**，可同时改字段）。已删除列筛选返回空列表而非 404（筛选语义）。
 - T3 文档/块 API（契约 §7.3 未定义处已按风格落地）：`POST/GET /api/v1/documents?workspaceId=`、`GET/PATCH/DELETE /{id}`、`PATCH /{id}/blocks`（updates: upsert|delete|move）；响应块节点含 position/version。GET versions 端点未实现（需快照表，T6 后置）。
 - T8 转换链路：`POST /api/v1/conversions/word-to-board`（multipart file + workspaceId + targetBoardId?）→ 同步抽取分流（全部 ≥0.8 自动建板 COMPLETED，否则 REVIEW）；`GET jobs/{id}`、`PATCH jobs/{id}/review`（CONFIRMED/REJECTED，携带 taskTitle 视为 EDITED）、`GET jobs/{id}/result`。卡片写 source_evidence（[{paragraph_index, quote}] 原文追溯）+ assignee_name（无用户体系过渡字段）。
+- T9 导出：`POST /api/v1/conversions/board-to-word?workspaceId=` body {boardId, template: task-list|weekly-report} → 同步聚合（完成率按列标题含"完成/done"判定；延期=dueDate 早于今天且非完成列）→ WordExporter 渲染（Heading1/2 + 任务表底纹 D9E2F3 + ☐/☑ + 页码 PAGE/NUMPAGES 域）→ LocalAssetStorage 落盘 → COMPLETED；result 返回 assetUrl（`GET /api/v1/conversions/assets/{id}/download`）；质量门 WordExporter.verify 回读，LibreOffice 缺失时跳过（§8.5 步骤 4 告警语义）。
+- T9 坑：① HeaderFooterType 在 `org.apache.poi.wp.usermodel`（非 xwpf）；② 页码域：`run.getCTR().addNewInstrText().setStringValue("PAGE")`（无 setInstrText）；③ CTShd.getFill() 返回解码后 byte[]，断言须 HexFormat hex 编码后比对；④ 完成率整数时格式化掉 `.0`（50.0% → 50%）。
 - T8 坑：① thenReturn 实参内禁止任何 mockito stubbing（先建对象再 stub）；② 已应用迁移改 DDL 后 Flyway validate 失败 → 开发库 `DROP SCHEMA public CASCADE; CREATE SCHEMA public` 重建重放（或 repair）；③ evidence/sourceEvidence 是 JSONB 字符串，jsonPath 断言用 containsString；④ @CreationTimestamp 字段必须同步在 V 迁移建列；⑤ ConversionJob promptVersion 在 complete 时取自 extractor.getLastPromptVersion()，不能读 job 自身。
 
 ### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）

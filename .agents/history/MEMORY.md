@@ -65,3 +65,6 @@
 - [x] T8 Word→看板 全链路（25539df + 5bdb01c）：job/items 落库 + 置信度分流 + review + 自动建板 + 冒烟通过
 - [ ] T9 看板→Word 导出（board_to_word：聚合统计 + POI 渲染 + 模板 task-list/weekly-report）
 - [ ] T4 前端（Bun + Next.js web / Tauri 桌面）
+- [x] T9 看板→Word 导出（76fbcd1 + 545a7be）：聚合统计 + task-list/weekly-report 模板 + 产物下载 + 冒烟通过
+- [ ] T8.1 §8.6 Golden 回归集（20+ docx 样例，title/assignee/due 阈值）
+- [ ] T4 前端（Bun + Next.js web / Tauri 桌面 / Flutter 移动）
