@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -253,6 +254,11 @@ public class ConversionService {
 
   public ConversionJob getJob(UUID jobId, UUID workspaceId) {
     return requireJob(jobId, workspaceId);
+  }
+
+  /** 转换历史：近 50 条，按创建时间倒序（契约 §7.2 jobs 列表）。 */
+  public List<ConversionJob> listJobs(UUID workspaceId) {
+    return jobRepository.findByWorkspaceIdOrderByCreatedAtDesc(workspaceId, PageRequest.of(0, 50));
   }
 
   public List<ConversionItem> itemsOf(UUID jobId) {

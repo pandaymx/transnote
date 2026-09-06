@@ -190,6 +190,15 @@ export function useReviewJob(jobId: string, workspaceId: string) {
   });
 }
 
+/** 转换历史列表。 */
+export function useJobs(workspaceId: string) {
+  return useQuery({
+    queryKey: ['jobs', workspaceId] as const,
+    queryFn: () => api().listJobs(workspaceId),
+    enabled: !!workspaceId,
+  });
+}
+
 export function useBoardToWord(workspaceId: string) {
   return useMutation({
     mutationFn: ({ boardId, template }: { boardId: string; template: 'task-list' | 'weekly-report' }) =>

@@ -56,6 +56,14 @@ public class ConversionJobController {
     return ApiResponse.ok(new SubmitResponse(job.getId(), job.getStatus(), job.getSourceBoardId()));
   }
 
+  /** 转换历史列表（近 50 条，倒序；不含 items，轻量）。 */
+  @GetMapping("/jobs")
+  public ApiResponse<List<JobSummaryResponse>> jobs(@RequestParam UUID workspaceId) {
+    List<JobSummaryResponse> jobs =
+        conversionService.listJobs(workspaceId).stream().map(JobSummaryResponse::from).toList();
+    return ApiResponse.ok(jobs);
+  }
+
   /** 任务查询（含 items）。 */
   @GetMapping("/jobs/{jobId}")
   public ApiResponse<JobResponse> job(@PathVariable UUID jobId, @RequestParam UUID workspaceId) {
@@ -102,6 +110,35 @@ public class ConversionJobController {
   }
 
   public record SubmitResponse(UUID jobId, String status, UUID boardId) {}
+
+  /** 历史列表项（无 items，供前端任务历史页）。 */
+  public record JobSummaryResponse(
+      UUID jobId,
+      String status,
+      String direction,
+      String fileName,
+      String template,
+      UUID sourceBoardId,
+      UUID resultAssetId,
+      UUID boardId,
+      String errorMessage,
+      OffsetDateTime createdAt,
+      OffsetDateTime completedAt) {
+    static JobSummaryResponse from(ConversionJob job) {
+      return new JobSummaryResponse(
+          job.getId(),
+          job.getStatus(),
+          job.getDirection(),
+          job.getFileName(),
+          job.getTemplate(),
+          job.getSourceBoardId(),
+          job.getResultAssetId(),
+          job.getTargetBoardId(),
+          job.getErrorMessage(),
+          job.getCreatedAt(),
+          job.getCompletedAt());
+    }
+  }
 
   public record ItemResponse(
       UUID id,

@@ -108,6 +108,21 @@ export interface ConversionJob {
   items?: ConversionItem[];
 }
 
+/** 转换历史列表项（无 items，轻量）。 */
+export interface ConversionJobSummary {
+  jobId: string;
+  status: ConversionStatus;
+  direction: 'WORD_TO_BOARD' | 'BOARD_TO_WORD';
+  fileName?: string | null;
+  template?: string | null;
+  sourceBoardId?: string | null;
+  resultAssetId?: string | null;
+  boardId?: string | null;
+  errorMessage?: string | null;
+  createdAt?: string;
+  completedAt?: string | null;
+}
+
 export interface ConversionResult {
   jobId: string;
   status: ConversionStatus;

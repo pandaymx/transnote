@@ -7,10 +7,11 @@ import {
   useBoardToWord,
   useBoardUi,
   useJob,
+  useJobs,
   useReviewJob,
   useWordToBoard,
 } from '@transnote/core';
-import type { ReviewStatus } from '@transnote/schema';
+import type { ConversionJobSummary, ReviewStatus } from '@transnote/schema';
 
 function ConvertInner() {
   const params = useSearchParams();
@@ -25,6 +26,13 @@ function ConvertInner() {
   const submit = useWordToBoard(wsId);
   const { data: job, isLoading: jobLoading } = useJob(jobId ?? '', wsId, !!jobId);
   const review = useReviewJob(jobId ?? '', wsId);
+  const { data: history, refetch: refetchHistory } = useJobs(wsId);
+
+  const openHistory = (jobId2: string, status: string) => {
+    if (status === 'REVIEW' || status === 'COMPLETED' || status === 'FAILED') {
+      setJobId(jobId2);
+    }
+  };
 
   // board→word
   const [exportBoardId, setExportBoardId] = useState('');
@@ -43,6 +51,7 @@ function ConvertInner() {
     try {
       const res = await submit.mutateAsync({ file, targetBoardId: targetBoardId || undefined });
       setJobId(res.jobId);
+      refetchHistory();
     } catch (e) {
       setError(e instanceof Error ? e.message : '提交失败');
     }
@@ -192,6 +201,50 @@ function ConvertInner() {
             <span className="muted">导出完成</span>
           </div>
         )}
+      </div>
+
+      <h2 style={{ marginTop: 32 }}>转换历史</h2>
+      <div className="card">
+        {history?.length === 0 && <p className="muted">暂无转换记录。</p>}
+        {(history ?? []).map((h: ConversionJobSummary) => (
+          <div
+            className="row"
+            key={h.jobId}
+            style={{ padding: '8px 0', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div className="row" style={{ gap: 8 }}>
+                <span className="badge">{h.direction === 'WORD_TO_BOARD' ? 'Word→看板' : '看板→Word'}</span>
+                <span className={`badge ${h.status.toLowerCase()}`}>{h.status}</span>
+                <span style={{ fontSize: 13 }}>{h.fileName || `看板导出 ${h.template ?? ''}`}</span>
+              </div>
+              <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+                {h.createdAt?.replace('T', ' ').slice(0, 19)}
+                {h.errorMessage ? ` · ${h.errorMessage}` : ''}
+              </div>
+            </div>
+            <div className="row" style={{ gap: 8 }}>
+              {h.boardId && (
+                <Link className="btn secondary" href={`/boards/${h.boardId}`}>
+                  打开看板
+                </Link>
+              )}
+              {h.resultAssetId && (
+                <a
+                  className="btn secondary"
+                  href={`${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8080'}/api/v1/conversions/assets/${h.resultAssetId}/download`}
+                >
+                  下载 docx
+                </a>
+              )}
+              {(h.status === 'REVIEW' || h.status === 'COMPLETED' || h.status === 'FAILED') && (
+                <button className="btn secondary" onClick={() => openHistory(h.jobId, h.status)}>
+                  查看
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

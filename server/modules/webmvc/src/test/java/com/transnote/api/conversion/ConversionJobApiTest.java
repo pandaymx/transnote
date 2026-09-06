@@ -270,4 +270,35 @@ class ConversionJobApiTest {
                 .content(body))
         .andExpect(status().isUnprocessableEntity());
   }
+
+  /** T5 转换历史：提交后列表应包含该任务且按时间倒序（最新在前）。 */
+  @Test
+  void jobsList_returnsHistoryNewestFirst() throws Exception {
+    UUID ws = workspaceId();
+
+    mockMvc
+        .perform(
+            multipart("/api/v1/conversions/word-to-board")
+                .file(sampleDocx())
+                .param("workspaceId", ws.toString()))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    MvcResult list =
+        mockMvc
+            .perform(get("/api/v1/conversions/jobs").param("workspaceId", ws.toString()))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode jobs = objectMapper.readTree(list.getResponse().getContentAsString()).path("data");
+    assertThat(jobs.size()).isGreaterThanOrEqualTo(1);
+    assertThat(jobs.get(0).path("direction").asText()).isEqualTo("WORD_TO_BOARD");
+    assertThat(jobs.get(0).path("fileName").asText()).isEqualTo("发布上线任务.docx");
+    assertThat(jobs.get(0).has("items")).isFalse();
+    // 倒序：第一条 createdAt >= 第二条
+    if (jobs.size() >= 2) {
+      String first = jobs.get(0).path("createdAt").asText();
+      String second = jobs.get(1).path("createdAt").asText();
+      assertThat(first.compareTo(second)).isGreaterThanOrEqualTo(0);
+    }
+  }
 }

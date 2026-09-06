@@ -8,6 +8,7 @@ import type {
   BoardCard,
   BoardColumn,
   ConversionJob,
+  ConversionJobSummary,
   ConversionResult,
   ConversionStatus,
   ReviewStatus,
@@ -175,6 +176,13 @@ export class TransnoteClient {
   getJob(jobId: string, workspaceId: string): Promise<ConversionJob> {
     return request(this.baseUrl,
       `/api/v1/conversions/jobs/${jobId}?workspaceId=${encodeURIComponent(workspaceId)}`,
+    );
+  }
+
+  /** 转换历史（近 50 条，倒序）。 */
+  listJobs(workspaceId: string): Promise<ConversionJobSummary[]> {
+    return request(this.baseUrl,
+      `/api/v1/conversions/jobs?workspaceId=${encodeURIComponent(workspaceId)}`,
     );
   }
 
