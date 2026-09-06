@@ -76,7 +76,8 @@ jobs:
         run: cargo check
 
   desktop-bundle:
-    name: Desktop bundle (deb)
+    name: Desktop bundle (deb/rpm)
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [desktop]
     steps:
@@ -87,23 +88,63 @@ jobs:
       - name: 安装前端依赖
         run: bun install --frozen-lockfile
       - uses: dtolnay/rust-toolchain@stable
+      - name: rust 缓存
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
       - name: 安装 tauri 系统依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf rpm
       - name: 计算打包版本（git tag，缺省 0.0.0）
         id: ver
         run: |
           V=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)
           echo "version=${V:-0.0.0}" >> "$GITHUB_OUTPUT"
-      - name: Tauri bundle（deb 安装包）
+      - name: Tauri bundle（deb + rpm 安装包）
         working-directory: apps/desktop
-        run: bunx tauri build --bundles deb --config "{\"version\":\"${{ steps.ver.outputs.version }}\"}"
+        run: bunx tauri build --bundles deb rpm --config "{\"version\":\"${{ steps.ver.outputs.version }}\"}"
       - uses: actions/upload-artifact@v4
         with:
-          name: transnote-desktop-deb-v${{ steps.ver.outputs.version }}
-          path: apps/desktop/src-tauri/target/release/bundle/deb/*.deb
+          name: transnote-desktop-linux
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/deb/*.deb
+            apps/desktop/src-tauri/target/release/bundle/rpm/*.rpm
           if-no-files-found: error
+
+  windows-bundle:
+    name: Windows nsis/msi 打包
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - name: 安装前端依赖
+        run: bun install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+      - name: rust 缓存
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+      - name: 计算打包版本（git tag，缺省 0.0.0）
+        id: ver
+        shell: bash
+        run: |
+          V=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)
+          echo "version=${V:-0.0.0}" >> "$GITHUB_OUTPUT"
+      - name: Tauri bundle（nsis + msi 安装包）
+        working-directory: apps/desktop
+        shell: bash
+        run: bunx tauri build --bundles nsis msi --config "{\"version\":\"${{ steps.ver.outputs.version }}\"}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transnote-desktop-windows
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+            apps/desktop/src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: warn
 
   commitlint:
     name: Commit message lint
@@ -121,7 +162,7 @@ jobs:
   release:
     name: Semantic release
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [server, commitlint]
+    needs: [server, commitlint, desktop-bundle, windows-bundle]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -134,7 +175,17 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: 安装依赖
         run: bun install --frozen-lockfile
-      - name: semantic-release（CHANGELOG + tag）
+      - name: 拉取 Linux 安装包
+        uses: actions/download-artifact@v4
+        with:
+          name: transnote-desktop-linux
+          path: release-assets/linux
+      - name: 拉取 Windows 安装包
+        uses: actions/download-artifact@v4
+        with:
+          name: transnote-desktop-windows
+          path: release-assets/windows
+      - name: semantic-release（CHANGELOG + tag + Release 附安装包）
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bunx semantic-release

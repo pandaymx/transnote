@@ -14,6 +14,17 @@ module.exports = {
         message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
       }
     ],
-    ['@semantic-release/github', {}]
+    [
+      '@semantic-release/github',
+      {
+        // Release 创建时附带安装包（GitHub 发布后 asset 不可再增补，必须创建时带上）
+        assets: [
+          { path: 'release-assets/linux/TransNote_*_amd64.deb', name: 'TransNote-linux-amd64.deb' },
+          { path: 'release-assets/linux/TransNote-*.rpm', name: 'TransNote-linux-x86_64.rpm' },
+          { path: 'release-assets/windows/*-setup.exe', name: 'TransNote-windows-setup.exe' },
+          { path: 'release-assets/windows/*.msi', name: 'TransNote-windows-x64.msi' },
+        ],
+      },
+    ]
   ]
 };
