@@ -43,6 +43,18 @@ public class ConversionJob {
   @Column(name = "source_document_id")
   private UUID sourceDocumentId;
 
+  /** board-to-word 的源看板（§8.5）；word-to-board 为 NULL。 */
+  @Column(name = "source_board_id")
+  private UUID sourceBoardId;
+
+  /** 导出产物资产 id（board-to-word）；result 端点返回下载 URL。 */
+  @Column(name = "result_asset_id")
+  private UUID resultAssetId;
+
+  /** 导出模板（task-list / weekly-report）。 */
+  @Column(length = 32)
+  private String template;
+
   @Column(name = "file_name", length = 255)
   private String fileName;
 
@@ -102,6 +114,21 @@ public class ConversionJob {
     this.completedAt = OffsetDateTime.now();
   }
 
+  /** 导出类任务完成（§8.5 步骤 5）：记录产物资产 id。 */
+  public void completeWithExport(UUID resultAssetId) {
+    this.status = STATUS_COMPLETED;
+    this.resultAssetId = resultAssetId;
+    this.completedAt = OffsetDateTime.now();
+  }
+
+  public void setSourceBoardId(UUID sourceBoardId) {
+    this.sourceBoardId = sourceBoardId;
+  }
+
+  public void setTemplate(String template) {
+    this.template = template;
+  }
+
   public void fail(String message, String promptVersion) {
     this.status = STATUS_FAILED;
     this.promptVersion = promptVersion;
@@ -134,6 +161,18 @@ public class ConversionJob {
 
   public UUID getSourceDocumentId() {
     return sourceDocumentId;
+  }
+
+  public UUID getSourceBoardId() {
+    return sourceBoardId;
+  }
+
+  public UUID getResultAssetId() {
+    return resultAssetId;
+  }
+
+  public String getTemplate() {
+    return template;
   }
 
   public String getFileName() {

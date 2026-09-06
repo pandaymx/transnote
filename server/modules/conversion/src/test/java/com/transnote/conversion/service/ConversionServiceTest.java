@@ -10,7 +10,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.transnote.board.BoardNotFoundException;
 import com.transnote.board.model.Board;
+import com.transnote.board.model.BoardCard;
 import com.transnote.board.model.BoardColumn;
 import com.transnote.board.service.BoardService;
 import com.transnote.conversion.DocElement;
@@ -139,6 +141,50 @@ class ConversionServiceTest {
     BoardColumn column = mock(BoardColumn.class);
     org.mockito.Mockito.doReturn(id).when(column).getId();
     return column;
+  }
+
+  @Test
+  void exportsBoardToWord_taskList() {
+    UUID boardId = UUID.randomUUID();
+    Board board = boardWithId(boardId);
+    when(board.getTitle()).thenReturn("发布上线");
+    BoardColumn todo = columnWithId(UUID.randomUUID());
+    when(todo.getTitle()).thenReturn("待办");
+    BoardColumn done = columnWithId(UUID.randomUUID());
+    when(done.getTitle()).thenReturn("已完成");
+    BoardCard card = mock(BoardCard.class);
+    when(card.getColumn()).thenReturn(todo);
+    when(card.getTitle()).thenReturn("完成接口联调");
+    when(card.getAssigneeName()).thenReturn("王五");
+    when(card.getDueDate()).thenReturn(LocalDate.of(2026, 9, 12));
+    when(card.getPriority()).thenReturn((short) 1);
+    when(card.getDescription()).thenReturn("{}");
+    when(boardService.get(boardId)).thenReturn(board);
+    when(boardService.columns(boardId)).thenReturn(List.of(todo, done));
+    when(boardService.listCards(boardId, null, null, null)).thenReturn(List.of(card));
+
+    ConversionJob job = service.submitBoardToWord(workspaceId, boardId, "task-list");
+
+    assertThat(job.getStatus()).isEqualTo(ConversionJob.STATUS_COMPLETED);
+    assertThat(job.getResultAssetId()).isNotNull();
+    assertThat(job.getTemplate()).isEqualTo("task-list");
+    assertThat(job.getDirection()).isEqualTo(ConversionJob.DIRECTION_BOARD_TO_WORD);
+    verify(assetStorage).store(any(byte[].class), eq("docx"));
+  }
+
+  @Test
+  void rejectsUnknownExportTemplate() {
+    assertThatThrownBy(() -> service.submitBoardToWord(workspaceId, UUID.randomUUID(), "pdf"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("template");
+  }
+
+  @Test
+  void boardMissingThrows404() {
+    UUID boardId = UUID.randomUUID();
+    when(boardService.get(boardId)).thenThrow(new BoardNotFoundException(boardId));
+    assertThatThrownBy(() -> service.submitBoardToWord(workspaceId, boardId, "task-list"))
+        .isInstanceOf(BoardNotFoundException.class);
   }
 
   @Test

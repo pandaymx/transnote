@@ -43,6 +43,12 @@ public class LocalAssetStorage implements AssetStorage {
     }
   }
 
+  /** 下载端点相对路径（MVP 本地；MinIO 签名 URL 后置）。 */
+  @Override
+  public String url(String assetId) {
+    return "/api/v1/conversions/assets/" + assetId + "/download";
+  }
+
   private Path resolve(String assetId) {
     try (var stream = Files.list(assetsDir)) {
       return stream

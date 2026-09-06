@@ -1,8 +1,15 @@
 package com.transnote.conversion.service;
 
+import com.transnote.board.model.Board;
+import com.transnote.board.model.BoardCard;
+import com.transnote.board.model.BoardColumn;
 import com.transnote.board.service.BoardService;
 import com.transnote.conversion.DocElement;
 import com.transnote.conversion.DocxParser;
+import com.transnote.conversion.export.WordExporter;
+import com.transnote.conversion.export.WordExporter.BoardExportData;
+import com.transnote.conversion.export.WordExporter.CardExport;
+import com.transnote.conversion.export.WordExporter.ColumnExport;
 import com.transnote.conversion.extract.TaskExtractor;
 import com.transnote.conversion.model.ConversionItem;
 import com.transnote.conversion.model.ConversionJob;
@@ -28,6 +35,7 @@ public class ConversionService {
   private static final long MAX_FILE_BYTES = 20L * 1024 * 1024; // §安全红线 ≤20MB
   private static final String DEFAULT_COLUMN = "任务";
   private static final String[] ALLOWED_EXTENSIONS = {"docx"};
+  private static final List<String> TEMPLATES = List.of("task-list", "weekly-report");
 
   private final ConversionJobRepository jobRepository;
   private final ConversionItemRepository itemRepository;
@@ -180,6 +188,67 @@ public class ConversionService {
       completeWithBoard(job);
     }
     return job;
+  }
+
+  /** §8.5：看板 → Word（聚合 → 渲染 → 落盘 → COMPLETED）。MVP 同步执行。 */
+  @Transactional
+  public ConversionJob submitBoardToWord(UUID workspaceId, UUID boardId, String template) {
+    String resolvedTemplate = template == null ? "task-list" : template;
+    if (!TEMPLATES.contains(resolvedTemplate)) {
+      throw new IllegalArgumentException("template 仅支持 task-list/weekly-report");
+    }
+    Board board = boardService.get(boardId); // 不存在抛 404
+    List<BoardColumn> columns = boardService.columns(boardId);
+    List<BoardCard> cards = boardService.listCards(boardId, null, null, null);
+    java.util.Map<UUID, List<BoardCard>> byColumn = new java.util.LinkedHashMap<>();
+    for (BoardCard card : cards) {
+      byColumn.computeIfAbsent(card.getColumn().getId(), k -> new ArrayList<>()).add(card);
+    }
+    List<ColumnExport> columnExports =
+        columns.stream()
+            .map(
+                c ->
+                    new ColumnExport(
+                        c.getTitle(),
+                        isDoneColumn(c.getTitle()),
+                        byColumn.getOrDefault(c.getId(), List.of()).stream()
+                            .map(
+                                card ->
+                                    new CardExport(
+                                        card.getTitle(),
+                                        card.getDescription(),
+                                        card.getAssigneeName(),
+                                        card.getDueDate(),
+                                        card.getPriority()))
+                            .toList()))
+            .toList();
+
+    ConversionJob job =
+        new ConversionJob(workspaceId, ConversionJob.DIRECTION_BOARD_TO_WORD, null, null, null);
+    job.setSourceBoardId(boardId);
+    job.setTemplate(resolvedTemplate);
+    job = jobRepository.save(job);
+    try {
+      job.toExtracting();
+      jobRepository.save(job);
+      byte[] docx =
+          WordExporter.export(
+              new BoardExportData(boardId, board.getTitle(), resolvedTemplate, columnExports));
+      WordExporter.verify(docx); // 质量门：回读校验（LibreOffice 缺失时替代，§8.5 步骤 4）
+      String assetId = assetStorage.store(docx, "docx");
+      job.completeWithExport(UUID.fromString(assetId));
+      jobRepository.save(job);
+    } catch (RuntimeException e) {
+      job.fail(e.getMessage(), null);
+      jobRepository.save(job);
+    }
+    return job;
+  }
+
+  /** 完成列判定：列标题含"完成"或"done"（MVP 约定，§8.5 统计口径）。 */
+  private static boolean isDoneColumn(String title) {
+    String t = title == null ? "" : title.toLowerCase(Locale.ROOT);
+    return t.contains("完成") || t.contains("done");
   }
 
   public ConversionJob getJob(UUID jobId, UUID workspaceId) {
