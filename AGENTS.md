@@ -259,22 +259,15 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **uuid[] 映射**：`List<UUID>` + `@JdbcTypeCode(SqlTypes.ARRAY)` + `columnDefinition="uuid[]"` 可用（T3 已验证）。
 - T3 文档/块 API（契约 §7.3 未定义处已按风格落地）：`POST/GET /api/v1/documents?workspaceId=`、`GET/PATCH/DELETE /{id}`、`PATCH /{id}/blocks`（updates: upsert|delete|move）；响应块节点含 position/version。GET versions 端点未实现（需快照表，T6 后置）。
 
-### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
 
-- **Boot 4 原生 Jackson 3（tools.jackson.\*）**：Jackson 2 自动配置拆到可选 `spring-boot-jackson2`（deprecated）；模块注入 ObjectMapper 用 `tools.jackson.databind.ObjectMapper`，捕获异常用 `tools.jackson.core.JacksonException`（无 JsonProcessingException）；依赖坐标 `tools.jackson.core:jackson-databind`（BOM 管版本）。
-- **PG jsonb 绑定 42804**：String 字段 + `columnDefinition="jsonb"` 直接 setString 报 "column is of type jsonb but expression is of type character varying" → 字段必须加 `@JdbcTypeCode(SqlTypes.JSON)`。
-- **Spring Data 派生查询**：`findByWorkspaceId` 在实体只有 `workspace` 关联时报 UnknownPathException → 显式 `findByWorkspace_Id`。
-- **@Version 初始值**：INSERT 后 version=0；要"从 1 起"字段初始化 `= 1`。注意 addChild/move 重排（saveAll）也会让父块 version 递增——断言时按实际更新次数算。
-- **uuid[] 映射**：`List<UUID>` + `@JdbcTypeCode(SqlTypes.ARRAY)` + `columnDefinition="uuid[]"` 可用（T3 已验证）。
-- T3 文档/块 API（契约 §7.3 未定义处已按风格落地）：`POST/GET /api/v1/documents?workspaceId=`、`GET/PATCH/DELETE /{id}`、`PATCH /{id}/blocks`（updates: upsert|delete|move）；响应块节点含 position/version。GET versions 端点未实现（需快照表，T6 后置）。
+### §12 浏览器 e2e 验证坑（2026-09-07 实测）
 
-### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
-
-- **Boot 4 原生 Jackson 3（tools.jackson.\*）**：Jackson 2 自动配置拆到可选 `spring-boot-jackson2`（deprecated）；模块注入 ObjectMapper 用 `tools.jackson.databind.ObjectMapper`，捕获异常用 `tools.jackson.core.JacksonException`（无 JsonProcessingException）；依赖坐标 `tools.jackson.core:jackson-databind`（BOM 管版本）。
-- **PG jsonb 绑定 42804**：String 字段 + `columnDefinition="jsonb"` 直接 setString 报 "column is of type jsonb but expression is of type character varying" → 字段必须加 `@JdbcTypeCode(SqlTypes.JSON)`。
-- **Spring Data 派生查询**：`findByWorkspaceId` 在实体只有 `workspace` 关联时报 UnknownPathException → 显式 `findByWorkspace_Id`。
-- **@Version 初始值**：INSERT 后 version=0；要"从 1 起"字段初始化 `= 1`。注意 addChild/move 重排（saveAll）也会让父块 version 递增——断言时按实际更新次数算。
-- **uuid[] 映射**：`List<UUID>` + `@JdbcTypeCode(SqlTypes.ARRAY)` + `columnDefinition="uuid[]"` 可用（T3 已验证）。
+- **api-client Content-Type 415（浏览器专属）**：`request()` 原逻辑"body 为空才设 application/json"是反的——带 JSON body 时浏览器默认 `text/plain;charset=UTF-8` 被后端 415 包成 500；字符串 body 必须显式 `Content-Type: application/json`（FormData 除外）。curl 测不到（curl 默认 application/x-www-form-urlencoded 且手动带 -H 正常），**只有真实浏览器抓得到**。
+- **rollback-only 吞根因**：外层 @Transactional 方法内被 catch 的内层异常会把事务标记 rollback-only，外层提交抛 UnexpectedRollbackException，GlobalExceptionHandler 只打顶层 → 根因藏死。定位手段：写临时 @SpringBootTest 测试，**手动 new 服务类（非代理）直调**让异常直接上抛；或先查 DB job.error_message（注意全回滚时无落库）。
+- **board_cards.description 是 JSONB**（V3 约定：卡片内富文本块结构）：Word 抽取的纯文本描述直传 addCard 会 validateJson 失败 → buildBoard 需 `toDescriptionJson`（已合法 JSON 原样，否则 `{"text": 原文}`，空白走默认）。CI 的 docxWith 无描述 → 测试盲区，补 wordToBoard_withDescription_storesJsonDescription。
+- **bu.upload 不触发 React onChange**：DOM input 有值但 React state 为 null；提交无 POST 且无 error。**bu.click(ref) 在 re-render 后可能失效**（无报错无效果），改用 `bu.js` 里 `document.querySelector(...).click()` DOM 直触发可靠。e2e 全套路径（建工作区→建板→上传转换→开板验证→导出下载→docx 回读校验）已固化在 e2e-env2.sh 流程。
+- **Next dev hydration mismatch 噪音**：`data-inspector-id` 等 dev-only 属性差异会刷 console error，不影响功能，勿当 bug。
+- 后端无访问日志（未配 logback access）→ 判断请求是否到达只能看 DB 落库或 GlobalExceptionHandler；docker CLI 在 Windows（`"C:\Program Files\Docker\Docker\resources\bin\docker.exe"`），WSL 内不可用。
 
 ### §9 Flyway 迁移约定（2026-09-06 定）
 
