@@ -179,8 +179,12 @@ public class BoardService {
   public List<BoardCard> listCards(UUID boardId, UUID columnId, UUID assigneeId, Short priority) {
     get(boardId);
     if (columnId != null) {
-      BoardColumn column = requireColumn(columnId);
-      requireBelongsToBoard(column.getBoard().getId(), boardId);
+      // 列不存在（如已删除）→ 按该列筛选结果为空，而非 404
+      java.util.Optional<BoardColumn> column = columnRepository.findById(columnId);
+      if (column.isEmpty()) {
+        return List.of();
+      }
+      requireBelongsToBoard(column.get().getBoard().getId(), boardId);
     }
     return cardRepository.search(boardId, columnId, assigneeId, priority);
   }
