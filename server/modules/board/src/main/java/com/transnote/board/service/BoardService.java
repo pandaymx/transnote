@@ -151,6 +151,34 @@ public class BoardService {
       List<String> labels,
       UUID sourceDocumentId,
       String sourceEvidence) {
+    return addCard(
+        boardId,
+        columnId,
+        title,
+        description,
+        assigneeId,
+        null,
+        dueDate,
+        priority,
+        labels,
+        sourceDocumentId,
+        sourceEvidence);
+  }
+
+  /** 带负责人人名（T8 转换建卡走此重载）。 */
+  @Transactional
+  public BoardCard addCard(
+      UUID boardId,
+      UUID columnId,
+      String title,
+      String description,
+      UUID assigneeId,
+      String assigneeName,
+      LocalDate dueDate,
+      Short priority,
+      List<String> labels,
+      UUID sourceDocumentId,
+      String sourceEvidence) {
     validateTitle(title, BoardCard.MAX_TITLE_LENGTH);
     validatePriority(priority);
     validateJson("description", description);
@@ -169,6 +197,7 @@ public class BoardService {
             title.trim(),
             description,
             assigneeId,
+            assigneeName,
             dueDate,
             priority == null ? (short) 1 : priority,
             labels,

@@ -51,6 +51,10 @@ public class BoardCard {
   @Column(name = "assignee_id")
   private UUID assigneeId;
 
+  /** 负责人人名（T8：无用户体系前的过渡字段，assignee_id 待 T2.1 后映射）。 */
+  @Column(name = "assignee_name", length = 128)
+  private String assigneeName;
+
   @Column(name = "due_date")
   private LocalDate dueDate;
 
@@ -89,6 +93,7 @@ public class BoardCard {
       String title,
       String description,
       UUID assigneeId,
+      String assigneeName,
       LocalDate dueDate,
       short priority,
       List<String> labels,
@@ -102,6 +107,7 @@ public class BoardCard {
       this.description = description;
     }
     this.assigneeId = assigneeId;
+    this.assigneeName = assigneeName;
     this.dueDate = dueDate;
     this.priority = priority;
     if (labels != null) {
@@ -109,6 +115,34 @@ public class BoardCard {
     }
     this.sourceDocumentId = sourceDocumentId;
     this.sourceEvidence = sourceEvidence;
+  }
+
+  /** 兼容旧构造（assigneeName=null）。 */
+  public BoardCard(
+      Board board,
+      BoardColumn column,
+      int position,
+      String title,
+      String description,
+      UUID assigneeId,
+      LocalDate dueDate,
+      short priority,
+      List<String> labels,
+      UUID sourceDocumentId,
+      String sourceEvidence) {
+    this(
+        board,
+        column,
+        position,
+        title,
+        description,
+        assigneeId,
+        null,
+        dueDate,
+        priority,
+        labels,
+        sourceDocumentId,
+        sourceEvidence);
   }
 
   public void moveTo(BoardColumn column, int position) {
@@ -173,6 +207,10 @@ public class BoardCard {
 
   public UUID getAssigneeId() {
     return assigneeId;
+  }
+
+  public String getAssigneeName() {
+    return assigneeName;
   }
 
   public LocalDate getDueDate() {

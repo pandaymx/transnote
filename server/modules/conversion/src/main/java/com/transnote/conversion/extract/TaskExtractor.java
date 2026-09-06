@@ -59,12 +59,19 @@ public class TaskExtractor {
   /** prompt_version：LLM 走模板版本；规则回退固定 "rule-v1"。 */
   private String lastPromptVersion = "rule-v1";
 
+  /** llm_model：LLM 路径 "llm"；规则回退 "rule"（具体模型名后置记录）。 */
+  private String lastLlmModel = "rule";
+
   public TaskExtractor(Optional<LlmProvider> llmProvider) {
     this.llmProvider = llmProvider;
   }
 
   public String getLastPromptVersion() {
     return lastPromptVersion;
+  }
+
+  public String getLastLlmModel() {
+    return lastLlmModel;
   }
 
   public List<ExtractedTask> extract(List<DocElement> elements) {
@@ -79,6 +86,7 @@ public class TaskExtractor {
             .complete(
                 systemPrompt, userContent, EXTRACTION_SCHEMA, LlmProvider.DEFAULT_TEMPERATURE);
     lastPromptVersion = LlmProvider.PROMPT_VERSION;
+    lastLlmModel = "llm";
     return parseTasks(raw);
   }
 
