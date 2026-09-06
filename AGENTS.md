@@ -142,9 +142,10 @@ scope 白名单不是形式主义——它逼着每次提交想清楚「改的�
 
 ## 6. 版本与发布
 
-- 预留 **semantic-release**（参照 lanchat 经验），MVP 阶段**不接自动发版**。
-- **不发版时不要手动改版本号，也不要手动打 tag**。
-- 若接 semantic-release：`conventional-changelog-conventionalcommits` 锁 `^8`（v10 与 semantic-release 25 内置 writer 不兼容，会报 `Missing helper`）；建仓后打 `git tag v0.0.0` 标记起点，并 `git push origin v0.0.0`。
+- 已集成 **semantic-release**（参照 lanchat 现役配置）：`bun run release` 自动生成 `CHANGELOG.md` + 打语义化版本 tag；本地/MVP 阶段只做 CHANGELOG + git tag，**不推送 npm / GitHub**（接入远程仓库时补 `repositoryUrl` 与 `@semantic-release/github`，见 `release.config.js` 注释）。
+- **不发版时不要手动改版本号，也不要手动打 tag**（版本号只由 semantic-release 从提交信息计算）。
+- 起点标记：仓库首个 release 前已打 `git tag v0.0.0`（标记之后才开始累计变更）。
+- 依赖版本（实测可跑，2026-09 验证）：semantic-release `^25` + `conventional-changelog-conventionalcommits` `^10` + `@semantic-release/changelog` `^7` + `@semantic-release/git` `^11`；若遇 `Missing helper` 错误再锁 `^8`（早期 lanchat 经验）。
 
 ---
 
