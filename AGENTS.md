@@ -223,3 +223,11 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **PG 18 官方镜像挂载变更**：必须挂 `/var/lib/postgresql` 根（数据在子目录），挂旧路径 `/var/lib/postgresql/data` 直接报错退出。
 - **宿主 5432 被 `ai-copilot-postgres-1` 占用**：transnote PG 定 **5433**（compose + application.yml + 文档 DB_URL 三处一致）。
 - **本机其他项目容器**（ai-copilot/wakapi/pgadmin4 等）不要动，端口规划绕开。
+
+### §9 Flyway 迁移约定（2026-09-06 定）
+
+- **schema 变更只能写 `db/migration/V*.sql`**（`spring-boot-starter-flyway` + 显式覆盖 `flyway-core`/`flyway-database-postgresql` 12.11.0）；`hibernate.ddl-auto: none`。
+- 迁移命名 `V<序号>__<描述>.sql`，一次迁移一个可回滚主题；**已应用的迁移文件禁止改动**（校验失败走新迁移修复）。
+- 坑：**Boot 4.1.1 BOM 的 flyway 12.4.0 不支持 PG18**（报 `Unsupported Database: PostgreSQL 18.6`）；必须 toml 显式覆盖 **12.11.0**，且 Flyway 10+ 的 PostgreSQL 支持是独立模块 `flyway-database-postgresql`（仅 starter 不含）。
+- 坑：shell 脚本里 `cmd | grep | head` 管道会吞掉 `set -e` 的失败退出码——构建失败也会继续提交。验证类命令不要接 grep 管道，或检查 `${PIPESTATUS[0]}`。
+- 已完成：V1 workspace 表（id uuid PK default gen_random_uuid / name / slug unique / created_at / updated_at）；认证后置无 owner_id。

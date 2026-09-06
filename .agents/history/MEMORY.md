@@ -52,5 +52,5 @@
 - [x] T1（主体）：server Gradle wrapper + Spring Boot 4.1.1 基础工程（d1e238b）+ spotless 8.10.1（f454131）+ infra/docker-compose.yml（PG18/Valkey9.1.2/MinIO，2b4b7d0）
 - [x] 决策 Servlet Web（ADR-10）与 T2 拆分工作区先行（ADR-11）
 - [ ] T1.2（剩余）：bun workspaces 根依赖声明细化（apps/packages 已建目录）
-- [ ] T2：工作区表 + CRUD（server/modules/identity 的 workspace 部分；认证/RBAC 后置）
+- [ ] T2（V1 workspace 表已建，fe87a19）：Workspace 实体 + Repository + CRUD API + 单测；认证/RBAC 后置
 - [ ] 设 JAVA_HOME / sdkman 默认指向 GraalVM 25
