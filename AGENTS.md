@@ -245,6 +245,8 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - T9 导出：`POST /api/v1/conversions/board-to-word?workspaceId=` body {boardId, template: task-list|weekly-report} → 同步聚合（完成率按列标题含"完成/done"判定；延期=dueDate 早于今天且非完成列）→ WordExporter 渲染（Heading1/2 + 任务表底纹 D9E2F3 + ☐/☑ + 页码 PAGE/NUMPAGES 域）→ LocalAssetStorage 落盘 → COMPLETED；result 返回 assetUrl（`GET /api/v1/conversions/assets/{id}/download`）；质量门 WordExporter.verify 回读，LibreOffice 缺失时跳过（§8.5 步骤 4 告警语义）。
 - T9 坑：① HeaderFooterType 在 `org.apache.poi.wp.usermodel`（非 xwpf）；② 页码域：`run.getCTR().addNewInstrText().setStringValue("PAGE")`（无 setInstrText）；③ CTShd.getFill() 返回解码后 byte[]，断言须 HexFormat hex 编码后比对；④ 完成率整数时格式化掉 `.0`（50.0% → 50%）。
 - T8 坑：① thenReturn 实参内禁止任何 mockito stubbing（先建对象再 stub）；② 已应用迁移改 DDL 后 Flyway validate 失败 → 开发库 `DROP SCHEMA public CASCADE; CREATE SCHEMA public` 重建重放（或 repair）；③ evidence/sourceEvidence 是 JSONB 字符串，jsonPath 断言用 containsString；④ @CreationTimestamp 字段必须同步在 V 迁移建列；⑤ ConversionJob promptVersion 在 complete 时取自 extractor.getLastPromptVersion()，不能读 job 自身。
+- T10 Golden：样例生成器写 build/golden-gen（勿用 @TempDir，JUnit 随机清理）；expected.json 为期望清单；阈值统计口径=期望任务顺序比对，多余抽取容忍；g16 空勾选放末尾。
+- T4a 前端：① bun install --frozen-lockfile 首次必须更新 lockfile（先裸跑一次再锁）；② Next 产物 .next/ 必须进 .gitignore（曾误提交 242 文件）；③ api-client request() 全调用须传 baseUrl；④ 含 $ 的 bash 命令必须写 .sh 经 wsl -e bash 执行（PowerShell 会吞 $ 变量）；⑤ 前端 CORS 由 server WebConfig 放行 localhost:3000/tauri。
 
 ### §11 Boot 4 / PG18 深度坑（T3 实测 2026-09-07）
 
@@ -289,3 +291,4 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
   - Semantic release：仅 push main，needs 前两者；permissions 需 contents/issues/pull-requests 全 write（success 评论步骤缺权限会失败）；产出 CHANGELOG + tag + GitHub Release（release.config.js repositoryUrl 已指向 GitHub）。
 - **发版**：feat → minor（v1.0.0 已发布，commit 874bb2b 触发）；fix → patch；`[skip ci]` 提交不触发 CI 循环。
 - WSL 推送用 ssh（gh 已配置 "Arm WSL SSH" key）；本地腾讯镜像 gradle wrapper 在 CI 可正常访问。
+| T10 | Golden 回归集 | 22 样例 title100/assignee100/due100（阈值95/90/90） | ✅ |
