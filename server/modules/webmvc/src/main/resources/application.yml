@@ -7,13 +7,16 @@ spring:
     password: dev
   jpa:
     hibernate:
-      ddl-auto: none   # schema 由迁移管理（Flyway 接入待 T2 前决策）
+      ddl-auto: none   # schema 由 Flyway 管理
     open-in-view: false
     properties:
       hibernate:
         jdbc:
           time_zone: UTC
         format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 server:
   port: 8080

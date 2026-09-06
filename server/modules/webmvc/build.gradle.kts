@@ -10,6 +10,9 @@ dependencies {
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.flyway)
+    implementation(libs.flyway.core)                    // 12.11.0 覆盖 BOM（BOM 12.4.0 不支持 PG18）
+    implementation(libs.flyway.database.postgresql)     // Flyway 10+ PostgreSQL 支持独立模块
     runtimeOnly(libs.postgresql)
     testImplementation(libs.spring.boot.starter.test)
 }
