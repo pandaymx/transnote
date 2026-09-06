@@ -1,0 +1,15 @@
+# TransNote git hooks（lefthook 配置；husky 的替代品，与 commitlint 组合）
+# 坑：lefthook 触发的子进程不继承交互式 PATH（bun 不在默认 PATH），钩子命令显式 export
+min_version: 1.3.0
+
+pre-commit:
+  parallel: true
+  commands:
+    secrets:
+      glob: "*.{ts,tsx,js,jsx,json,md,yaml,yml,properties,sh,java}"
+      run: bash .agents/tools/check-secrets.sh
+
+commit-msg:
+  commands:
+    commitlint:
+      run: bash -lc 'export PATH="$HOME/.bun/bin:$PATH" && bunx commitlint --edit {1}'

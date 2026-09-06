@@ -1,0 +1,31 @@
+# ---- Java / Gradle ----
+server/.gradle/
+server/build/
+**/build/
+!**/src/**/build/
+.gradle/
+
+# ---- Node / bun ----
+node_modules/
+
+# ---- 环境与密钥 ----
+.env
+.env.*
+!.env.example
+
+# ---- 本地数据 ----
+*.db
+*.sqlite
+data/
+
+# ---- IDE / 系统 ----
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ---- 生成物 ----
+dist/
+out/
+*.log
