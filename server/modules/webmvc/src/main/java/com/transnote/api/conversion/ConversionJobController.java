@@ -4,6 +4,7 @@ import com.transnote.api.ApiResponse;
 import com.transnote.conversion.model.ConversionItem;
 import com.transnote.conversion.model.ConversionJob;
 import com.transnote.conversion.service.ConversionService;
+import com.transnote.conversion.storage.AssetStorage;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -20,15 +21,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-/** 转换任务端点（契约 §7.2 / §8.4）：Word→看板 提交 / 查询 / 校对 / 结果。 */
+/** 转换任务端点（契约 §7.2 / §8.4 / §8.5）：Word→看板 提交 / 查询 / 校对 / 结果，看板→Word。 */
 @RestController
 @RequestMapping("/api/v1/conversions")
 public class ConversionJobController {
 
   private final ConversionService conversionService;
+  private final AssetStorage assetStorage;
 
-  public ConversionJobController(ConversionService conversionService) {
+  public ConversionJobController(ConversionService conversionService, AssetStorage assetStorage) {
     this.conversionService = conversionService;
+    this.assetStorage = assetStorage;
   }
 
   /** §8.4 步骤 1-6：上传 Word → 解析抽取 → 高置信自动建板 / 低置信进 REVIEW。 */
@@ -42,6 +45,15 @@ public class ConversionJobController {
         conversionService.submitWordToBoard(
             workspaceId, file.getOriginalFilename(), file.getBytes(), targetBoardId);
     return ApiResponse.ok(new SubmitResponse(job.getId(), job.getStatus(), job.getTargetBoardId()));
+  }
+
+  /** §8.5：看板 → Word 导出（JSON body，契约 §7.2）。 */
+  @PostMapping("/board-to-word")
+  public ApiResponse<SubmitResponse> boardToWord(
+      @RequestParam UUID workspaceId, @RequestBody BoardToWordRequest request) {
+    ConversionJob job =
+        conversionService.submitBoardToWord(workspaceId, request.boardId(), request.template());
+    return ApiResponse.ok(new SubmitResponse(job.getId(), job.getStatus(), job.getSourceBoardId()));
   }
 
   /** 任务查询（含 items）。 */
@@ -73,12 +85,20 @@ public class ConversionJobController {
             job, conversionService.itemsOf(jobId).stream().map(ItemResponse::from).toList()));
   }
 
-  /** 转换结果（§7.2：boardId；Board→Word 的 assetUrl 后置）。 */
+  /** 转换结果（§7.2：word-to-board 返回 boardId；board-to-word 返回 assetUrl）。 */
   @GetMapping("/jobs/{jobId}/result")
   public ApiResponse<ResultResponse> result(
       @PathVariable UUID jobId, @RequestParam UUID workspaceId) {
     ConversionJob job = conversionService.getJob(jobId, workspaceId);
-    return ApiResponse.ok(new ResultResponse(job.getId(), job.getStatus(), job.getTargetBoardId()));
+    String assetUrl =
+        job.getResultAssetId() == null ? null : assetStorage.url(job.getResultAssetId().toString());
+    return ApiResponse.ok(
+        new ResultResponse(
+            job.getId(),
+            job.getStatus(),
+            job.getTargetBoardId(),
+            assetUrl,
+            job.getCompletedAt() == null ? null : job.getCompletedAt().plusDays(7)));
   }
 
   public record SubmitResponse(UUID jobId, String status, UUID boardId) {}
@@ -116,6 +136,9 @@ public class ConversionJobController {
       String status,
       String direction,
       String fileName,
+      String template,
+      UUID sourceBoardId,
+      UUID resultAssetId,
       String promptVersion,
       String llmModel,
       UUID boardId,
@@ -129,6 +152,9 @@ public class ConversionJobController {
           job.getStatus(),
           job.getDirection(),
           job.getFileName(),
+          job.getTemplate(),
+          job.getSourceBoardId(),
+          job.getResultAssetId(),
           job.getPromptVersion(),
           job.getLlmModel(),
           job.getTargetBoardId(),
@@ -139,9 +165,12 @@ public class ConversionJobController {
     }
   }
 
-  public record ResultResponse(UUID jobId, String status, UUID boardId) {}
+  public record ResultResponse(
+      UUID jobId, String status, UUID boardId, String assetUrl, OffsetDateTime expiresAt) {}
 
   public record ReviewRequest(List<ReviewItem> items) {
     public record ReviewItem(UUID id, String reviewStatus, String taskTitle) {}
   }
+
+  public record BoardToWordRequest(UUID boardId, String template, Boolean withLlm) {}
 }

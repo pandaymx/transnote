@@ -1,5 +1,6 @@
 package com.transnote.api.conversion;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -140,6 +141,104 @@ class ConversionJobApiTest {
             get("/api/v1/conversions/jobs/{jobId}", UUID.randomUUID())
                 .param("workspaceId", ws.toString()))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void boardToWord_exportsDocx_andDownloadable() throws Exception {
+    UUID ws = workspaceId();
+    MvcResult boardResult =
+        mockMvc
+            .perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                        "/api/v1/boards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"workspaceId\":\"" + ws + "\",\"title\":\"发布上线\"}"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode boardData =
+        objectMapper.readTree(boardResult.getResponse().getContentAsString()).path("data");
+    UUID boardId = UUID.fromString(boardData.path("id").asText());
+
+    MvcResult colResult =
+        mockMvc
+            .perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                        "/api/v1/boards/{boardId}/columns", boardId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"title\":\"待办\"}"))
+            .andExpect(status().isOk())
+            .andReturn();
+    UUID columnId =
+        UUID.fromString(
+            objectMapper
+                .readTree(colResult.getResponse().getContentAsString())
+                .path("data")
+                .path("id")
+                .asText());
+
+    mockMvc
+        .perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                    "/api/v1/boards/{boardId}/cards", boardId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"columnId\":\""
+                        + columnId
+                        + "\",\"title\":\"完成接口联调\","
+                        + "\"description\":\"{}\",\"dueDate\":\"2026-09-12\",\"priority\":1}"))
+        .andExpect(status().isOk());
+
+    // 导出
+    MvcResult export =
+        mockMvc
+            .perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                        "/api/v1/conversions/board-to-word")
+                    .param("workspaceId", ws.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"boardId\":\"" + boardId + "\",\"template\":\"task-list\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("COMPLETED"))
+            .andReturn();
+    UUID jobId =
+        UUID.fromString(
+            objectMapper
+                .readTree(export.getResponse().getContentAsString())
+                .path("data")
+                .path("jobId")
+                .asText());
+
+    // 任务方向与模板
+    mockMvc
+        .perform(get("/api/v1/conversions/jobs/{jobId}", jobId).param("workspaceId", ws.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.direction").value("BOARD_TO_WORD"))
+        .andExpect(jsonPath("$.data.template").value("task-list"))
+        .andExpect(jsonPath("$.data.sourceBoardId").value(boardId.toString()))
+        .andExpect(jsonPath("$.data.resultAssetId").exists());
+
+    // result → assetUrl
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/api/v1/conversions/jobs/{jobId}/result", jobId)
+                    .param("workspaceId", ws.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.assetUrl").exists())
+            .andReturn();
+    String assetUrl =
+        objectMapper
+            .readTree(result.getResponse().getContentAsString())
+            .path("data")
+            .path("assetUrl")
+            .asText();
+
+    // 下载产物（docx = zip magic PK）
+    MvcResult download = mockMvc.perform(get(assetUrl)).andExpect(status().isOk()).andReturn();
+    byte[] body = download.getResponse().getContentAsByteArray();
+    assertThat(body.length).isGreaterThan(1000);
+    assertThat(body[0]).isEqualTo((byte) 'P');
+    assertThat(body[1]).isEqualTo((byte) 'K');
   }
 
   @Test
