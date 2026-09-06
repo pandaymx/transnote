@@ -69,7 +69,7 @@ services:
   postgres:
     image: postgres:18
     environment: { POSTGRES_DB: transnote, POSTGRES_USER: dev, POSTGRES_PASSWORD: dev }
-    ports: ["5432:5432"]
+    ports: ["5433:5432"]   # 宿主 5432 被本机其他项目占用，transnote 用 5433
     volumes: [pgdata:/var/lib/postgresql/data]
   valkey:
     image: valkey/valkey:9.1.2   # Redis 协议兼容，替代 redis:7
@@ -89,7 +89,7 @@ services:
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `DB_URL` / `DB_USER` / `DB_PASS` | `jdbc:postgresql://localhost:5432/transnote` / dev / dev | PostgreSQL 18 |
+| `DB_URL` / `DB_USER` / `DB_PASS` | `jdbc:postgresql://localhost:5433/transnote` / dev / dev | PostgreSQL 18（宿主 5433，5432 被占用） |
 | `REDIS_URL` | `redis://localhost:6379` | Valkey 9.1.2（协议兼容，连接串 scheme 仍为 redis://） |
 | `MINIO_ENDPOINT` / `MINIO_BUCKET` | `http://localhost:9000` / `assets` | 对象存储 |
 | `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` | 空（必填） | OpenAI 兼容接口，可指向 DeepSeek/通义/豆包等 |

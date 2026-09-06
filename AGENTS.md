@@ -214,3 +214,12 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **可追溯**：每次转换记录 `llm_model + prompt_version + 原始抽取 JSON`，支持重放；prompt 变更必须递增 `prompt_version`。
 - **人工校对门**：`confidence < 0.8` 的抽取项禁止自动入库，必须等用户 PATCH /review 确认。
 - **隐私**：用户文档内容与校对数据不得写入日志或公开提示词样例。
+
+### §8 环境坑表（2026-09-06 追加：Docker/PG18）
+
+- **Docker 引擎在 Windows 侧（Docker Desktop）**：WSL 里 `docker` 是纯客户端；WSL 内 socket（`/mnt/wsl/docker-desktop/shared-sockets`）为 tmpfs `mode=755` root 独占，**WSL 内无法直连**（sudo 需密码也不可行）。统一用 Windows 侧 CLI：`& "C:\Program Files\Docker\Docker\resources\bin\docker.exe" compose -f <win路径> up -d`；引擎就绪探测：`docker.exe info`。
+- **.wslconfig 是 Mirrored 网络**：Windows 宿主端口在 WSL 内 `localhost:<port>` 直达（已验证 5433/6379/9000）。
+- **Docker Hub 直连超时**：compose 镜像默认走 `IMAGE_PREFIX:-docker.m.daocloud.io` 加速（已验证可拉）；切官方源设 `IMAGE_PREFIX=` 空。Docker Desktop 的 settings-store.json 里 registryMirrors 字段名不对（新版不认），别改；改了还要小心 **PowerShell `Set-Content -Encoding UTF8` 会写 BOM**，Docker 解析报 `invalid character '茂'` 导致 backend 崩溃（用 `[IO.File]::WriteAllText(..., UTF8Encoding($false))`）。
+- **PG 18 官方镜像挂载变更**：必须挂 `/var/lib/postgresql` 根（数据在子目录），挂旧路径 `/var/lib/postgresql/data` 直接报错退出。
+- **宿主 5432 被 `ai-copilot-postgres-1` 占用**：transnote PG 定 **5433**（compose + application.yml + 文档 DB_URL 三处一致）。
+- **本机其他项目容器**（ai-copilot/wakapi/pgadmin4 等）不要动，端口规划绕开。
