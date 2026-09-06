@@ -273,6 +273,7 @@ GET    /api/v1/boards/{id}/cards?columnId=&assigneeId=&priority=
 ### AI 转换（异步）
 POST   /api/v1/conversions/word-to-board         multipart: file + { "targetBoardId?" } -> { "jobId" }
 POST   /api/v1/conversions/board-to-word         { "boardId", "template": "task-list|weekly-report", "withLlm": true } -> { "jobId" }
+GET    /api/v1/conversions/jobs?workspaceId=       -> 历史列表（近50条倒序，轻量无 items）：{ "jobId","status","direction","fileName","boardId","resultAssetId","createdAt" }
 GET    /api/v1/conversions/jobs/{jobId}          -> { "status", "progress", "items"? }
 PATCH  /api/v1/conversions/jobs/{jobId}/review   { "items": [ { "id", "reviewStatus", "taskTitle"? } ] } -> 200
 GET    /api/v1/conversions/jobs/{jobId}/result   -> { "assetUrl", "expiresAt" }  # 或 { "boardId" }
@@ -403,6 +404,8 @@ public interface LlmProvider {
 
 - `packages/core` 只依赖 React + Zustand + TanStack Query，**不依赖 Next.js**（保证 Tauri 可复用）。
 - 所有 API 调用走 `packages/api-client`（OpenAPI 生成 + fetch/WS 封装），禁止组件内直接写 fetch。
+- 看板卡片交互（拖拽换列/内联编辑/删除）统一走 `useUpdateCard`/`useDeleteCard`（乐观更新：onMutate 快照 → onError 回滚 → onSettled invalidate）。
+- 转换历史：convert 页底部历史区块展示方向/状态/时间，boardId→打开看板，resultAssetId→下载 docx。
 - Block 类型定义以 `packages/schema`（JSON Schema）为唯一事实源，TS 类型由 `json-schema-to-typescript` 生成。
 
 ### 9.3 Tauri 桌面能力（MVP 基础壳）
