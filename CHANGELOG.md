@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/pandaymx/transnote/compare/v1.1.0...v1.2.0) (2026-09-06)
+
+### Features
+
+* **desktop:** tauri 2 桌面壳骨架（vite+react，复用 packages/core）与 ci rust 编译 job ([597cf20](https://github.com/pandaymx/transnote/commit/597cf20635cbc7849dd5790c5e7b8df01d96507c))
+
 ## [1.1.0](https://github.com/pandaymx/transnote/compare/v1.0.0...v1.1.0) (2026-09-06)
 
 ### Features
