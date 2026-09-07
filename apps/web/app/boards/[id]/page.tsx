@@ -10,6 +10,7 @@ import {
   useBoardUi,
   useBoards,
   useDeletedCards,
+  useDeleteBoard,
   useDeleteCard,
   useDeleteColumn,
   useDuplicateBoard,
@@ -49,6 +50,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const updateCard = useUpdateCard(boardId);
   const updateBoard = useUpdateBoard(boardId);
   const duplicateBoard = useDuplicateBoard(board?.workspaceId ?? '');
+  const deleteBoard = useDeleteBoard(board?.workspaceId ?? '');
   const deleteCard = useDeleteCard(boardId);
   const deleteColumn = useDeleteColumn(boardId);
   const renameColumn = useRenameColumn(boardId);
@@ -681,6 +683,19 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             }
           >
             复制
+          </button>
+          <button
+            className="btn danger"
+            disabled={!board?.workspaceId}
+            onClick={() => {
+              if (window.confirm(`删除看板「${board?.title ?? ''}」？所有卡片将一并删除。`)) {
+                deleteBoard.mutate(boardId, {
+                  onSuccess: () => router.push('/'),
+                });
+              }
+            }}
+          >
+            删除
           </button>
         </div>
       </div>

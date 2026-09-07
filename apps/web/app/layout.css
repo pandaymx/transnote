@@ -93,6 +93,11 @@ body {
   color: #2f54eb;
 }
 
+.btn.danger {
+  background: #fff1f0;
+  color: #cf1322;
+}
+
 input[type='text'],
 input[type='file'] {
   padding: 8px 10px;
