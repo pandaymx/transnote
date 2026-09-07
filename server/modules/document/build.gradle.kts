@@ -10,6 +10,7 @@ dependencies {
     implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.jackson3.databind)   // Boot 4 原生 Jackson 3（content/properties JSON 校验）
+    implementation(libs.poi.ooxml)   // 文档 → Word 导出
     testImplementation(libs.spring.boot.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)   // Gradle 9 需显式提供 launcher
 }

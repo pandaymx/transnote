@@ -332,6 +332,15 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
         >
           {toBoard.isPending ? '转换中…' : '转为看板'}
         </button>
+        {docId && (
+          <a
+            className="btn secondary"
+            href={`${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8080'}/api/v1/documents/${docId}/export-word`}
+            style={{ marginLeft: 8 }}
+          >
+            导出 Word
+          </a>
+        )}
       </div>
 
       {(tree?.blocks ?? []).map((block, i) => (

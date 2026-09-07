@@ -220,4 +220,26 @@ class DocumentServiceTest {
             eq("{\"checked\":false}"),
             isNull());
   }
+
+  @Test
+  void exportWord_rendersDocxBytes() {
+    UUID docId = UUID.randomUUID();
+    Document document = new Document(workspace(UUID.randomUUID()), "会议纪要", null);
+    ReflectionTestUtils.setField(document, "id", docId);
+    when(repository.findById(docId)).thenReturn(Optional.of(document));
+
+    BlockNode heading =
+        new BlockNode(UUID.randomUUID(), null, "heading_1", "周一例会", "{}", 0, 0, List.of());
+    BlockNode todo =
+        new BlockNode(
+            UUID.randomUUID(), null, "todo", "写周报", "{\"checked\":true}", 1, 0, List.of());
+    when(blockService.tree(docId)).thenReturn(List.of(heading, todo));
+
+    byte[] bytes = service.exportWord(docId);
+
+    // OOXML ZIP 魔数 PK
+    assertThat(bytes.length).isGreaterThan(1000);
+    assertThat(bytes[0]).isEqualTo((byte) 0x50);
+    assertThat(bytes[1]).isEqualTo((byte) 0x4B);
+  }
 }

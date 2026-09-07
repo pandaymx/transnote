@@ -5,8 +5,14 @@ import com.transnote.document.model.Document;
 import com.transnote.document.service.BlockService;
 import com.transnote.document.service.DocumentService;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -72,6 +78,19 @@ public class DocumentController {
       applyUpdate(id, update);
     }
     return ApiResponse.ok();
+  }
+
+  /** 文档 → Word：块树渲染为 docx 下载。 */
+  @GetMapping("/{id}/export-word")
+  public ResponseEntity<byte[]> exportWord(@PathVariable UUID id) throws IOException {
+    byte[] data = documentService.exportWord(id);
+    String filename =
+        URLEncoder.encode(documentService.get(id).getTitle() + ".docx", StandardCharsets.UTF_8)
+            .replace("+", "%20");
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + filename)
+        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+        .body(data);
   }
 
   /** 文档 → 看板：todo 块转卡片（boardId 空则自动新建看板）。 */

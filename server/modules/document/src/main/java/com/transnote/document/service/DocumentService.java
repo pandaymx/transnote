@@ -9,8 +9,14 @@ import com.transnote.document.model.Document;
 import com.transnote.document.repo.DocumentRepository;
 import com.transnote.identity.workspace.Workspace;
 import com.transnote.identity.workspace.WorkspaceService;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -130,6 +136,91 @@ public class DocumentService {
 
   /** 看板 → 文档结果。 */
   public record ToDocumentResult(UUID documentId, int created) {}
+
+  /** 文档 → Word：块树渲染为 docx 字节流。 */
+  public byte[] exportWord(UUID documentId) {
+    Document document = get(documentId);
+    try (XWPFDocument docx = new XWPFDocument();
+        ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      XWPFParagraph title = docx.createParagraph();
+      title.setAlignment(ParagraphAlignment.CENTER);
+      XWPFRun titleRun = title.createRun();
+      titleRun.setBold(true);
+      titleRun.setFontSize(20);
+      titleRun.setText(StringUtils.hasText(document.getTitle()) ? document.getTitle() : "未命名文档");
+      renderChildren(blockService.tree(documentId), docx);
+      docx.write(out);
+      return out.toByteArray();
+    } catch (IOException e) {
+      throw new IllegalStateException("文档导出 Word 失败", e);
+    }
+  }
+
+  private void renderChildren(List<BlockNode> nodes, XWPFDocument docx) {
+    int numbered = 1;
+    for (BlockNode node : nodes) {
+      renderNode(node, docx, numbered);
+      if ("numbered_list".equals(node.type())) {
+        numbered++;
+      } else {
+        numbered = 1;
+      }
+    }
+  }
+
+  private void renderNode(BlockNode node, XWPFDocument docx, int numbered) {
+    String text = node.content() == null ? "" : node.content();
+    switch (node.type()) {
+      case "heading_1" -> addParagraph(docx, text, 18, true, false, null);
+      case "heading_2" -> addParagraph(docx, text, 15, true, false, null);
+      case "heading_3" -> addParagraph(docx, text, 13, true, false, null);
+      case "todo" ->
+          addParagraph(
+              docx, (isChecked(node) ? "☑ " : "☐ ") + text, 11, false, isChecked(node), null);
+      case "bulleted_list" -> addParagraph(docx, "• " + text, 11, false, false, null);
+      case "numbered_list" -> addParagraph(docx, numbered + ". " + text, 11, false, false, null);
+      case "quote" -> addParagraph(docx, text, 11, false, true, null);
+      case "code" -> addParagraph(docx, text, 10, false, false, "Consolas");
+      case "divider" -> {
+        XWPFParagraph p = docx.createParagraph();
+        XWPFRun run = p.createRun();
+        run.setText("― ― ― ―");
+        run.setColor("9B9A97");
+      }
+      case "toggle" -> addParagraph(docx, "▸ " + text, 12, true, false, null);
+      default -> addParagraph(docx, text, 11, false, false, null);
+    }
+    for (BlockNode child : node.children()) {
+      renderNode(child, docx, 1);
+    }
+  }
+
+  private void addParagraph(
+      XWPFDocument docx, String text, int size, boolean bold, boolean italic, String fontFamily) {
+    XWPFParagraph p = docx.createParagraph();
+    XWPFRun run = p.createRun();
+    run.setFontSize(size);
+    run.setBold(bold);
+    run.setItalic(italic);
+    if (fontFamily != null) {
+      run.setFontFamily(fontFamily);
+    }
+    if (StringUtils.hasText(text)) {
+      run.setText(text);
+    }
+  }
+
+  private boolean isChecked(BlockNode node) {
+    if (!StringUtils.hasText(node.properties())) {
+      return false;
+    }
+    try {
+      return Boolean.parseBoolean(
+          objectMapper.readTree(node.properties()).path("checked").asText("false"));
+    } catch (Exception ignored) {
+      return false;
+    }
+  }
 
   @Transactional
   public Document create(UUID workspaceId, String title, String icon) {
