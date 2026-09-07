@@ -24,6 +24,29 @@ const TYPE_CLASS: Record<string, string> = {
   divider: 'doc-divider',
 };
 
+/** Markdown 行首快捷语法 → 块类型（Notion 风格）。 */
+const MARKDOWN_PREFIX: Array<[RegExp, string]> = [
+  [/^#\s/, 'heading_1'],
+  [/^##\s/, 'heading_2'],
+  [/^###\s/, 'heading_3'],
+  [/^[-*]\s/, 'bulleted_list'],
+  [/^\d+\.\s/, 'numbered_list'],
+  [/^\[\]\s/, 'todo'],
+  [/^>\s/, 'quote'],
+  [/^```/, 'code'],
+];
+
+/** 行首语法匹配：返回 [新类型, 去前缀内容]；未匹配返回 null。 */
+function matchMarkdownPrefix(text: string, currentType: string): [string, string] | null {
+  if (currentType !== 'paragraph') return null;
+  for (const [re, type] of MARKDOWN_PREFIX) {
+    if (re.test(text)) {
+      return [type, text.replace(re, '')];
+    }
+  }
+  return null;
+}
+
 function parseChecked(properties?: string | null): boolean {
   if (!properties) return false;
   try {
@@ -62,6 +85,14 @@ function BlockItem({
   useEffect(() => setChecked(parseChecked(block.properties)), [block.properties]);
 
   const commit = () => {
+    const m = matchMarkdownPrefix(value, block.type);
+    if (m) {
+      const [newType, text] = m;
+      setValue(text);
+      onUpdate(block.id, text);
+      onUpdateType(block.id, newType);
+      return;
+    }
     if (value !== (block.content ?? '')) {
       onUpdate(block.id, value);
     }
