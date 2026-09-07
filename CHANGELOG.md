@@ -1,3 +1,10 @@
+## [1.20.0](https://github.com/pandaymx/transnote/compare/v1.19.0...v1.20.0) (2026-09-07)
+
+### Features
+
+* **board:** 卡片颜色顶部色条对齐 Notion ([baf1fcb](https://github.com/pandaymx/transnote/commit/baf1fcbeee35558b8888df77242e471768ff5874))
+* **web:** 看板统计弹窗各列完成率 ([b17f3b1](https://github.com/pandaymx/transnote/commit/b17f3b174efc118974904b855086fd188891e143))
+
 ## [1.19.0](https://github.com/pandaymx/transnote/compare/v1.18.0...v1.19.0) (2026-09-07)
 
 ### Features
