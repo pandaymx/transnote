@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import {
   useBoardToWord,
   useBoardUi,
+  useBoards,
   useJob,
   useJobs,
   useReviewJob,
@@ -32,6 +33,7 @@ function ConvertInner() {
   }, [params.get('board'), params.get('tab')]);
 
   const submit = useWordToBoard(wsId);
+  const { data: boards } = useBoards(wsId);
   const { data: job, isLoading: jobLoading } = useJob(jobId ?? '', wsId, !!jobId);
   const review = useReviewJob(jobId ?? '', wsId);
   const { data: history, refetch: refetchHistory } = useJobs(wsId);
@@ -106,13 +108,18 @@ function ConvertInner() {
       <div className="card">
         <div className="row" style={{ gap: 12 }}>
           <input type="file" accept=".docx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-          <input
-            type="text"
-            placeholder="目标看板 ID（可选，留空自动建板）"
+          <select
             value={targetBoardId}
             onChange={(e) => setTargetBoardId(e.target.value)}
             style={{ width: 260 }}
-          />
+          >
+            <option value="">自动新建看板</option>
+            {(boards ?? []).map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.title}
+              </option>
+            ))}
+          </select>
           <button className="btn" disabled={submit.isPending} onClick={onSubmit}>
             {submit.isPending ? '提交中…' : '转换'}
           </button>
@@ -198,12 +205,18 @@ function ConvertInner() {
       <h2 style={{ marginTop: 32 }}>看板 → Word 导出</h2>
       <div className="card">
         <div className="row" style={{ gap: 12 }}>
-          <input
-            type="text"
-            placeholder="看板 ID"
+          <select
             value={exportBoardId}
             onChange={(e) => setExportBoardId(e.target.value)}
-          />
+            style={{ width: 260 }}
+          >
+            <option value="">选择看板…</option>
+            {(boards ?? []).map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.title}
+              </option>
+            ))}
+          </select>
           <select value={template} onChange={(e) => setTemplate(e.target.value as 'task-list' | 'weekly-report')}>
             <option value="task-list">task-list</option>
             <option value="weekly-report">weekly-report</option>
