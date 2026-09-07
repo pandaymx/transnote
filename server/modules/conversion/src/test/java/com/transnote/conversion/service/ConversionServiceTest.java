@@ -211,8 +211,7 @@ class ConversionServiceTest {
 
   @Test
   void rejectsUnknownExportTemplate() {
-    assertThatThrownBy(
-            () -> service.submitBoardToWord(workspaceId, UUID.randomUUID(), "pdf", null))
+    assertThatThrownBy(() -> service.submitBoardToWord(workspaceId, UUID.randomUUID(), "pdf", null))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("template");
   }
