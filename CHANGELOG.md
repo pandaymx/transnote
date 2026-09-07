@@ -1,3 +1,9 @@
+## [1.13.0](https://github.com/pandaymx/transnote/compare/v1.12.1...v1.13.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板列折叠与卡片描述编辑及完成自动收纳 ([32a6b16](https://github.com/pandaymx/transnote/commit/32a6b162970fdb3312767c5d0c1d08decdf56f42))
+
 ## [1.12.1](https://github.com/pandaymx/transnote/compare/v1.12.0...v1.12.1) (2026-09-07)
 
 ### Bug Fixes
