@@ -77,6 +77,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [filterState, setFilterState] = useState<'all' | 'open' | 'done'>('all');
   const [filterAssignee, setFilterAssignee] = useState<string | null>(null);
   const [filterPriority, setFilterPriority] = useState<number | null>(null);
+  /** 标签筛选（Notion 按属性筛选）。 */
+  const [filterLabel, setFilterLabel] = useState<string | null>(null);
   /** 看板内搜索（Notion 搜索框）：匹配标题/描述/标签。 */
   const [searchQ, setSearchQ] = useState('');
   const [sortBy, setSortBy] = useState<'manual' | 'due' | 'priority'>('manual');
@@ -188,6 +190,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     if (filterState === 'done') list = list.filter((c) => c.checked);
     if (filterAssignee) list = list.filter((c) => (c.assigneeName ?? '') === filterAssignee);
     if (filterPriority != null) list = list.filter((c) => (c.priority ?? 0) === filterPriority);
+    if (filterLabel) list = list.filter((c) => (c.labels ?? []).includes(filterLabel));
     if (searchQ) {
       const q = searchQ.toLowerCase();
       list = list.filter(
@@ -213,6 +216,19 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const assigneeOptions = Array.from(
     new Set((cards ?? []).map((c) => c.assigneeName).filter((v): v is string => !!v)),
   ).sort();
+
+  /** 可筛选标签列表（去重）。 */
+  const labelOptions = Array.from(
+    new Set((cards ?? []).flatMap((c) => c.labels ?? []).filter((v): v is string => !!v)),
+  ).sort();
+
+  /** 页面标题同步看板名（Notion 标签页标题）。 */
+  useEffect(() => {
+    document.title = board?.title ? `${board.title} · TransNote` : 'TransNote';
+    return () => {
+      document.title = 'TransNote';
+    };
+  }, [board?.title]);
 
   const onAdd = async (columnId: string) => {
     const title = drafts[columnId]?.trim();
@@ -500,6 +516,18 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             {assigneeOptions.map((a) => (
               <option key={a} value={a}>
                 {a}
+              </option>
+            ))}
+          </select>
+          <select
+            className="notion-tool-select"
+            value={filterLabel ?? ''}
+            onChange={(e) => setFilterLabel(e.target.value || null)}
+          >
+            <option value="">全部标签</option>
+            {labelOptions.map((l) => (
+              <option key={l} value={l}>
+                {l}
               </option>
             ))}
           </select>
