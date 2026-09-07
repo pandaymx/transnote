@@ -1,3 +1,14 @@
+## [1.30.0](https://github.com/pandaymx/transnote/compare/v1.29.0...v1.30.0) (2026-09-07)
+
+### Features
+
+* **board:** 卡片溯源跳转源文档 ([db61e0a](https://github.com/pandaymx/transnote/commit/db61e0a79ffc3c52047ccf37ccbc9ca197d828b9))
+* **web:** 侧边栏工作区切换器 ([b0be071](https://github.com/pandaymx/transnote/commit/b0be071abfb8596793bba45804234916a9a247f9))
+
+### Bug Fixes
+
+* **document:** 文档块内容统一为 JSON 字符串契约 ([4650861](https://github.com/pandaymx/transnote/commit/465086188b1c6091a78382e33993db50eb149fa0))
+
 ## [1.29.0](https://github.com/pandaymx/transnote/compare/v1.28.0...v1.29.0) (2026-09-07)
 
 ### Features
