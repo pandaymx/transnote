@@ -1,3 +1,11 @@
+## [1.26.0](https://github.com/pandaymx/transnote/compare/v1.25.0...v1.26.0) (2026-09-07)
+
+### Features
+
+* **conversion:** 文档导出 Word 文档 ([1b5a328](https://github.com/pandaymx/transnote/commit/1b5a328937e98bdf71cc87ebcd53385841822d91))
+* **web:** 文档标题大纲导航 ([cb0c660](https://github.com/pandaymx/transnote/commit/cb0c660f64c898762ddadc5a724d1db70476faba))
+* **web:** 文档统计信息条 ([cd8dd10](https://github.com/pandaymx/transnote/commit/cd8dd100150fd93ffde4a6d05c1510810c496d5d))
+
 ## [1.25.0](https://github.com/pandaymx/transnote/compare/v1.24.0...v1.25.0) (2026-09-07)
 
 ### Features
