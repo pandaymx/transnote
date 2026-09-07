@@ -1,3 +1,9 @@
+## [1.19.0](https://github.com/pandaymx/transnote/compare/v1.18.0...v1.19.0) (2026-09-07)
+
+### Features
+
+* **board:** 卡片回收站软删除与恢复 ([1cb490c](https://github.com/pandaymx/transnote/commit/1cb490c1ee6dd82dfc1fe0635591f852ab15b4aa))
+
 ## [1.18.0](https://github.com/pandaymx/transnote/compare/v1.17.0...v1.18.0) (2026-09-07)
 
 ### Features
