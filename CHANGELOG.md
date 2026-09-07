@@ -1,3 +1,11 @@
+## [1.27.0](https://github.com/pandaymx/transnote/compare/v1.26.0...v1.27.0) (2026-09-07)
+
+### Features
+
+* **board:** 复制卡片待办 ([ce395b0](https://github.com/pandaymx/transnote/commit/ce395b04735a37e31ebf5fc30ce16e9ea4e3df4a))
+* **desktop:** 看板转为文档按钮 ([b856631](https://github.com/pandaymx/transnote/commit/b8566311700563f2f8cee73e42c4a812b3ec34ae))
+* **web:** 文档图标编辑 ([fb9c16e](https://github.com/pandaymx/transnote/commit/fb9c16e63d94d26191fec45c2fa8393560231b5f))
+
 ## [1.26.0](https://github.com/pandaymx/transnote/compare/v1.25.0...v1.26.0) (2026-09-07)
 
 ### Features
