@@ -14,6 +14,7 @@ function DocsInner() {
   const renameDocument = useRenameDocument();
   const deleteDocument = useDeleteDocument(wsId);
   const [title, setTitle] = useState('');
+  const [q, setQ] = useState('');
 
   useEffect(() => {
     if (wsId) useBoardUi.getState().setWorkspace(wsId);
@@ -26,6 +27,11 @@ function DocsInner() {
     setTitle('');
     window.location.href = `/documents/${doc.id}`;
   };
+
+  const keyword = q.trim().toLowerCase();
+  const visible = (documents ?? []).filter(
+    (d) => !keyword || (d.title ?? '').toLowerCase().includes(keyword)
+  );
 
   return (
     <div>
@@ -46,11 +52,18 @@ function DocsInner() {
         <button className="btn" disabled={!title.trim() || !wsId || createDocument.isPending} onClick={onCreate}>
           新建
         </button>
+        <input
+          type="search"
+          style={{ marginLeft: 'auto' }}
+          placeholder="搜索文档…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
       </div>
 
       {isLoading && <p className="muted">加载中…</p>}
       <div>
-        {(documents ?? []).map((doc) => (
+        {visible.map((doc) => (
           <div className="row ws-board-item" key={doc.id} style={{ justifyContent: 'space-between' }}>
             <Link className="ws-board-link" href={`/documents/${doc.id}`}>
               {doc.icon ? `${doc.icon} ` : ''}
@@ -84,7 +97,7 @@ function DocsInner() {
             </span>
           </div>
         ))}
-        {!isLoading && documents?.length === 0 && <p className="muted">还没有文档，先新建一个。</p>}
+        {!isLoading && visible.length === 0 && <p className="muted">没有匹配的文档。</p>}
       </div>
     </div>
   );
