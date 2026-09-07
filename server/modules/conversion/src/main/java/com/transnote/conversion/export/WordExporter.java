@@ -76,7 +76,21 @@ public final class WordExporter {
     }
   }
 
-  public record ColumnExport(String title, boolean completed, List<CardExport> cards) {}
+  public record ColumnExport(String title, boolean completed, List<CardExport> cards) {
+
+    /** 列内已完成卡片数（卡片级 checked，V6 语义）。 */
+    public int doneCount() {
+      return (int) cards.stream().filter(CardExport::checked).count();
+    }
+
+    /** 列级完成率（0~100 整数）；无卡片返回 0。 */
+    public int ratePercent() {
+      if (cards.isEmpty()) {
+        return 0;
+      }
+      return (int) Math.round(doneCount() * 100.0 / cards.size());
+    }
+  }
 
   /** 卡片导出；checked 为卡片级完成态（V6），导出统计与状态列以其为准。 */
   public record CardExport(
@@ -135,7 +149,11 @@ public final class WordExporter {
       XWPFParagraph h2 = doc.createParagraph();
       h2.setStyle("Heading2");
       String state = col.completed() ? "（已完成）" : "";
-      h2.createRun().setText(col.title() + state + "（" + col.cards().size() + " 项）");
+      String stats =
+          col.cards().isEmpty()
+              ? ""
+              : "（" + col.cards().size() + " 项 · 完成率 " + col.ratePercent() + "%）";
+      h2.createRun().setText(col.title() + state + stats);
 
       if (col.cards().isEmpty()) {
         continue;
@@ -149,8 +167,16 @@ public final class WordExporter {
       int r = 1;
       for (CardExport card : col.cards()) {
         XWPFTableRow row = table.getRow(r++);
+        boolean overdueRow =
+            !card.checked()
+                && !col.completed()
+                && card.dueDate() != null
+                && card.dueDate().isBefore(LocalDate.now());
         setCell(row.getCell(0), card.checked() ? "☑" : "☐", false);
         setCell(row.getCell(1), card.title(), false);
+        if (overdueRow) {
+          row.getCell(1).getParagraphs().get(0).getRuns().forEach(run -> run.setColor("D44C47"));
+        }
         setCell(row.getCell(2), card.assigneeName() == null ? "" : card.assigneeName(), false);
         setCell(
             row.getCell(3), card.dueDate() == null ? "" : card.dueDate().format(DATE_FMT), false);

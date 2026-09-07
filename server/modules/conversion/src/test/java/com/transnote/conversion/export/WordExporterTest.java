@@ -45,8 +45,8 @@ class WordExporterTest {
       String text = paragraphsText(doc);
       assertThat(text).contains("发布上线任务清单");
       assertThat(text).contains("任务 2 项，已完成 1 项，完成率 50%");
-      assertThat(text).contains("待办（1 项）");
-      assertThat(text).contains("已完成（已完成）（1 项）");
+      assertThat(text).contains("待办（1 项 · 完成率 0%）");
+      assertThat(text).contains("已完成（已完成）（1 项 · 完成率 0%）");
       assertThat(text).contains("生成时间：");
     }
   }
@@ -88,7 +88,30 @@ class WordExporterTest {
     byte[] docx = WordExporter.export(data);
     try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {
       assertThat(paragraphsText(doc)).contains("任务 1 项，已完成 1 项，完成率 100%");
+      assertThat(paragraphsText(doc)).contains("待办（1 项 · 完成率 100%）");
       assertThat(doc.getTables().get(0).getRow(1).getCell(0).getText()).isEqualTo("☑");
+    }
+  }
+
+  @Test
+  void overdueRowHighlightedInRed() throws IOException {
+    BoardExportData data =
+        new BoardExportData(
+            UUID.randomUUID(),
+            "发布上线",
+            "task-list",
+            List.of(
+                new ColumnExport(
+                    "待办",
+                    false,
+                    List.of(
+                        new CardExport(
+                            "过期任务", "{}", null, LocalDate.now().minusDays(1), (short) 1, false)))));
+    byte[] docx = WordExporter.export(data);
+    try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {
+      XWPFTable table = doc.getTables().get(0);
+      String color = table.getRow(1).getCell(1).getParagraphs().get(0).getRuns().get(0).getColor();
+      assertThat(color).isEqualTo("D44C47");
     }
   }
 
