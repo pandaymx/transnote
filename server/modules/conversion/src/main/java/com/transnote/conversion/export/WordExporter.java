@@ -99,7 +99,20 @@ public final class WordExporter {
       String assigneeName,
       LocalDate dueDate,
       Short priority,
-      boolean checked) {}
+      boolean checked,
+      String color) {}
+
+  /** Notion 8 色 key → hex（与前端 CARD_COLORS 一致）。 */
+  private static final java.util.Map<String, String> COLOR_HEX =
+      java.util.Map.of(
+          "gray", "787774",
+          "brown", "8B6A50",
+          "orange", "C46A1E",
+          "yellow", "9A6B00",
+          "green", "3E6B35",
+          "blue", "2456A6",
+          "purple", "6940A5",
+          "pink", "9D3B63");
 
   public static byte[] export(BoardExportData data) {
     try (XWPFDocument doc = new XWPFDocument()) {
@@ -176,6 +189,12 @@ public final class WordExporter {
         setCell(row.getCell(1), card.title(), false);
         if (overdueRow) {
           row.getCell(1).getParagraphs().get(0).getRuns().forEach(run -> run.setColor("D44C47"));
+        } else if (card.color() != null && COLOR_HEX.containsKey(card.color())) {
+          row.getCell(1)
+              .getParagraphs()
+              .get(0)
+              .getRuns()
+              .forEach(run -> run.setColor(COLOR_HEX.get(card.color())));
         }
         setCell(row.getCell(2), card.assigneeName() == null ? "" : card.assigneeName(), false);
         setCell(

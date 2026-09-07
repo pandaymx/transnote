@@ -29,11 +29,17 @@ class WordExporterTest {
                 false,
                 List.of(
                     new CardExport(
-                        "完成接口联调", "{}", "王五", LocalDate.of(2026, 9, 12), (short) 1, false))),
+                        "完成接口联调",
+                        "{}",
+                        "王五",
+                        LocalDate.of(2026, 9, 12),
+                        (short) 1,
+                        false,
+                        "blue"))),
             new ColumnExport(
                 "已完成",
                 true,
-                List.of(new CardExport("备份数据库", "{}", null, null, (short) 2, false)))));
+                List.of(new CardExport("备份数据库", "{}", null, null, (short) 2, false, null)))));
   }
 
   @Test
@@ -83,7 +89,13 @@ class WordExporterTest {
                     false,
                     List.of(
                         new CardExport(
-                            "完成接口联调", "{}", "王五", LocalDate.of(2026, 9, 12), (short) 1, true))),
+                            "完成接口联调",
+                            "{}",
+                            "王五",
+                            LocalDate.of(2026, 9, 12),
+                            (short) 1,
+                            true,
+                            null))),
                 new ColumnExport("已完成", true, List.of())));
     byte[] docx = WordExporter.export(data);
     try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {
@@ -106,12 +118,38 @@ class WordExporterTest {
                     false,
                     List.of(
                         new CardExport(
-                            "过期任务", "{}", null, LocalDate.now().minusDays(1), (short) 1, false)))));
+                            "过期任务",
+                            "{}",
+                            null,
+                            LocalDate.now().minusDays(1),
+                            (short) 1,
+                            false,
+                            null)))));
     byte[] docx = WordExporter.export(data);
     try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {
       XWPFTable table = doc.getTables().get(0);
       String color = table.getRow(1).getCell(1).getParagraphs().get(0).getRuns().get(0).getColor();
       assertThat(color).isEqualTo("D44C47");
+    }
+  }
+
+  @Test
+  void coloredCardTitleRenderedInHex() throws IOException {
+    BoardExportData data =
+        new BoardExportData(
+            UUID.randomUUID(),
+            "发布上线",
+            "task-list",
+            List.of(
+                new ColumnExport(
+                    "待办",
+                    false,
+                    List.of(new CardExport("彩色卡片", "{}", null, null, null, false, "green")))));
+    byte[] docx = WordExporter.export(data);
+    try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {
+      XWPFTable table = doc.getTables().get(0);
+      String color = table.getRow(1).getCell(1).getParagraphs().get(0).getRuns().get(0).getColor();
+      assertThat(color).isEqualTo("3E6B35");
     }
   }
 
@@ -144,7 +182,13 @@ class WordExporterTest {
                     false,
                     List.of(
                         new CardExport(
-                            "完成接口联调", "{}", "王五", LocalDate.now().minusDays(1), (short) 1, false))),
+                            "完成接口联调",
+                            "{}",
+                            "王五",
+                            LocalDate.now().minusDays(1),
+                            (short) 1,
+                            false,
+                            null))),
                 data.columns().get(1)));
     byte[] docx = WordExporter.export(overdueData);
     try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {

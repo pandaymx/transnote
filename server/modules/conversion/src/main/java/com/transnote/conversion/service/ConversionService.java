@@ -221,7 +221,8 @@ public class ConversionService {
                                         card.getAssigneeName(),
                                         card.getDueDate(),
                                         card.getPriority(),
-                                        card.isChecked()))
+                                        card.isChecked(),
+                                        card.getColor()))
                             .toList()))
             .toList();
 
