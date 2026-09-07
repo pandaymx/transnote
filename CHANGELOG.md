@@ -1,3 +1,9 @@
+## [1.11.0](https://github.com/pandaymx/transnote/compare/v1.10.0...v1.11.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板属性徽标内联编辑对齐 Notion 交互 ([f49bd8a](https://github.com/pandaymx/transnote/commit/f49bd8a8c161121714cea8bafb436705a22fc0c9))
+
 ## [1.10.0](https://github.com/pandaymx/transnote/compare/v1.9.0...v1.10.0) (2026-09-07)
 
 ### Features
