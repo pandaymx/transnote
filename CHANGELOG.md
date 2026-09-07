@@ -1,3 +1,15 @@
+## [1.18.0](https://github.com/pandaymx/transnote/compare/v1.17.0...v1.18.0) (2026-09-07)
+
+### Features
+
+* **board:** 看板列拖拽排序支持 moveColumn ([34beb69](https://github.com/pandaymx/transnote/commit/34beb693ffacb9611f142dc6c75acf9b779b0a45))
+* **conversion:** 导出列级完成率与逾期标红 ([3f9145e](https://github.com/pandaymx/transnote/commit/3f9145e242480b9343558a493fb5252d18333983))
+* **web:** 卡片详情弹窗对齐 Notion ([45713c8](https://github.com/pandaymx/transnote/commit/45713c844c4a43072d962c145bc3c51cf67efc40))
+* **web:** 工作区首页看板预览 ([162497c](https://github.com/pandaymx/transnote/commit/162497c3a374914f946a036e1470af90e267deba))
+* **web:** 看板内搜索标题描述标签 ([954e75e](https://github.com/pandaymx/transnote/commit/954e75eabb4eb99d4760891e9c9640360dbc99ea))
+* **web:** 看板完成进度条对齐待办面板 ([225fc55](https://github.com/pandaymx/transnote/commit/225fc5591e12049bd0abf1a840f2b9d31a2c4f84))
+* **web:** 看板移动端响应式适配 ([89906ca](https://github.com/pandaymx/transnote/commit/89906ca086777fb841512ea078198edf400bfc92))
+
 ## [1.17.0](https://github.com/pandaymx/transnote/compare/v1.16.0...v1.17.0) (2026-09-07)
 
 ### Features
