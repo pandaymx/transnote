@@ -117,6 +117,8 @@ function BlockItem({
   depth,
   siblings,
   index,
+  dragId,
+  setDragId,
   onUpdate,
   onUpdateType,
   onAddAfter,
@@ -127,6 +129,8 @@ function BlockItem({
   depth: number;
   siblings: BlockNode[];
   index: number;
+  dragId: string | null;
+  setDragId: (id: string | null) => void;
   onUpdate: (blockId: string, content: string, properties?: string) => void;
   onUpdateType: (blockId: string, type: string) => void;
   onAddAfter: (blockId: string) => void;
@@ -154,7 +158,25 @@ function BlockItem({
   };
 
   return (
-    <div className="doc-block" id={`block-${block.id}`} style={{ marginLeft: depth * 20 }}>
+    <div
+      className="doc-block"
+      id={`block-${block.id}`}
+      style={{ marginLeft: depth * 20, ...(dragId === block.id ? { opacity: 0.4 } : {}) }}
+      draggable
+      onDragStart={(e) => {
+        setDragId(block.id);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+      onDragEnd={() => setDragId(null)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        if (dragId && dragId !== block.id) {
+          onMove(dragId, block.parentId ?? null, index);
+        }
+        setDragId(null);
+      }}
+    >
       <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
         {block.type === 'toggle' ? (
           <button
@@ -270,6 +292,8 @@ function BlockItem({
             depth={depth + 1}
             siblings={block.children ?? []}
             index={i}
+            dragId={dragId}
+            setDragId={setDragId}
             onUpdate={onUpdate}
             onUpdateType={onUpdateType}
             onAddAfter={onAddAfter}
@@ -294,6 +318,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const toBoard = useDocumentToBoard();
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
+  const [dragId, setDragId] = useState<string | null>(null);
 
   /** 块树统计：块数 / 字数 / 待办完成度。 */
   const stats = useMemo(() => {
@@ -516,6 +541,8 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           depth={0}
           siblings={tree?.blocks ?? []}
           index={i}
+          dragId={dragId}
+          setDragId={setDragId}
           onUpdate={onUpdate}
           onUpdateType={onUpdateType}
           onAddAfter={onAddAfter}
