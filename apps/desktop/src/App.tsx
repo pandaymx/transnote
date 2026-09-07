@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   useBoard,
   useBoardCards,
+  useBoardToDocument,
   useBoards,
   useCreateBoard,
   useCreateDocument,
@@ -62,6 +63,7 @@ export default function App() {
   const renameDocument = useRenameDocument();
   const updateBlocks = useUpdateBlocks(docId);
   const toBoard = useDocumentToBoard();
+  const toDocument = useBoardToDocument();
 
   const onNewWorkspace = async () => {
     setError(null);
@@ -271,6 +273,23 @@ export default function App() {
             <button style={ghostBtn} onClick={() => setView({ name: 'boards', workspaceId })}>← 看板</button>
             <h1 style={{ margin: 0, fontSize: 22 }}>{board?.title ?? '看板'}</h1>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+              <button
+                style={ghostBtn}
+                disabled={!boardId || toDocument.isPending}
+                onClick={() =>
+                  toDocument.mutate(
+                    { boardId },
+                    {
+                      onSuccess: (r) => {
+                        window.alert(`已创建文档，转入 ${r.created} 个待办。`);
+                        setView({ name: 'doc', docId: r.documentId, workspaceId });
+                      },
+                    }
+                  )
+                }
+              >
+                {toDocument.isPending ? '转换中…' : '转为文档'}
+              </button>
               <button
                 style={ghostBtn}
                 onClick={() =>
