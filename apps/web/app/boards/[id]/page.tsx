@@ -59,6 +59,19 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const columns: BoardColumn[] = board?.columns ?? [];
   const byColumn = sortCardsByColumn(cards ?? []);
   /** 视图工具栏（Notion View）：筛选完成态 + 负责人 + 优先级 + 排序。 */
+  /** 看板视图状态持久化（Notion 记忆视图）：折叠/筛选/排序 按 boardId 存 localStorage。 */
+  const lsKey = boardId ? `transnote.board.${boardId}.view` : '';
+  const loadView = (): { f: 'all' | 'open' | 'done'; s: 'manual' | 'due' | 'priority'; c: Record<string, boolean> } => {
+    if (!lsKey) return { f: 'all', s: 'manual', c: {} };
+    try {
+      const raw = localStorage.getItem(lsKey);
+      if (!raw) return { f: 'all', s: 'manual', c: {} };
+      const p = JSON.parse(raw) as { f?: 'all' | 'open' | 'done'; s?: 'manual' | 'due' | 'priority'; c?: Record<string, boolean> };
+      return { f: p.f ?? 'all', s: p.s ?? 'manual', c: p.c ?? {} };
+    } catch {
+      return { f: 'all', s: 'manual', c: {} };
+    }
+  };
   const [filterState, setFilterState] = useState<'all' | 'open' | 'done'>('all');
   const [filterAssignee, setFilterAssignee] = useState<string | null>(null);
   const [filterPriority, setFilterPriority] = useState<number | null>(null);
@@ -76,7 +89,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 属性徽标内联编辑（截止日期/负责人）；priority 用点击循环。 */
   const [editPill, setEditPill] = useState<{ cardId: string; field: 'due' | 'assignee'; value: string } | null>(null);
   const [pillValue, setPillValue] = useState('');
-  /** 列折叠（Notion：点击列头收起为窄条）。 */
+  /** 列折叠（Notion：点击列头收起为窄条），持久化。 */
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   /** 列重命名（双击列头，Notion 内联编辑）。 */
   const [editCol, setEditCol] = useState<{ colId: string; title: string } | null>(null);
@@ -108,6 +121,29 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       updateBoard.mutate({ title: t });
     }
   };
+
+  /** 视图状态持久化：boardId 就绪后加载一次，状态变化时写回。 */
+  useEffect(() => {
+    if (!lsKey) return;
+    const v = loadView();
+    setFilterState(v.f);
+    setSortBy(v.s);
+    setCollapsed(v.c);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boardId]);
+
+  useEffect(() => {
+    if (!lsKey) return;
+    try {
+      localStorage.setItem(
+        lsKey,
+        JSON.stringify({ f: filterState, s: sortBy, c: collapsed }),
+      );
+    } catch {
+      // 忽略配额/隐私模式错误
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterState, sortBy, collapsed, lsKey]);
 
   /** 全局快捷键（Notion 风格）：n 新建第一个列卡片、/ 聚焦搜索、Esc 关闭弹窗。 */
   const searchRef = useRef<HTMLInputElement>(null);
