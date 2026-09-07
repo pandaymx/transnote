@@ -251,6 +251,22 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 列表视图：跨列聚合的全部筛选卡片。 */
   const allViewCards = columns.flatMap((c) => viewCards(c.id));
 
+  /** 搜索关键词高亮（Notion 查找高亮）。 */
+  const highlight = (text: string) => {
+    if (!searchQ || !text) return text;
+    const q = searchQ.trim();
+    if (!q) return text;
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <mark className="notion-hl">{text.slice(idx, idx + q.length)}</mark>
+        {text.slice(idx + q.length)}
+      </>
+    );
+  };
+
   /** 可筛选负责人列表（去重，卡片有 assigneeName 的）。 */
   const assigneeOptions = Array.from(
     new Set((cards ?? []).map((c) => c.assigneeName).filter((v): v is string => !!v)),
@@ -707,7 +723,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   />
                 )}
                 <span className={'notion-list-title' + (card.checked ? ' done' : '')}>
-                  {card.title}
+                  {highlight(card.title)}
                 </span>
                 {descText(card.description) && (
                   <span className="notion-list-desc">{descText(card.description)}</span>
@@ -1014,7 +1030,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                         className={'notion-title' + (card.checked ? ' done' : '')}
                         title="单击打开详情"
                       >
-                        {card.title}
+                        {highlight(card.title)}
                       </span>
                     )}
                   </div>

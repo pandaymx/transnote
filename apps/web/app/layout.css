@@ -666,6 +666,14 @@ input[type='file'] {
   border-top: 1px solid #e4e3dd;
 }
 
+/** 搜索高亮。 */
+mark.notion-hl {
+  background: #f5d90a;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 .notion-card.selected {
   outline: 2px solid #2f6fec;
   outline-offset: -2px;
