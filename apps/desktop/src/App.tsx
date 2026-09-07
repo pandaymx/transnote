@@ -8,6 +8,7 @@ import {
   useCreateWorkspace,
   useDeleteBoard,
   useDeleteDocument,
+  useDocumentToBoard,
   useDocumentTree,
   useDocuments,
   useDuplicateBoard,
@@ -60,6 +61,7 @@ export default function App() {
   const { data: docTree } = useDocumentTree(docId, view.name === 'doc');
   const renameDocument = useRenameDocument();
   const updateBlocks = useUpdateBlocks(docId);
+  const toBoard = useDocumentToBoard();
 
   const onNewWorkspace = async () => {
     setError(null);
@@ -385,6 +387,25 @@ export default function App() {
               {docTree?.icon ? `${docTree.icon} ` : ''}
               {docTree?.title ?? '文档'}
             </h1>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+              <button
+                style={ghostBtn}
+                disabled={!docId || toBoard.isPending}
+                onClick={() =>
+                  toBoard.mutate(
+                    { docId },
+                    {
+                      onSuccess: (r) => {
+                        window.alert(`已创建看板，转入 ${r.created} 个待办。`);
+                        setView({ name: 'board', boardId: r.boardId, workspaceId });
+                      },
+                    }
+                  )
+                }
+              >
+                {toBoard.isPending ? '转换中…' : '转为看板'}
+              </button>
+            </div>
           </div>
           <div style={{ maxWidth: 720 }}>
             {(docTree?.blocks ?? []).map((block) => (
