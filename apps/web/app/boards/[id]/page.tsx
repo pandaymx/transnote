@@ -1093,6 +1093,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                         className={'notion-title' + (card.checked ? ' done' : '')}
                         title="单击打开详情"
                       >
+                        {card.sourceDocumentId && <span style={{ marginRight: 4 }}>📄</span>}
                         {highlight(card.title)}
                       </span>
                     )}
@@ -1362,6 +1363,15 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   </button>
                 </div>
                 <div className="notion-modal-desc-actions">
+                  {card.sourceDocumentId && (
+                    <Link
+                      className="btn secondary"
+                      href={`/documents/${card.sourceDocumentId}`}
+                      onClick={() => setDetailCardId(null)}
+                    >
+                      查看源文档 ↗
+                    </Link>
+                  )}
                   <button
                     className="btn secondary"
                     disabled={dupCard.isPending}

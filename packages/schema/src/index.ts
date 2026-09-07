@@ -52,6 +52,7 @@ export interface BoardCard {
   id: string;
   columnId: string;
   boardId?: string | null;
+  sourceDocumentId?: string | null;
   title: string;
   description?: string | null;
   assigneeName?: string | null;
