@@ -1,3 +1,12 @@
+## [1.25.0](https://github.com/pandaymx/transnote/compare/v1.24.0...v1.25.0) (2026-09-07)
+
+### Features
+
+* **desktop:** 文档转为看板按钮 ([0650f92](https://github.com/pandaymx/transnote/commit/0650f9228ea3773ffcea16446822f55864830125))
+* **document:** 折叠块类型与展开收起 ([7fabf84](https://github.com/pandaymx/transnote/commit/7fabf840775a6800971d8484b0c5b51a82c699bb))
+* **document:** 看板转为文档 ([d4cc586](https://github.com/pandaymx/transnote/commit/d4cc5863d314943f3a4e0e622891bdd9a26ef5b5))
+* **web:** 文档行首语法快捷转块 ([4e47361](https://github.com/pandaymx/transnote/commit/4e47361bb9d75a07e5cf32157e15e069f809744d))
+
 ## [1.24.0](https://github.com/pandaymx/transnote/compare/v1.23.0...v1.24.0) (2026-09-07)
 
 ### Features
