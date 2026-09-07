@@ -269,6 +269,15 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **Next dev hydration mismatch 噪音**：`data-inspector-id` 等 dev-only 属性差异会刷 console error，不影响功能，勿当 bug。
 - 后端无访问日志（未配 logback access）→ 判断请求是否到达只能看 DB 落库或 GlobalExceptionHandler；docker CLI 在 Windows（`"C:\Program Files\Docker\Docker\resources\bin\docker.exe"`），WSL 内不可用。
 
+### §13 看板回收站与卡片颜色（2026-09-07 追加）
+
+- **回收站（V7 软删）**：`board_cards.deleted`（V7 迁移，partial index 回收站查询）。DELETE /cards/{cardId} = 软删；GET /cards/deleted = 回收站列表；POST /cards/{cardId}/restore = 恢复（回原列尾）；DELETE /cards/{cardId}/hard = 彻底删。**卡片查询全部过滤 deleted=false**（BoardCardRepository.search / findByColumn 均带 AndDeletedFalse）。
+- **坑（重要）**：删列不能只靠 DB 级联——`@Transactional` 测试类里（MockMvc 请求共享同一测试事务）DB 级联删卡后 Hibernate 缓存仍持有卡片实体，后续任一查询的 auto-flush 校验会抛 `TransientPropertyValueException: BoardCard.column -> BoardColumn`。**必须缓存感知逐卡删除**（`findByColumn_...` 查出后 `deleteAll` 再删列）；`@Modifying` bulk DELETE 也绕不过缓存，同样会炸。
+- **卡片颜色（V8）**：`board_cards.color varchar(16)`（null=无）；PATCH 传 `color`（空串=清除）；BoardCardResponse 含 `deleted`/`color` 字段。
+- **提交教训**：commitlint `subject-case` 规则拒绝大写开头 subject——**中文 subject 里含英文专有名词（如 "Word"）会违规**，写成 `feat(conversion): 导出列级完成率与逾期标红` 这类全中文（或首词非大写）即可。
+- **提交教训 2**：amend 修正已推送提交的 message 时，`git fetch && git rebase` 会按 patch-id 把内容相同的 amend 提交**跳过**（message 修正丢失）；须 `git reflog` 找回 amend 后 commit hash，`git reset --hard <hash>` 后直接 `--force-with-lease` 强推。
+- **Windows 调用 WSL**：`wsl -e bash -c "..."`（外层双引号 + 内层单引号包 commit message）才安全；外层单引号会在 PowerShell 参数传递时被剥导致语法错；路径含 `[id]` 的 cp 必须加引号。
+
 ### §9 Flyway 迁移约定（2026-09-06 定）
 
 - **schema 变更只能写 `db/migration/V*.sql`**（`spring-boot-starter-flyway` + 显式覆盖 `flyway-core`/`flyway-database-postgresql` 12.11.0）；`hibernate.ddl-auto: none`。
