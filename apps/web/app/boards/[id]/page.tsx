@@ -11,6 +11,7 @@ import {
   useUpdateCard,
   sortCardsByColumn,
 } from '@transnote/core';
+import type { CardPatch } from '@transnote/core';
 import type { BoardCard, BoardColumn } from '@transnote/schema';
 
 /** 看板详情（T4c + T4d + V7）：Notion 代办样式——勾选完成/划线、属性徽标、列头计数、悬停操作、列内/跨列拖拽排序、内联编辑。 */
@@ -43,6 +44,15 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 属性徽标内联编辑（截止日期/负责人）；priority 用点击循环。 */
   const [editPill, setEditPill] = useState<{ cardId: string; field: 'due' | 'assignee'; value: string } | null>(null);
   const [pillValue, setPillValue] = useState('');
+  /** 列折叠（Notion：点击列头收起为窄条）。 */
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
+  const [editDesc, setEditDesc] = useState<{ cardId: string } | null>(null);
+  const [descValue, setDescValue] = useState('');
+
+  /** 判定"已完成"列（自动收纳目标）：statusColor=green 或列名含 完成/done。 */
+  const isDoneCol = (c: BoardColumn) =>
+    c.statusColor === 'green' || /完成|done/i.test(c.title ?? '');
 
   /** 按视图设置过滤+排序后的列卡片（排序不写回，仅展示；manual=后端 position 顺序）。 */
   const viewCards = (colId: string): BoardCard[] => {
@@ -67,9 +77,29 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     setAdding((a) => ({ ...a, [columnId]: false }));
   };
 
-  /** 勾选/取消完成（Notion 代办，乐观更新）。 */
+  /** 勾选/取消完成（Notion 代办）。勾选完成时若存在"已完成"列且卡片不在其中 → 自动收纳移入（一次提交）。 */
   const toggleChecked = (cardId: string, checked: boolean) => {
-    updateCard.mutate({ cardId, patch: { checked } });
+    const patch: CardPatch = { checked };
+    if (checked) {
+      const doneCol = columns.find((c) => isDoneCol(c));
+      const cur = (cards ?? []).find((c) => c.id === cardId);
+      if (doneCol && cur && cur.columnId !== doneCol.id) {
+        patch.columnId = doneCol.id;
+        patch.position = (byColumn[doneCol.id] ?? []).filter((c) => c.id !== cardId).length;
+      }
+    }
+    updateCard.mutate({ cardId, patch });
+  };
+
+  /** 列折叠切换（Notion 点击列头收起/展开）。 */
+  const toggleCollapse = (colId: string) =>
+    setCollapsed((s) => ({ ...s, [colId]: !s[colId] }));
+
+  /** 描述保存：写回 JSONB {"text": ...}；空值清空。 */
+  const commitDesc = (cardId: string) => {
+    const v = descValue.trim();
+    setEditDesc(null);
+    updateCard.mutate({ cardId, patch: { description: JSON.stringify({ text: v }) } });
   };
 
   /** 拖拽结束：落到 dropIndex 指示位置（默认目标列末尾，position=目标列当前卡片数）。 */
@@ -202,9 +232,10 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           const canDrag = sortBy === 'manual' && filterState === 'all';
           return (
             <div
-              className="notion-column"
+              className={'notion-column' + (collapsed[col.id] ? ' collapsed' : '')}
               key={col.id}
               onDragOver={(e) => {
+                if (collapsed[col.id]) return;
                 e.preventDefault();
                 setOverColumnId(col.id);
                 // 悬停列空白区（非卡片上）：指示列尾
@@ -217,24 +248,34 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 }
               }}
               onDrop={(e) => {
+                if (collapsed[col.id]) return;
                 e.preventDefault();
                 onDropColumn(col.id);
               }}
               style={overColumnId === col.id ? { outline: '2px dashed #2f6fec', outlineOffset: -2 } : undefined}
             >
               <div className="notion-column-head">
-                <span className="notion-column-title">{col.title}</span>
-                <span className="notion-count">{colCards.length}</span>
-                <button
-                  className="notion-add"
-                  title="添加卡片"
-                  onClick={() => setAdding((a) => ({ ...a, [col.id]: !a[col.id] }))}
+                <span
+                  className="notion-column-title"
+                  title={collapsed[col.id] ? '展开列' : '折叠列'}
+                  onClick={() => toggleCollapse(col.id)}
                 >
-                  +
-                </button>
+                  {collapsed[col.id] ? '▸' : '▾'} {col.title}
+                </span>
+                <span className="notion-count">{colCards.length}</span>
+                {!collapsed[col.id] && (
+                  <button
+                    className="notion-add"
+                    title="添加卡片"
+                    onClick={() => setAdding((a) => ({ ...a, [col.id]: !a[col.id] }))}
+                  >
+                    +
+                  </button>
+                )}
               </div>
 
-              {colCards.map((card, i) => (
+              {!collapsed[col.id] &&
+                colCards.map((card, i) => (
                 <div
                   className={'notion-card' + (dragCardId === card.id ? ' dragging' : '')}
                   key={card.id}
@@ -382,17 +423,45 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                       {card.priority != null ? `P${card.priority}` : 'P＋'}
                     </span>
                   </div>
-                  {descText(card.description) && (
-                    <div className="notion-desc">{descText(card.description)}</div>
+                  {editDesc?.cardId === card.id ? (
+                    <textarea
+                      className="notion-desc-input"
+                      autoFocus
+                      rows={3}
+                      placeholder="添加描述…"
+                      value={descValue}
+                      onChange={(e) => setDescValue(e.target.value)}
+                      onBlur={() => commitDesc(card.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          commitDesc(card.id);
+                        }
+                        if (e.key === 'Escape') setEditDesc(null);
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className={'notion-desc' + (descText(card.description) ? '' : ' add')}
+                      title="点击编辑描述"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditDesc({ cardId: card.id });
+                        setDescValue(descText(card.description));
+                      }}
+                    >
+                      {descText(card.description) || '+ 添加描述'}
+                    </div>
                   )}
                 </div>
               ))}
 
-              {dropIndex?.colId === col.id && dropIndex.index === colCards.length && (
+              {!collapsed[col.id] && dropIndex?.colId === col.id && dropIndex.index === colCards.length && (
                 <div className="notion-drop-line" />
               )}
 
-              {adding[col.id] ? (
+              {!collapsed[col.id] &&
+                (adding[col.id] ? (
                 <div className="notion-add-input-row">
                   <input
                     type="text"
@@ -417,7 +486,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 >
                   + 添加
                 </button>
-              )}
+              ))}
             </div>
           );
         })}
