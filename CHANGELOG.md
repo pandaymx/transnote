@@ -1,3 +1,29 @@
+## [1.22.0](https://github.com/pandaymx/transnote/compare/v1.21.0...v1.22.0) (2026-09-07)
+
+### Features
+
+* **board:** 看板复制保留列卡片与属性 ([e95326a](https://github.com/pandaymx/transnote/commit/e95326a10da861c979954de84eb712278dfcc4f0))
+* **conversion:** 导出 Word 支持当前视图筛选 ([845ff10](https://github.com/pandaymx/transnote/commit/845ff109d91c2a67889495209db59f75c0ba1125))
+* **desktop:** 看板列表复制删除与详情管理 ([f5d451f](https://github.com/pandaymx/transnote/commit/f5d451f13e4e0e5ab936fcb99b0d181fdb6d2295))
+* **web:** shift 多选卡片批量操作 ([c169a61](https://github.com/pandaymx/transnote/commit/c169a61fe968bf06c72ce3a9c16e0dfdfab81aae))
+* **web:** 列头计数显示完成比例 ([382ad63](https://github.com/pandaymx/transnote/commit/382ad63ea59d23e27c33e64942b9fc2b66e310bb))
+* **web:** 卡片描述摘要与已完成分组收纳 ([be50edf](https://github.com/pandaymx/transnote/commit/be50edf5b9a66e614b49baec0562a65c5b636459))
+* **web:** 卡片移动到其他看板 ([3492d86](https://github.com/pandaymx/transnote/commit/3492d8684a678e2ce090b7eb2a76792f10f564cd))
+* **web:** 回收站全部恢复与清空操作 ([4caaad0](https://github.com/pandaymx/transnote/commit/4caaad0ae830f9296e2401eeabbe5d583cf5dd71))
+* **web:** 标签筛选与页面标题同步看板名 ([30aacfb](https://github.com/pandaymx/transnote/commit/30aacfbe8a16a0869976f7b3967211c259a8089b))
+* **web:** 空看板与空列引导提示 ([c37a3bb](https://github.com/pandaymx/transnote/commit/c37a3bb0414a3ad99738dadde4ff2c63fbd3fa0d))
+* **web:** 统计弹窗按负责人与标签分布 ([a4b7dc7](https://github.com/pandaymx/transnote/commit/a4b7dc792d58ba19cfe9dd4cc9ac4eb867553aa6))
+* **web:** 问号快捷键帮助弹窗 ([3788ac9](https://github.com/pandaymx/transnote/commit/3788ac973d6f1698b1baef72565d540a84fbdf82))
+* **web:** 首页看板复制删除与列表视图描述摘要 ([d6d7491](https://github.com/pandaymx/transnote/commit/d6d7491f4da339cd10216b2640adb99e27465060))
+* **web:** 首页看板完成率进度预览 ([7e68c3e](https://github.com/pandaymx/transnote/commit/7e68c3e21d2d2a2b4e546a317071e301dbce9926))
+
+### Bug Fixes
+
+* **conversion:** 导出筛选 record 单行对齐 spotless ([4afe762](https://github.com/pandaymx/transnote/commit/4afe7629983609f8a45a84636dfa9d95e91252f8))
+* **server:** 数组初始化器断言断行对齐 spotless 1.30 ([aa96bca](https://github.com/pandaymx/transnote/commit/aa96bca5141d3c93425210f4063f723b4eac2ade))
+* **server:** 看板复制断行对齐 spotless 1.28 ([a03cc04](https://github.com/pandaymx/transnote/commit/a03cc0481b8bb2e25ba7b788e51acc2cfbb6468b))
+* **server:** 锁定 google-java-format 1.30 对齐 JVM 25 ([24d6a4d](https://github.com/pandaymx/transnote/commit/24d6a4d85cfffa1cc457b223444a93a2f66a8ad9))
+
 ## [1.21.0](https://github.com/pandaymx/transnote/compare/v1.20.0...v1.21.0) (2026-09-07)
 
 ### Features
