@@ -11,7 +11,7 @@ import {
   useWorkspaces,
   sortCardsByColumn,
 } from '@transnote/core';
-import type { BoardColumn } from '@transnote/schema';
+import type { BoardCard, BoardColumn } from '@transnote/schema';
 
 type View =
   | { name: 'workspaces' }
@@ -200,48 +200,81 @@ export default function App() {
               </button>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', overflowX: 'auto' }}>
             {columns.map((col) => {
               const colCards = byColumn[col.id] ?? [];
-              const done = colCards.filter((c) => c.checked).length;
+              const openCards = colCards.filter((c) => !c.checked);
+              const doneCards = colCards.filter((c) => c.checked);
+              const done = doneCards.length;
               const rate = colCards.length ? Math.round((done / colCards.length) * 100) : 0;
+              const overdue = (c: BoardCard) =>
+                c.dueDate && !c.checked && c.dueDate < new Date().toISOString().slice(0, 10);
+              const renderCard = (card: BoardCard) => (
+                <div
+                  key={card.id}
+                  style={{
+                    background: '#fff', borderRadius: 10, padding: '10px 12px', marginBottom: 8,
+                    border: '1px solid #e4e3dd', position: 'relative', overflow: 'hidden',
+                  }}
+                >
+                  {card.color && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: CARD_COLORS[card.color] ?? '#d3d1cb' }} />
+                  )}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                    <button
+                      onClick={() => updateCard.mutate({ cardId: card.id, patch: { checked: !card.checked } })}
+                      style={{
+                        width: 16, height: 16, borderRadius: 4, flex: 'none', marginTop: 2, cursor: 'pointer',
+                        border: card.checked ? 'none' : '1.5px solid #c9c9c7',
+                        background: card.checked ? '#2f6fec' : '#fff', color: '#fff', fontSize: 11, lineHeight: '16px', padding: 0,
+                      }}
+                    >
+                      {card.checked ? '✓' : ''}
+                    </button>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ textDecoration: card.checked ? 'line-through' : 'none', color: card.checked ? '#9b9a97' : '#37352f' }}>
+                        {card.title}
+                      </div>
+                      {card.description && (
+                        <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {card.description}
+                        </div>
+                      )}
+                      <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
+                        {card.assigneeName && <span>👤 {card.assigneeName}　</span>}
+                        {card.dueDate && (
+                          <span style={{ color: overdue(card) ? '#cf1322' : 'inherit' }}>
+                            📅 {card.dueDate}{overdue(card) ? '（已逾期）' : ''}
+                          </span>
+                        )}
+                        {card.priority != null && <span>　P{card.priority}</span>}
+                        {(card.labels ?? []).map((l) => (
+                          <span key={l} style={{ marginLeft: 4, padding: '1px 6px', borderRadius: 4, background: '#f1f1ef', fontSize: 11 }}>
+                            {l}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
               return (
-                <div key={col.id} style={{ flex: '1 1 240px', minWidth: 220, background: '#f6f7f9', borderRadius: 12, padding: 12 }}>
+                <div key={col.id} style={{ flex: '1 1 240px', minWidth: 220, maxWidth: 300, background: '#f6f7f9', borderRadius: 12, padding: 12 }}>
                   <h3 style={{ margin: '0 0 4px', fontSize: 14 }}>
                     {col.title} <span style={{ color: '#6b7280', fontWeight: 400 }}>{done}/{colCards.length}</span>
                   </h3>
                   <div style={{ height: 4, borderRadius: 2, background: '#e4e3dd', marginBottom: 8, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${rate}%`, background: rate === 100 ? '#52c41a' : '#2f6fec' }} />
                   </div>
-                  {colCards.map((card) => (
-                    <div
-                      key={card.id}
-                      style={{ background: '#fff', borderRadius: 10, padding: '10px 12px', marginBottom: 8, border: '1px solid #e4e3dd' }}
-                    >
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                        <button
-                          onClick={() => updateCard.mutate({ cardId: card.id, patch: { checked: !card.checked } })}
-                          style={{
-                            width: 16, height: 16, borderRadius: 4, flex: 'none', marginTop: 2, cursor: 'pointer',
-                            border: card.checked ? 'none' : '1.5px solid #c9c9c7',
-                            background: card.checked ? '#2f6fec' : '#fff', color: '#fff', fontSize: 11, lineHeight: '16px', padding: 0,
-                          }}
-                        >
-                          {card.checked ? '✓' : ''}
-                        </button>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ textDecoration: card.checked ? 'line-through' : 'none', color: card.checked ? '#9b9a97' : '#37352f' }}>
-                            {card.title}
-                          </div>
-                          <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
-                            {card.assigneeName && <span>👤 {card.assigneeName}　</span>}
-                            {card.dueDate && <span>📅 {card.dueDate}</span>}
-                            {card.priority != null && <span>　P{card.priority}</span>}
-                          </div>
-                        </div>
+                  {openCards.map(renderCard)}
+                  {doneCards.length > 0 && (
+                    <>
+                      <div style={{ fontSize: 12, color: '#6b7280', padding: '6px 0' }}>
+                        已　完成 {doneCards.length}
                       </div>
-                    </div>
-                  ))}
+                      {doneCards.map(renderCard)}
+                    </>
+                  )}
                   {colCards.length === 0 && <p style={{ color: '#6b7280', fontSize: 12 }}>空</p>}
                 </div>
               );
@@ -259,6 +292,19 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 8,
   border: '1px solid #d9d9d9',
   fontSize: 14,
+};
+
+/** 卡片颜色板（与 web 端 CARD_COLORS 一致）。 */
+const CARD_COLORS: Record<string, string> = {
+  gray: '#787774',
+  brown: '#9F6B53',
+  orange: '#D9730D',
+  yellow: '#CB912F',
+  green: '#448361',
+  blue: '#337EA9',
+  purple: '#9065B0',
+  pink: '#C14C8A',
+  red: '#D44C47',
 };
 const btnStyle: React.CSSProperties = {
   padding: '8px 16px',
