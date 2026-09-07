@@ -173,12 +173,13 @@ export class TransnoteClient {
     card: {
       columnId: string;
       title: string;
-      description?: string;
-      assigneeName?: string;
-      dueDate?: string;
-      priority?: number;
-      labels?: string[];
+      description?: string | null;
+      assigneeName?: string | null;
+      dueDate?: string | null;
+      priority?: number | null;
+      labels?: string[] | null;
       checked?: boolean;
+      color?: string | null;
     },
   ): Promise<BoardCard> {
     return request(this.baseUrl,`/api/v1/boards/${boardId}/cards`, {

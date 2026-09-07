@@ -180,12 +180,13 @@ export function useAddCard(boardId: string) {
     mutationFn: (card: {
       columnId: string;
       title: string;
-      description?: string;
-      assigneeName?: string;
-      dueDate?: string;
-      priority?: number;
-      labels?: string[];
+      description?: string | null;
+      assigneeName?: string | null;
+      dueDate?: string | null;
+      priority?: number | null;
+      labels?: string[] | null;
       checked?: boolean;
+      color?: string | null;
     }) => api().addCard(boardId, card),
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.cards(boardId) }),
   });

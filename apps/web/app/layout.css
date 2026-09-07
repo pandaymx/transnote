@@ -987,6 +987,21 @@ input[type='file'] {
   background: #ffe8e6;
 }
 
+.notion-modal-dup {
+  align-self: flex-start;
+  border: 1px solid #e9e9e7;
+  background: #fff;
+  color: #37352f;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.notion-modal-dup:hover {
+  background: #f7f7f5;
+}
+
 .notion-trash-count {
   display: inline-block;
   margin-left: 6px;

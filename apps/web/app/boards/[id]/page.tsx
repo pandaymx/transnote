@@ -1171,6 +1171,24 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 >
                   删除卡片
                 </button>
+                <button
+                  className="notion-modal-dup"
+                  onClick={() => {
+                    addCard.mutate({
+                      columnId: card.columnId,
+                      title: card.title,
+                      description: card.description,
+                      assigneeName: card.assigneeName,
+                      dueDate: card.dueDate,
+                      priority: card.priority,
+                      labels: card.labels,
+                      color: card.color,
+                    });
+                    setDetailCardId(null);
+                  }}
+                >
+                  复制卡片
+                </button>
               </div>
             </div>
           );
