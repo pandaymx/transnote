@@ -1466,6 +1466,26 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
               <div className="notion-modal-title" style={{ fontSize: 16 }}>
                 回收站（{(trashCards ?? []).length}）
               </div>
+              {(trashCards ?? []).length > 0 && (
+                <div className="row" style={{ gap: 6 }}>
+                  <button
+                    className="notion-tool-btn"
+                    onClick={() => (trashCards ?? []).forEach((c) => restoreCard.mutate(c.id))}
+                  >
+                    全部恢复
+                  </button>
+                  <button
+                    className="notion-trash-hard"
+                    onClick={() => {
+                      if (window.confirm(`清空回收站（${(trashCards ?? []).length} 张）？此操作不可恢复。`)) {
+                        (trashCards ?? []).forEach((c) => hardDeleteCard.mutate(c.id));
+                      }
+                    }}
+                  >
+                    清空回收站
+                  </button>
+                </div>
+              )}
               <button className="notion-modal-close" onClick={() => setTrashOpen(false)}>
                 ✕
               </button>
