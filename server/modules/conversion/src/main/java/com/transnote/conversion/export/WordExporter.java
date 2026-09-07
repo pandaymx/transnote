@@ -215,10 +215,13 @@ public final class WordExporter {
     for (CardExport card : overdue) {
       XWPFParagraph p = doc.createParagraph();
       XWPFRun run = p.createRun();
-      run.setText("☑ " + card.title() + "（截止 " + card.dueDate().format(DATE_FMT) + "）");
+      run.setText("☐ " + card.title() + "（截止 " + card.dueDate().format(DATE_FMT) + "）");
       run.setBold(true);
+      run.setColor("D44C47");
       if (card.assigneeName() != null) {
-        p.createRun().setText(" 负责人：" + card.assigneeName());
+        XWPFRun who = p.createRun();
+        who.setText(" 负责人：" + card.assigneeName());
+        who.setColor("D44C47");
       }
     }
   }
