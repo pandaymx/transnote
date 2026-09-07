@@ -36,4 +36,16 @@ public interface BoardCardRepository extends JpaRepository<BoardCard, UUID> {
       @Param("columnId") UUID columnId,
       @Param("assigneeId") UUID assigneeId,
       @Param("priority") Short priority);
+
+  /** 全局搜索：工作区内未删除卡片按标题/负责人模糊匹配（description 为 jsonb，不入模糊匹配）。 */
+  @Query(
+      """
+      SELECT c FROM BoardCard c
+      WHERE c.board.workspace.id = :workspaceId
+        AND c.deleted = false
+        AND (:q = '' OR c.title ILIKE %:q%
+             OR COALESCE(c.assigneeName, '') ILIKE %:q%)
+      ORDER BY c.updatedAt DESC
+      """)
+  List<BoardCard> searchByWorkspace(@Param("workspaceId") UUID workspaceId, @Param("q") String q);
 }

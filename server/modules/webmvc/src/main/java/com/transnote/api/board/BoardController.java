@@ -43,6 +43,15 @@ public class BoardController {
     return ApiResponse.ok(boards);
   }
 
+  /** 全局搜索：跨看板按标题/描述/负责人模糊匹配（Notion 全局搜索）。 */
+  @GetMapping("/search")
+  public ApiResponse<List<BoardCardResponse>> search(
+      @RequestParam UUID workspaceId, @RequestParam(required = false) String q) {
+    List<BoardCardResponse> cards =
+        boardService.searchCards(workspaceId, q).stream().map(BoardCardResponse::from).toList();
+    return ApiResponse.ok(cards);
+  }
+
   @GetMapping("/{id}")
   public ApiResponse<BoardResponse> get(@PathVariable UUID id) {
     Board board = boardService.get(id);

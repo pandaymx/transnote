@@ -163,6 +163,13 @@ export class TransnoteClient {
     return request(this.baseUrl,`/api/v1/boards?workspaceId=${encodeURIComponent(workspaceId)}`);
   }
 
+  searchCards(workspaceId: string, q: string): Promise<BoardCard[]> {
+    return request(
+      this.baseUrl,
+      `/api/v1/boards/search?workspaceId=${encodeURIComponent(workspaceId)}&q=${encodeURIComponent(q)}`
+    );
+  }
+
   createBoard(workspaceId: string, title: string): Promise<Board> {
     return request(this.baseUrl,'/api/v1/boards', {
       method: 'POST',

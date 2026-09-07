@@ -321,6 +321,12 @@ public class BoardService {
     return cardRepository.save(copy);
   }
 
+  /** 全局搜索：工作区内卡片按标题/描述/负责人模糊匹配（跨看板）。 */
+  @Transactional(readOnly = true)
+  public List<BoardCard> searchCards(UUID workspaceId, String q) {
+    return cardRepository.searchByWorkspace(workspaceId, q == null ? "" : q.trim());
+  }
+
   public List<BoardCard> listCards(UUID boardId, UUID columnId, UUID assigneeId, Short priority) {
     get(boardId);
     if (columnId != null) {

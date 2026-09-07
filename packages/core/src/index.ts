@@ -164,6 +164,15 @@ export function useBoards(workspaceId?: string) {
   });
 }
 
+/** 全局搜索：跨看板按标题/描述/负责人模糊匹配。 */
+export function useSearchCards(workspaceId: string, q: string) {
+  return useQuery({
+    queryKey: ['cards', 'search', workspaceId, q],
+    queryFn: () => api().searchCards(workspaceId, q),
+    enabled: !!workspaceId && q.trim().length > 0,
+  });
+}
+
 export function useCreateBoard(workspaceId: string) {
   const qc = useQueryClient();
   return useMutation({

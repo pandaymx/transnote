@@ -251,6 +251,17 @@ class BoardServiceTest {
   }
 
   @Test
+  void searchCards_delegatesByWorkspace() {
+    UUID workspaceId = UUID.randomUUID();
+    BoardCard c = card(UUID.randomUUID(), UUID.randomUUID(), 0);
+    when(cardRepository.searchByWorkspace(workspaceId, "标题")).thenReturn(List.of(c));
+
+    List<BoardCard> cards = service.searchCards(workspaceId, "标题");
+
+    assertThat(cards).containsExactly(c);
+  }
+
+  @Test
   void deleteCard_missing_throws() {
     UUID cardId = UUID.randomUUID();
     when(cardRepository.findById(cardId)).thenReturn(Optional.empty());
