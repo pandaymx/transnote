@@ -1,3 +1,9 @@
+## [1.14.0](https://github.com/pandaymx/transnote/compare/v1.13.0...v1.14.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板卡片完成态置灰与拖入完成列自动勾选 ([97a6101](https://github.com/pandaymx/transnote/commit/97a610149deccea9c2f80dd33e89337066973945))
+
 ## [1.13.0](https://github.com/pandaymx/transnote/compare/v1.12.1...v1.13.0) (2026-09-07)
 
 ### Features
