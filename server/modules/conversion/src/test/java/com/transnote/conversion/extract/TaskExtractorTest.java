@@ -45,6 +45,27 @@ class TaskExtractorTest {
   }
 
   @Test
+  void ruleTable_extractsEveryRow() {
+    TaskExtractor extractor = new TaskExtractor(Optional.empty());
+    DocElement table =
+        new DocElement(
+            DocElementType.TABLE,
+            0,
+            "任务|负责人|截止\n备份|李四|2026-09-10\n发布|张三|2026-09-12",
+            3,
+            new RawRange(3, 3));
+
+    List<ExtractedTask> tasks = extractor.extract(List.of(table));
+
+    assertThat(tasks).hasSize(2);
+    assertThat(tasks.get(0).taskTitle()).isEqualTo("备份");
+    assertThat(tasks.get(0).assignee()).isEqualTo("李四");
+    assertThat(tasks.get(0).dueDate()).isEqualTo(java.time.LocalDate.parse("2026-09-10"));
+    assertThat(tasks.get(1).taskTitle()).isEqualTo("发布");
+    assertThat(tasks.get(1).assignee()).isEqualTo("张三");
+  }
+
+  @Test
   void parsesValidLlmOutput_andRecordsPromptVersion() {
     String valid =
         """

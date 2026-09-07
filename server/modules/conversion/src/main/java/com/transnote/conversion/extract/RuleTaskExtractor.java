@@ -61,10 +61,10 @@ public final class RuleTaskExtractor {
           tasks.add(lastTask);
         }
         case TABLE -> {
-          ExtractedTask fromTable = fromTable(e, category);
-          if (fromTable != null) {
-            lastTask = fromTable;
-            tasks.add(fromTable);
+          List<ExtractedTask> fromTable = fromTableRows(e, category);
+          if (!fromTable.isEmpty()) {
+            lastTask = fromTable.get(fromTable.size() - 1);
+            tasks.addAll(fromTable);
           }
         }
         case PARAGRAPH -> {
@@ -79,11 +79,11 @@ public final class RuleTaskExtractor {
     return List.copyOf(tasks);
   }
 
-  /** 表格行解析：首行视为表头（含"任务/事项/内容"等），数据行按 [任务|负责人|截止] 抽取。 */
-  private static ExtractedTask fromTable(DocElement table, String category) {
+  /** 表格行解析：首行视为表头（含"任务/事项/内容"等），数据行按 [任务|负责人|截止] 逐行抽取。 */
+  private static List<ExtractedTask> fromTableRows(DocElement table, String category) {
     String text = table.text();
     if (text == null || text.isBlank()) {
-      return null;
+      return List.of();
     }
     String[] rows = text.split("\n");
     List<ExtractedTask> found = new ArrayList<>();
@@ -118,8 +118,7 @@ public final class RuleTaskExtractor {
               List.of(table.paragraphIndex()),
               0.85));
     }
-    // 表格整体一块：取第一个任务（MVP；多任务后置到 LLM 抽取）
-    return found.isEmpty() ? null : found.get(0);
+    return List.copyOf(found);
   }
 
   private static LocalDate parseDate(String s) {
