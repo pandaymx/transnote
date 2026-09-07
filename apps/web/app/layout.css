@@ -327,6 +327,32 @@ input[type='file'] {
   white-space: nowrap;
 }
 
+.notion-col-batch {
+  display: none;
+  gap: 2px;
+  margin-left: 2px;
+}
+
+.notion-column-head:hover .notion-col-batch {
+  display: inline-flex;
+}
+
+.notion-col-batch-btn {
+  border: none;
+  background: transparent;
+  color: #9b9a97;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.notion-col-batch-btn:hover {
+  background: #e9e9e7;
+  color: #37352f;
+}
+
 .notion-card-copy {
   position: absolute;
   top: 6px;

@@ -620,6 +620,32 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
                 <span className="notion-count">{colCards.length}</span>
+                {colCards.length > 0 && (
+                  <span className="notion-col-batch">
+                    <button
+                      className="notion-col-batch-btn"
+                      title="全部完成"
+                      onClick={() =>
+                        colCards.forEach((c) =>
+                          updateCard.mutate({ cardId: c.id, patch: { checked: true } }),
+                        )
+                      }
+                    >
+                      ✓
+                    </button>
+                    <button
+                      className="notion-col-batch-btn"
+                      title="全部清除"
+                      onClick={() =>
+                        colCards.forEach((c) =>
+                          updateCard.mutate({ cardId: c.id, patch: { checked: false } }),
+                        )
+                      }
+                    >
+                      ○
+                    </button>
+                  </span>
+                )}
                 {overdueCount(colCards) > 0 && (
                   <span className="notion-overdue-count" title="逾期未完成">
                     {overdueCount(colCards)} 逾期
