@@ -283,14 +283,16 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **提交教训 3（CSS 结构破坏）**：对 layout.css 用 Edit 插入新规则时，若 old_string 选的是某规则块内部片段，可能把新规则**插进原规则内部**导致大括号错位——本地 `tsc` 不查 CSS，只有 `bun run build`（Next/PostCSS）才报 `Invalid token in pseudo element`。**前端改动后必须跑 `bun run build`**，不能只跑 tsc。
 - **Windows 调用 WSL**：`wsl -e bash -c "..."`（外层双引号 + 内层单引号包 commit message）才安全；外层单引号会在 PowerShell 参数传递时被剥导致语法错；路径含 `[id]` 的 cp 必须加引号。
 
-### §14 文档模块前端与双向转换（2026-09-07 追加）
+### §14 文档模块前端与双向转换（2026-09-07 追加；v1.87 更新契约）
 
-- **文档 API（已全部落地）**：`POST /api/v1/documents` {workspaceId,title,icon}；`GET ?workspaceId=`；`GET /{id}`（块树，含 position/version）；`PATCH /{id}` {title}；`DELETE /{id}`；`PATCH /{id}/blocks` {updates:[{op:'upsert'|'delete'|'move', block:{id,parentId,type,content,properties,position}}]}。
-- **块类型白名单（BlockService.TYPES）**：paragraph / heading_1/2/3 / todo / bulleted_list / numbered_list / quote / code / divider / **toggle**。content/properties 走 validateJson（**合法 JSON 字符串**；编辑器传纯文本仅当 content 默认不校验时报错——现 upsert 对非 JSON 抛 400，**前端编辑器全部用 JSON 编码纯文本 content 规避：实际传参时 content 直接给裸字符串即可，见 BlockService.validateJson 实现**——若 400 则 JSON.stringify 包裹）。
-- **前端文档模块**：schema 5 类型（Document/DocumentTree/BlockNode/BlockPayload/BlockUpdate）；api-client 8 方法（list/create/tree/rename/delete/updateBlocks/toBoard/boardToDocument）；core 8 hooks（useDocuments/useCreateDocument/useDocumentTree/useRenameDocument/useDeleteDocument/useUpdateBlocks/useDocumentToBoard/useBoardToDocument）；页面 apps/web/app/documents/{list,[id] 编辑器}。
-- **编辑器能力**：块树递归编辑（todo 复选、类型切换 select、Enter 新增块、Backspace 空块删除、Tab 缩进/Shift+Tab 提升、Alt+↑↓ 移动、toggle 折叠块 ▶▼、hover 显示 ＋/✕）。
-- **双向转换**：`POST /{id}/to-board` {boardId?}（无 boardId 自动建看板「文档名」+首列「待办」，todo 块 → 卡片，checked → 卡片勾选，sourceDocumentId 关联）；`POST /documents/from-board` {boardId, documentId?}（无 documentId 自动建文档「看板名」📋，列 → heading_2 块、卡片 → todo 块）。前端入口：文档页「转为看板」按钮、看板页「转为文档」按钮（看板/列表两种布局工具栏都有）。
-- **文档模块依赖 board**（build.gradle.kts `implementation(project(":modules:board"))`）——board 不依赖 document，无环。DocumentService 注入 BoardService/BlockService。
+- **文档 API（已全部落地）**：`POST /api/v1/documents` {workspaceId,title,icon}；`GET ?workspaceId=`；`GET /{id}`（块树，含 position/version）；`PATCH /{id}` {title|icon}（icon 优先）；`DELETE /{id}`；`PATCH /{id}/blocks` {updates:[{op:'upsert'|'delete'|'move', block:{id,parentId,type,content,properties,position}}]}；`GET /{id}/export-word`（docx attachment）；`POST /{id}/to-board`；`POST /documents/from-board`。
+- **块类型白名单（BlockService.TYPES）**：paragraph / heading_1/2/3 / todo / bulleted_list / numbered_list / quote / code / divider / **toggle**（11 种）。
+- **content 契约（v1.87 定论）**：content = **JSON 字符串字面量**（如 `"正文"`，即 JSON.stringify(text)），列类型 jsonb；properties = JSON 对象（如 {"checked":true}）。前端/桌面端用 `displayText()`（try JSON.parse，string 用之，否则按原样兼容旧数据）读取，写入一律 `JSON.stringify(text)`；后端 DocumentService.textOf() 同语义，toBoard/exportWord 均经 textOf 取文本。BlockService.validateJson 对 content/properties 均校验（非 JSON 抛 400）。
+- **前端文档模块**：schema 5 类型；api-client 方法 list/create/tree/updateTitle/updateIcon/delete/updateBlocks/toBoard/boardToDocument/exportWord；core hooks useDocuments/useCreateDocument/useDocumentTree/useRenameDocument/useUpdateDocumentIcon/useDeleteDocument/useUpdateBlocks/useDocumentToBoard/useBoardToDocument。
+- **编辑器能力**：块树递归编辑（todo 复选、类型切换 select、Enter 新建块**插入当前位置**（后端 upsert 显式 position 会整体后移兄弟，v1.83）、Backspace 空块删除、Tab 缩进/Shift+Tab 提升、Alt+↑↓ 移动、**HTML5 拖拽排序**（v1.84）、toggle 折叠 ▶▼、行首 `#/##/###/-/*/1./[]/>/``` ` 语法快捷转块（v1.70）、统计条（块/字数/完成度）、标题大纲 sticky 导航、图标 emoji 编辑、复制 Markdown、hover ＋/✕）。
+- **双向转换**：`POST /{id}/to-board` {boardId?}（无 boardId 自动建看板「文档名」+首列「待办」，todo 块 → 卡片，checked → 卡片勾选，sourceDocumentId 关联）；`POST /documents/from-board` {boardId, documentId?}（无 documentId 自动建文档「看板名」📋，列 → heading_2、卡片 → todo）。前端入口：文档页「转为看板」、看板页「转为文档」、桌面端两视图对应按钮。
+- **文档模块依赖 board**（build.gradle.kts `implementation(project(":modules:board"))`）——无环；DocumentService 注入 BoardService/BlockService，构造 4 参。
+- **坑（v1.86/v1.87 实测）**：① jsonb 列不能 ILIKE（description/sourceEvidence 为 jsonb）——模糊匹配只可 title/assigneeName 等文本列，否则 QueryCreationException/UnknownPath；② JPQL 属性路径必须用实体真实属性：Board 无 workspaceId 字段（getWorkspaceId() 是 workspace.getId() 的 getter 别名），JPQL 写 `c.board.workspace.id`；③ 改 repo/实体的 Query 后 `./gradlew spotlessApply` 再 spotlessCheck test（新增方法参数行可能需压单行）。
 
 ### §9 Flyway 迁移约定（2026-09-06 定）
 
