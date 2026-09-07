@@ -78,6 +78,15 @@ public class BoardController {
     return ApiResponse.ok(null);
   }
 
+  @PatchMapping("/{id}/columns/{columnId}")
+  public ApiResponse<BoardColumnResponse> renameColumn(
+      @PathVariable UUID id, @PathVariable UUID columnId, @RequestBody RenameRequest request) {
+    BoardColumn column = boardService.renameColumn(id, columnId, request.title());
+    return ApiResponse.ok(
+        new BoardColumnResponse(
+            column.getId(), column.getTitle(), column.getPosition(), column.getStatusColor()));
+  }
+
   @PostMapping("/{id}/cards")
   public ApiResponse<BoardCardResponse> addCard(
       @PathVariable UUID id, @RequestBody AddCardRequest request) {

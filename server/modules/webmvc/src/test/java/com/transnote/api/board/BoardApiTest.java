@@ -181,6 +181,15 @@ class BoardApiTest {
         .andExpect(jsonPath("$.data.title").value("任务一改"))
         .andExpect(jsonPath("$.data.priority").value(3));
 
+    // 列重命名（Notion 双击列头编辑）
+    mockMvc
+        .perform(
+            patch("/api/v1/boards/{id}/columns/{columnId}", boardId, col1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"待办改\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.title").value("待办改"));
+
     // 删列级联删卡片
     mockMvc
         .perform(delete("/api/v1/boards/{id}/columns/{columnId}", boardId, col2))

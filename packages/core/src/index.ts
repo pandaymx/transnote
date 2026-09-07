@@ -67,6 +67,16 @@ export function useCreateBoard(workspaceId: string) {
   });
 }
 
+/** 列重命名（Notion 双击列头编辑），成功后刷新看板（列标题变化）。 */
+export function useRenameColumn(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ columnId, title }: { columnId: string; title: string }) =>
+      api().renameColumn(boardId, columnId, title),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.board(boardId) }),
+  });
+}
+
 /** 列删除：后端 DB 级联删卡片；前端乐观移除列并同步清掉该列卡片缓存。 */
 export function useDeleteColumn(boardId: string) {
   const qc = useQueryClient();

@@ -118,6 +118,13 @@ export class TransnoteClient {
     });
   }
 
+  renameColumn(boardId: string, columnId: string, title: string): Promise<BoardColumn> {
+    return request(this.baseUrl,`/api/v1/boards/${boardId}/columns/${columnId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title }),
+    });
+  }
+
   listCards(
     boardId: string,
     columnId?: string,

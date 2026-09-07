@@ -9,6 +9,7 @@ import {
   useBoardUi,
   useDeleteCard,
   useDeleteColumn,
+  useRenameColumn,
   useUpdateCard,
   sortCardsByColumn,
 } from '@transnote/core';
@@ -28,6 +29,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const updateCard = useUpdateCard(boardId);
   const deleteCard = useDeleteCard(boardId);
   const deleteColumn = useDeleteColumn(boardId);
+  const renameColumn = useRenameColumn(boardId);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
 
   const columns: BoardColumn[] = board?.columns ?? [];
@@ -50,6 +52,10 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [pillValue, setPillValue] = useState('');
   /** 列折叠（Notion：点击列头收起为窄条）。 */
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  /** 列重命名（双击列头，Notion 内联编辑）。 */
+  const [editCol, setEditCol] = useState<{ colId: string; title: string } | null>(null);
+  /** 标签输入（点击 + 徽标添加新标签）。 */
+  const [editLabel, setEditLabel] = useState<{ cardId: string; value: string } | null>(null);
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
   const [editDesc, setEditDesc] = useState<{ cardId: string } | null>(null);
   const [descValue, setDescValue] = useState('');
@@ -105,6 +111,30 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 列折叠切换（Notion 点击列头收起/展开）。 */
   const toggleCollapse = (colId: string) =>
     setCollapsed((s) => ({ ...s, [colId]: !s[colId] }));
+
+  /** 列重命名提交（空标题不更新）。 */
+  const commitColRename = (colId: string) => {
+    const t = editCol?.title.trim();
+    setEditCol(null);
+    if (t) renameColumn.mutate({ columnId: colId, title: t });
+  };
+
+  /** 标签删除（点击已有标签移除）。 */
+  const removeLabel = (cardId: string, label: string) => {
+    const cur = (cards ?? []).find((c) => c.id === cardId);
+    const next = (cur?.labels ?? []).filter((l) => l !== label);
+    updateCard.mutate({ cardId, patch: { labels: next } });
+  };
+
+  /** 标签添加（回车提交，去重）。 */
+  const commitLabel = (cardId: string) => {
+    const v = editLabel?.value.trim();
+    setEditLabel(null);
+    if (!v) return;
+    const cur = (cards ?? []).find((c) => c.id === cardId);
+    const next = Array.from(new Set([...(cur?.labels ?? []), v]));
+    updateCard.mutate({ cardId, patch: { labels: next } });
+  };
 
   /** 描述保存：写回 JSONB {"text": ...}；空值清空。 */
   const commitDesc = (cardId: string) => {
@@ -302,13 +332,32 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
               style={overColumnId === col.id ? { outline: '2px dashed #2f6fec', outlineOffset: -2 } : undefined}
             >
               <div className="notion-column-head">
-                <span
-                  className="notion-column-title"
-                  title={collapsed[col.id] ? '展开列' : '折叠列'}
-                  onClick={() => toggleCollapse(col.id)}
-                >
-                  {collapsed[col.id] ? '▸' : '▾'} {col.title}
-                </span>
+                {editCol?.colId === col.id ? (
+                  <input
+                    className="notion-col-input"
+                    autoFocus
+                    type="text"
+                    value={editCol.title}
+                    onChange={(e) => setEditCol({ colId: col.id, title: e.target.value })}
+                    onBlur={() => commitColRename(col.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') commitColRename(col.id);
+                      if (e.key === 'Escape') setEditCol(null);
+                    }}
+                  />
+                ) : (
+                  <span
+                    className="notion-column-title"
+                    title={collapsed[col.id] ? '展开列（双击重命名）' : '折叠列（双击重命名）'}
+                    onClick={() => toggleCollapse(col.id)}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      setEditCol({ colId: col.id, title: col.title ?? '' });
+                    }}
+                  >
+                    {collapsed[col.id] ? '▸' : '▾'} {col.title}
+                  </span>
+                )}
                 <span className="notion-count">{colCards.length}</span>
                 {!collapsed[col.id] && (
                   <button
@@ -486,6 +535,49 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                       {card.priority != null ? `P${card.priority}` : 'P＋'}
                     </span>
                   </div>
+                  {(card.labels?.length ?? 0) > 0 && (
+                    <div className="notion-labels">
+                      {card.labels!.map((l) => (
+                        <span
+                          key={l}
+                          className="notion-label"
+                          title="点击移除标签"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeLabel(card.id, l);
+                          }}
+                        >
+                          {l} ✕
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {editLabel?.cardId === card.id ? (
+                    <input
+                      className="notion-label-input"
+                      autoFocus
+                      type="text"
+                      placeholder="新标签，回车添加"
+                      value={editLabel.value}
+                      onChange={(e) => setEditLabel({ cardId: card.id, value: e.target.value })}
+                      onBlur={() => commitLabel(card.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitLabel(card.id);
+                        if (e.key === 'Escape') setEditLabel(null);
+                      }}
+                    />
+                  ) : (
+                    <button
+                      className="notion-label-add"
+                      title="添加标签"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditLabel({ cardId: card.id, value: '' });
+                      }}
+                    >
+                      ＋ 标签
+                    </button>
+                  )}
                   {editDesc?.cardId === card.id ? (
                     <textarea
                       className="notion-desc-input"
