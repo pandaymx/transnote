@@ -170,8 +170,7 @@ class ConversionServiceTest {
     when(boardService.columns(boardId)).thenReturn(List.of(todo, done));
     when(boardService.listCards(boardId, null, null, null)).thenReturn(List.of(card));
 
-    ConversionJob job =
-        service.submitBoardToWord(workspaceId, boardId, "task-list", null);
+    ConversionJob job = service.submitBoardToWord(workspaceId, boardId, "task-list", null);
 
     assertThat(job.getStatus()).isEqualTo(ConversionJob.STATUS_COMPLETED);
     assertThat(job.getResultAssetId()).isNotNull();
@@ -197,8 +196,7 @@ class ConversionServiceTest {
     when(doneCard.isChecked()).thenReturn(true);
     when(boardService.get(boardId)).thenReturn(board);
     when(boardService.columns(boardId)).thenReturn(List.of(todo));
-    when(boardService.listCards(boardId, null, null, null))
-        .thenReturn(List.of(openCard, doneCard));
+    when(boardService.listCards(boardId, null, null, null)).thenReturn(List.of(openCard, doneCard));
 
     ConversionJob job =
         service.submitBoardToWord(
@@ -206,7 +204,6 @@ class ConversionServiceTest {
             boardId,
             "task-list",
             new ConversionService.ExportFilter("open", null, null, "前端"));
-
     assertThat(job.getStatus()).isEqualTo(ConversionJob.STATUS_COMPLETED);
     assertThat(job.getResultAssetId()).isNotNull();
     verify(assetStorage).store(any(byte[].class), eq("docx"));
