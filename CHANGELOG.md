@@ -1,3 +1,25 @@
+## [1.23.0](https://github.com/pandaymx/transnote/compare/v1.22.0...v1.23.0) (2026-09-07)
+
+### Features
+
+* **conversion:** 表格逐行抽取任务 ([263329c](https://github.com/pandaymx/transnote/commit/263329c06acc89b7fde8e4b3f8b25e225960e4e7))
+* **desktop:** 卡片颜色条与完成分组收纳 ([4b2898c](https://github.com/pandaymx/transnote/commit/4b2898c2d9039a2fc1d5f35fb68aac9dd38df58c))
+* **desktop:** 文档列表与块查看 ([232686d](https://github.com/pandaymx/transnote/commit/232686d3ba49535ba7f74e0e6f594353fd56f4b7))
+* **web:** 工作区重命名与删除 ([2d4abc8](https://github.com/pandaymx/transnote/commit/2d4abc883c825c15501aec623b366040d23870ea))
+* **web:** 搜索关键词高亮 ([5ee64a2](https://github.com/pandaymx/transnote/commit/5ee64a2d129fe746cc7c548e8213095044474a9b))
+* **web:** 文档列表与块编辑页面 ([3a5dda3](https://github.com/pandaymx/transnote/commit/3a5dda393d63789d01760539b69db09e815238c9))
+* **web:** 文档块回车新建与退格删除 ([5a6025b](https://github.com/pandaymx/transnote/commit/5a6025bd9c194d79df78f6460b12e84332a36aee))
+* **web:** 文档块类型切换 ([d37a4a7](https://github.com/pandaymx/transnote/commit/d37a4a7ddcc7d551cc840a89f7a47d9ac4759089))
+* **web:** 文档块缩进与上下移动 ([42de388](https://github.com/pandaymx/transnote/commit/42de388fbbae4e39b67575687a00b7cd7c06ca19))
+* **web:** 看板页删除看板按钮 ([b686feb](https://github.com/pandaymx/transnote/commit/b686feb874fa65e1674331774ae762fe8e4e6654))
+* **web:** 看板页面包屑导航 ([a4ada82](https://github.com/pandaymx/transnote/commit/a4ada82803ffc94af572577a3cd871983d17b325))
+* **web:** 详情弹窗逾期徽标 ([29c42b3](https://github.com/pandaymx/transnote/commit/29c42b3b431c721222c503608f097919e109c281))
+* **web:** 转换页看板下拉选择 ([f4b7110](https://github.com/pandaymx/transnote/commit/f4b7110fd43f3e530880e4265d8ac608b11ca889))
+
+### Bug Fixes
+
+* **conversion:** 延期清单未完成符号与红色标注 ([fa4e7ad](https://github.com/pandaymx/transnote/commit/fa4e7ad8a41c81ede7c6af14cc4a467f714c0c97))
+
 ## [1.22.0](https://github.com/pandaymx/transnote/compare/v1.21.0...v1.22.0) (2026-09-07)
 
 ### Features
