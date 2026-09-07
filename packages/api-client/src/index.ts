@@ -4,6 +4,7 @@
  */
 import type {
   ApiEnvelope,
+  BlockUpdate,
   Board,
   BoardCard,
   BoardColumn,
@@ -11,6 +12,8 @@ import type {
   ConversionJobSummary,
   ConversionResult,
   ConversionStatus,
+  Document,
+  DocumentTree,
   ReviewStatus,
   Workspace,
 } from '@transnote/schema';
@@ -98,6 +101,40 @@ export class TransnoteClient {
 
   deleteWorkspace(id: string): Promise<void> {
     return request(this.baseUrl,`/api/v1/workspaces/${id}`, { method: 'DELETE' });
+  }
+
+  // ---- Documents ----
+  listDocuments(workspaceId: string): Promise<Document[]> {
+    return request(this.baseUrl,`/api/v1/documents?workspaceId=${encodeURIComponent(workspaceId)}`);
+  }
+
+  createDocument(workspaceId: string, title: string, icon?: string): Promise<Document> {
+    return request(this.baseUrl,'/api/v1/documents', {
+      method: 'POST',
+      body: JSON.stringify({ workspaceId, title, icon }),
+    });
+  }
+
+  getDocumentTree(id: string): Promise<DocumentTree> {
+    return request(this.baseUrl,`/api/v1/documents/${id}`);
+  }
+
+  renameDocument(id: string, title: string): Promise<Document> {
+    return request(this.baseUrl,`/api/v1/documents/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title }),
+    });
+  }
+
+  deleteDocument(id: string): Promise<void> {
+    return request(this.baseUrl,`/api/v1/documents/${id}`, { method: 'DELETE' });
+  }
+
+  updateBlocks(id: string, updates: BlockUpdate[]): Promise<void> {
+    return request(this.baseUrl,`/api/v1/documents/${id}/blocks`, {
+      method: 'PATCH',
+      body: JSON.stringify({ updates }),
+    });
   }
 
   // ---- Boards ----

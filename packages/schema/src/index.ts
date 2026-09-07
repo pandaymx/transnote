@@ -140,3 +140,49 @@ export interface ApiEnvelope<T> {
   data: T;
   message: string;
 }
+
+/** 文档（Notion 页面）。 */
+export interface Document {
+  id: string;
+  workspaceId: string;
+  title: string;
+  icon?: string | null;
+  createdAt?: string;
+  updatedAt?: string | null;
+}
+
+/** 块节点（树形）。 */
+export interface BlockNode {
+  id: string;
+  parentId?: string | null;
+  type: string;
+  content?: string | null;
+  properties?: string | null;
+  position: number;
+  version: number;
+  children?: BlockNode[];
+}
+
+/** 文档树。 */
+export interface DocumentTree {
+  id: string;
+  workspaceId: string;
+  title: string;
+  icon?: string | null;
+  blocks: BlockNode[];
+}
+
+/** 块负载（upsert/delete/move）。 */
+export interface BlockPayload {
+  id?: string | null;
+  parentId?: string | null;
+  type?: string | null;
+  content?: string | null;
+  properties?: string | null;
+  position?: number | null;
+}
+
+export interface BlockUpdate {
+  op: 'upsert' | 'delete' | 'move';
+  block: BlockPayload;
+}

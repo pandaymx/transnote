@@ -9,7 +9,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { create } from 'zustand';
-import type { BoardCard, ConversionJob, ReviewStatus } from '@transnote/schema';
+import type { BlockUpdate, BoardCard, ConversionJob, ReviewStatus } from '@transnote/schema';
 import { TransnoteClient } from '@transnote/api-client';
 
 /** 单例客户端：baseUrl 由宿主注入（web 用 NEXT_PUBLIC_API_BASE，desktop 用环境）。 */
@@ -33,6 +33,8 @@ const QK = {
   board: (id: string) => ['board', id] as const,
   cards: (boardId: string) => ['cards', boardId] as const,
   job: (id: string) => ['job', id] as const,
+  documents: (ws: string) => ['documents', ws] as const,
+  document: (id: string) => ['document', id] as const,
 };
 
 // ---- Workspace ----
@@ -63,6 +65,58 @@ export function useDeleteWorkspace() {
   return useMutation({
     mutationFn: (id: string) => api().deleteWorkspace(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.workspaces }),
+  });
+}
+
+// ---- Document ----
+export function useDocuments(workspaceId: string) {
+  return useQuery({
+    queryKey: QK.documents(workspaceId),
+    queryFn: () => api().listDocuments(workspaceId),
+    enabled: !!workspaceId,
+  });
+}
+
+export function useCreateDocument(workspaceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (title: string) => api().createDocument(workspaceId, title),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.documents(workspaceId) }),
+  });
+}
+
+export function useDocumentTree(id: string, enabled?: boolean) {
+  return useQuery({
+    queryKey: QK.document(id),
+    queryFn: () => api().getDocumentTree(id),
+    enabled: !!id && (enabled ?? true),
+  });
+}
+
+export function useRenameDocument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }) =>
+      api().renameDocument(id, title),
+    onSuccess: (_d, { id }) => {
+      qc.invalidateQueries({ queryKey: QK.document(id) });
+    },
+  });
+}
+
+export function useDeleteDocument(workspaceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api().deleteDocument(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.documents(workspaceId) }),
+  });
+}
+
+export function useUpdateBlocks(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (updates: BlockUpdate[]) => api().updateBlocks(id, updates),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.document(id) }),
   });
 }
 

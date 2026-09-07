@@ -127,6 +127,13 @@ function WorkspaceCard({ ws }: { ws: { id: string; name: string; description?: s
           >
             看板
           </Link>
+          <Link
+            className="btn secondary"
+            href={`/documents?ws=${ws.id}`}
+            onClick={() => setWorkspace(ws.id)}
+          >
+            文档
+          </Link>
           <Link className="btn" href={`/convert?ws=${ws.id}`} onClick={() => setWorkspace(ws.id)}>
             Word→看板
           </Link>
