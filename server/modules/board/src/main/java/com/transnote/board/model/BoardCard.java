@@ -265,6 +265,10 @@ public class BoardCard {
     return color;
   }
 
+  public void setColor(String color) {
+    this.color = color;
+  }
+
   public void softDelete() {
     this.deleted = true;
   }

@@ -108,6 +108,53 @@ public class BoardService {
     boardRepository.deleteById(id);
   }
 
+  /** 复制看板（Notion 复制数据库）：列与未删除卡片全量复制，checked/color 等属性保留。 */
+  @Transactional
+  public Board duplicate(UUID id) {
+    Board source = get(id);
+    Workspace workspace = source.getWorkspace();
+    String copyTitle = source.getTitle() + "（副本）";
+    if (copyTitle.length() > Board.MAX_TITLE_LENGTH) {
+      copyTitle = copyTitle.substring(0, Board.MAX_TITLE_LENGTH);
+    }
+    Board copy =
+        boardRepository.save(new Board(workspace, copyTitle, source.getLayout(), source.getConfig()));
+    List<BoardColumn> sourceColumns =
+        columnRepository.findByBoard_IdOrderByPositionAsc(source.getId());
+    List<BoardColumn> copyColumns = new ArrayList<>();
+    for (BoardColumn column : sourceColumns) {
+      copyColumns.add(
+          columnRepository.save(
+              new BoardColumn(copy, column.getTitle(), column.getPosition(), column.getStatusColor())));
+    }
+    for (int i = 0; i < copyColumns.size(); i++) {
+      BoardColumn sourceColumn = sourceColumns.get(i);
+      BoardColumn copyColumn = copyColumns.get(i);
+      List<BoardCard> cards =
+          cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(sourceColumn.getId());
+      for (BoardCard card : cards) {
+        BoardCard copied =
+            new BoardCard(
+                copy,
+                copyColumn,
+                card.getPosition(),
+                card.getTitle(),
+                card.getDescription(),
+                card.getAssigneeId(),
+                card.getAssigneeName(),
+                card.getDueDate(),
+                card.getPriority(),
+                card.getLabels(),
+                card.getSourceDocumentId(),
+                card.getSourceEvidence());
+        copied.setChecked(card.isChecked());
+        copied.setColor(card.getColor());
+        cardRepository.save(copied);
+      }
+    }
+    return copy;
+  }
+
   // ---------- 列 ----------
 
   @Transactional

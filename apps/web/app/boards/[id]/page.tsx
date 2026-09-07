@@ -11,6 +11,7 @@ import {
   useDeletedCards,
   useDeleteCard,
   useDeleteColumn,
+  useDuplicateBoard,
   useHardDeleteCard,
   useMoveColumn,
   useRenameColumn,
@@ -46,6 +47,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const addCard = useAddCard(boardId);
   const updateCard = useUpdateCard(boardId);
   const updateBoard = useUpdateBoard(boardId);
+  const duplicateBoard = useDuplicateBoard(board?.workspaceId ?? '');
   const deleteCard = useDeleteCard(boardId);
   const deleteColumn = useDeleteColumn(boardId);
   const renameColumn = useRenameColumn(boardId);
@@ -540,6 +542,17 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           </button>
           <button className="btn secondary" onClick={() => setStatsOpen(true)}>
             统计
+          </button>
+          <button
+            className="btn secondary"
+            disabled={!board?.workspaceId}
+            onClick={() =>
+              duplicateBoard.mutate(boardId, {
+                onSuccess: (copy) => router.push(`/boards/${copy.id}`),
+              })
+            }
+          >
+            复制
           </button>
         </div>
       </div>

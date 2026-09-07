@@ -66,6 +66,13 @@ public class BoardController {
     return ApiResponse.ok(null);
   }
 
+  /** 复制看板（Notion 复制数据库）：列与未删除卡片全量复制，返回新看板（含列）。 */
+  @PostMapping("/{id}/duplicate")
+  public ApiResponse<BoardResponse> duplicate(@PathVariable UUID id) {
+    Board copy = boardService.duplicate(id);
+    return ApiResponse.ok(BoardResponse.from(copy, boardService.columns(copy.getId())));
+  }
+
   @PostMapping("/{id}/columns")
   public ApiResponse<BoardColumnResponse> addColumn(
       @PathVariable UUID id, @RequestBody AddColumnRequest request) {

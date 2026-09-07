@@ -116,6 +116,13 @@ export class TransnoteClient {
     });
   }
 
+  /** 复制看板（Notion 复制数据库）：列与未删除卡片全量复制。 */
+  duplicateBoard(id: string): Promise<Board & { columns: BoardColumn[] }> {
+    return request(this.baseUrl, `/api/v1/boards/${id}/duplicate`, {
+      method: 'POST',
+    });
+  }
+
   /** 回收站（Notion 删除可恢复）。 */
   deletedCards(boardId: string): Promise<BoardCard[]> {
     return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/deleted`);

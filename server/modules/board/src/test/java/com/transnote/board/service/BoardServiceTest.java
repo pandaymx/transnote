@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -274,5 +275,44 @@ class BoardServiceTest {
     when(boardRepository.findById(missing)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.get(missing)).isInstanceOf(BoardNotFoundException.class);
+  }
+
+  @Test
+  void duplicate_copiesColumnsAndCardsKeepingAttributes() {
+    UUID colA = UUID.randomUUID();
+    UUID colB = UUID.randomUUID();
+    BoardColumn columnA = column(colA, 0);
+    BoardColumn columnB = column(colB, 1);
+    BoardCard done = card(UUID.randomUUID(), colA, 0);
+    done.setChecked(true);
+    done.setColor("green");
+    BoardCard todo = card(UUID.randomUUID(), colB, 0);
+    todo.setColor("orange");
+    when(columnRepository.findByBoard_IdOrderByPositionAsc(boardId))
+        .thenReturn(List.of(columnA, columnB));
+    when(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(colA))
+        .thenReturn(List.of(done));
+    when(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(colB))
+        .thenReturn(List.of(todo));
+    when(boardRepository.save(any(Board.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(columnRepository.save(any(BoardColumn.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(cardRepository.save(any(BoardCard.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    Board copy = service.duplicate(boardId);
+
+    assertThat(copy.getTitle()).contains("副本");
+    assertThat(copy.getLayout()).isEqualTo("kanban");
+    ArgumentCaptor<BoardColumn> columnCaptor = ArgumentCaptor.forClass(BoardColumn.class);
+    verify(columnRepository, times(2)).save(columnCaptor.capture());
+    assertThat(columnCaptor.getAllValues()).hasSize(2);
+    ArgumentCaptor<BoardCard> cardCaptor = ArgumentCaptor.forClass(BoardCard.class);
+    verify(cardRepository, times(2)).save(cardCaptor.capture());
+    BoardCard copiedDone = cardCaptor.getAllValues().get(0);
+    BoardCard copiedTodo = cardCaptor.getAllValues().get(1);
+    assertThat(copiedDone.isChecked()).isTrue();
+    assertThat(copiedDone.getColor()).isEqualTo("green");
+    assertThat(copiedTodo.getColor()).isEqualTo("orange");
+    assertThat(copiedDone.getColumn().getBoard()).isSameAs(copy);
+    assertThat(copiedTodo.getColumn().getBoard()).isSameAs(copy);
   }
 }
