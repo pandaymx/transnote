@@ -202,6 +202,12 @@ export class TransnoteClient {
     });
   }
 
+  duplicateCard(boardId: string, cardId: string): Promise<BoardCard> {
+    return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/${cardId}/duplicate`, {
+      method: 'POST',
+    });
+  }
+
   hardDeleteCard(boardId: string, cardId: string): Promise<void> {
     return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/${cardId}/hard`, {
       method: 'DELETE',

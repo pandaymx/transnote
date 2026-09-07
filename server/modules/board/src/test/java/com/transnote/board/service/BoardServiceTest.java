@@ -315,4 +315,34 @@ class BoardServiceTest {
     assertThat(copiedDone.getColumn().getBoard()).isSameAs(copy);
     assertThat(copiedTodo.getColumn().getBoard()).isSameAs(copy);
   }
+
+  @Test
+  void duplicateCard_createsCopyInSameColumnKeepingAttributes() {
+    UUID colId = UUID.randomUUID();
+    BoardCard src = card(UUID.randomUUID(), colId, 0);
+    BoardColumn column = src.getColumn();
+    src.setChecked(true);
+    src.setColor("yellow");
+    when(cardRepository.findById(src.getId())).thenReturn(Optional.of(src));
+    when(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(colId))
+        .thenReturn(List.of(src));
+    when(cardRepository.save(any(BoardCard.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    BoardCard copy = service.duplicateCard(src.getId());
+
+    assertThat(copy.getTitle()).isEqualTo(src.getTitle() + "（副本）");
+    assertThat(copy.getColumn()).isSameAs(column);
+    assertThat(copy.getPosition()).isEqualTo(1);
+    assertThat(copy.isChecked()).isTrue();
+    assertThat(copy.getColor()).isEqualTo("yellow");
+  }
+
+  @Test
+  void duplicateCard_missing_throws() {
+    UUID missing = UUID.randomUUID();
+    when(cardRepository.findById(missing)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> service.duplicateCard(missing))
+        .isInstanceOf(BoardCardNotFoundException.class);
+  }
 }

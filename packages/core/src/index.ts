@@ -242,6 +242,17 @@ export function useRestoreCard(boardId: string) {
   });
 }
 
+/** 复制卡片（Notion 复制待办）。 */
+export function useDuplicateCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cardId: string) => api().duplicateCard(boardId, cardId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['board', boardId] });
+    },
+  });
+}
+
 /** 彻底删除（回收站永久清除）。 */
 export function useHardDeleteCard(boardId: string) {
   const qc = useQueryClient();

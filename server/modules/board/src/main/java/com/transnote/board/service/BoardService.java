@@ -294,6 +294,33 @@ public class BoardService {
     return cardRepository.save(card);
   }
 
+  /** 复制卡片（Notion 复制待办）：同列尾新增副本，保留描述/负责人/截止/优先级/标签/颜色/勾选态。 */
+  @Transactional
+  public BoardCard duplicateCard(UUID cardId) {
+    BoardCard src =
+        cardRepository.findById(cardId).orElseThrow(() -> new BoardCardNotFoundException(cardId));
+    List<BoardCard> cards =
+        cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(src.getColumn().getId());
+    int nextPosition = cards.stream().mapToInt(BoardCard::getPosition).max().orElse(-1) + 1;
+    BoardCard copy =
+        new BoardCard(
+            src.getBoard(),
+            src.getColumn(),
+            nextPosition,
+            src.getTitle() + "（副本）",
+            src.getDescription(),
+            src.getAssigneeId(),
+            src.getAssigneeName(),
+            src.getDueDate(),
+            src.getPriority(),
+            src.getLabels(),
+            src.getSourceDocumentId(),
+            src.getSourceEvidence());
+    copy.setChecked(src.isChecked());
+    copy.setColor(src.getColor());
+    return cardRepository.save(copy);
+  }
+
   public List<BoardCard> listCards(UUID boardId, UUID columnId, UUID assigneeId, Short priority) {
     get(boardId);
     if (columnId != null) {

@@ -209,6 +209,14 @@ public class BoardController {
     return ApiResponse.ok(BoardCardResponse.from(card));
   }
 
+  /** 复制卡片（Notion 复制待办）。 */
+  @PostMapping("/{id}/cards/{cardId}/duplicate")
+  public ApiResponse<BoardCardResponse> duplicateCard(
+      @PathVariable UUID id, @PathVariable UUID cardId) {
+    BoardCard card = boardService.duplicateCard(cardId);
+    return ApiResponse.ok(BoardCardResponse.from(card));
+  }
+
   /** 彻底删除（回收站永久清除）。 */
   @DeleteMapping("/{id}/cards/{cardId}/hard")
   public ApiResponse<Void> hardDeleteCard(@PathVariable UUID id, @PathVariable UUID cardId) {

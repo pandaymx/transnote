@@ -16,6 +16,7 @@ import {
   useDeleteCard,
   useDeleteColumn,
   useDuplicateBoard,
+  useDuplicateCard,
   useHardDeleteCard,
   useMoveColumn,
   useRenameColumn,
@@ -51,6 +52,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const { data: cards, isLoading } = useBoardCards(boardId);
   const addCard = useAddCard(boardId);
   const updateCard = useUpdateCard(boardId);
+  const dupCard = useDuplicateCard(boardId);
   const updateBoard = useUpdateBoard(boardId);
   const duplicateBoard = useDuplicateBoard(board?.workspaceId ?? '');
   const deleteBoard = useDeleteBoard(board?.workspaceId ?? '');
@@ -1357,6 +1359,18 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   />
                   <button className="notion-modal-close" onClick={() => setDetailCardId(null)}>
                     ✕
+                  </button>
+                </div>
+                <div className="notion-modal-desc-actions">
+                  <button
+                    className="btn secondary"
+                    disabled={dupCard.isPending}
+                    onClick={() => {
+                      dupCard.mutate(card.id);
+                      setDetailCardId(null);
+                    }}
+                  >
+                    {dupCard.isPending ? '复制中…' : '复制卡片'}
                   </button>
                 </div>
                 <textarea
