@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/pandaymx/transnote/compare/v1.8.1...v1.9.0) (2026-09-07)
+
+### Features
+
+* **board:** 看板卡片完成态按 Notion 待办样式实现 ([1f5c060](https://github.com/pandaymx/transnote/commit/1f5c060b7daeec3e407dc9eba1c5d0cf38d8702c))
+
 ## [1.8.1](https://github.com/pandaymx/transnote/compare/v1.8.0...v1.8.1) (2026-09-06)
 
 ### Bug Fixes
