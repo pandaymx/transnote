@@ -77,6 +77,15 @@ export function useRenameColumn(boardId: string) {
   });
 }
 
+/** 添加列（Notion 看板最右 ＋ 添加列）。 */
+export function useAddColumn(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (title: string) => api().addColumn(boardId, title),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.board(boardId) }),
+  });
+}
+
 /** 列删除：后端 DB 级联删卡片；前端乐观移除列并同步清掉该列卡片缓存。 */
 export function useDeleteColumn(boardId: string) {
   const qc = useQueryClient();

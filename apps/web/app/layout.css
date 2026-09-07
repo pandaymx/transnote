@@ -334,6 +334,53 @@ input[type='file'] {
   color: #37352f;
 }
 
+.notion-add-col-btn {
+  flex-shrink: 0;
+  width: 200px;
+  border: 1px dashed #d3d1cb;
+  border-radius: 8px;
+  background: transparent;
+  color: #787774;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 10px;
+  text-align: left;
+}
+
+.notion-add-col-btn:hover {
+  border-color: #2f6fec;
+  color: #2f6fec;
+  background: rgba(47, 111, 236, 0.04);
+}
+
+.notion-add-col {
+  flex-shrink: 0;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #e9e9e7;
+  border-radius: 8px;
+  background: #fff;
+  align-self: flex-start;
+}
+
+.notion-add-col input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  color: #37352f;
+  border: 1px solid #2f6fec;
+  border-radius: 6px;
+  padding: 5px 8px;
+  outline: none;
+}
+
+.notion-add-col .notion-add-btn {
+  width: 100%;
+}
+
 .notion-col-input {
   flex: 1;
   min-width: 0;

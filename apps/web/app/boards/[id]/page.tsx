@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   useAddCard,
+  useAddColumn,
   useBoard,
   useBoardCards,
   useBoardUi,
@@ -30,6 +31,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const deleteCard = useDeleteCard(boardId);
   const deleteColumn = useDeleteColumn(boardId);
   const renameColumn = useRenameColumn(boardId);
+  const addColumn = useAddColumn(boardId);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
 
   const columns: BoardColumn[] = board?.columns ?? [];
@@ -54,6 +56,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   /** 列重命名（双击列头，Notion 内联编辑）。 */
   const [editCol, setEditCol] = useState<{ colId: string; title: string } | null>(null);
+  /** 添加列（Notion 看板最右 ＋ 添加列）。 */
+  const [addingCol, setAddingCol] = useState(false);
+  const [newColTitle, setNewColTitle] = useState('');
   /** 标签输入（点击 + 徽标添加新标签）。 */
   const [editLabel, setEditLabel] = useState<{ cardId: string; value: string } | null>(null);
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
@@ -153,6 +158,14 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 列内逾期未完成卡片数（Notion 逾期标红计数）。 */
   const overdueCount = (colCards: BoardCard[]) =>
     colCards.filter((c) => !c.checked && dueOverdue(c.dueDate)).length;
+
+  /** 添加列提交（空标题忽略）。 */
+  const commitAddColumn = () => {
+    const t = newColTitle.trim();
+    setNewColTitle('');
+    setAddingCol(false);
+    if (t) addColumn.mutate(t);
+  };
 
   /** 描述保存：写回 JSONB {"text": ...}；空值清空。 */
   const commitDesc = (cardId: string) => {
@@ -676,6 +689,40 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           );
         })}
         {!isLoading && columns.length === 0 && <p className="muted">看板还没有列。</p>}
+        {addingCol ? (
+          <div className="notion-add-col">
+            <input
+              autoFocus
+              type="text"
+              placeholder="列名称…"
+              value={newColTitle}
+              onChange={(e) => setNewColTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitAddColumn();
+                if (e.key === 'Escape') {
+                  setAddingCol(false);
+                  setNewColTitle('');
+                }
+              }}
+            />
+            <button className="notion-add-btn" onClick={commitAddColumn}>
+              添加列
+            </button>
+            <button
+              className="notion-add-btn"
+              onClick={() => {
+                setAddingCol(false);
+                setNewColTitle('');
+              }}
+            >
+              取消
+            </button>
+          </div>
+        ) : (
+          <button className="notion-add-col-btn" onClick={() => setAddingCol(true)}>
+            ＋ 添加列
+          </button>
+        )}
       </div>
     </div>
   );
