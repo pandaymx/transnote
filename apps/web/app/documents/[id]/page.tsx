@@ -363,15 +363,30 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   };
 
   const onAddAfter = (blockId: string) => {
+    const find = (
+      bs: BlockNode[],
+      parentId: string | null
+    ): { sibs: BlockNode[]; idx: number; parentId: string | null } | null => {
+      const idx = bs.findIndex((b) => b.id === blockId);
+      if (idx >= 0) return { sibs: bs, idx, parentId };
+      for (const b of bs) {
+        const r = find(b.children ?? [], b.id);
+        if (r) return r;
+      }
+      return null;
+    };
+    const hit = find(tree?.blocks ?? [], null);
+    const idx = hit ? hit.idx + 1 : (tree?.blocks?.length ?? 0);
+    const parentId = hit ? hit.parentId : null;
     updateBlocks.mutate([
       {
         op: 'upsert',
         block: {
           id: crypto.randomUUID(),
-          parentId: null,
+          parentId,
           type: 'paragraph',
           content: '',
-          position: null,
+          position: idx,
         },
       },
     ]);

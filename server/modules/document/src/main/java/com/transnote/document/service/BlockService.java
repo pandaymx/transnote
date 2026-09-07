@@ -87,6 +87,15 @@ public class BlockService {
         position == null
             ? siblings.stream().mapToInt(Block::getPosition).max().orElse(-1) + 1
             : Math.max(0, position);
+    // 显式 position = 插入语义：原位置及之后的兄弟整体后移
+    if (position != null) {
+      for (Block s : siblings) {
+        if (s.getPosition() >= nextPosition) {
+          s.setPosition(s.getPosition() + 1);
+          blockRepository.save(s);
+        }
+      }
+    }
     Block block =
         new Block(
             document,

@@ -95,6 +95,23 @@ class BlockServiceTest {
   }
 
   @Test
+  void upsert_createWithExplicitPosition_shiftsSiblings() {
+    saveAssignsId();
+    Block a = block(UUID.randomUUID(), null, 0);
+    Block b = block(UUID.randomUUID(), null, 1);
+    when(blockRepository.findByDocumentIdAndParentIdIsNullOrderByPositionAsc(documentId))
+        .thenReturn(List.of(a, b));
+
+    service.upsert(documentId, null, null, "paragraph", "{}", "{}", 1);
+
+    assertThat(b.getPosition()).isEqualTo(2);
+    ArgumentCaptor<Block> captor = ArgumentCaptor.forClass(Block.class);
+    verify(blockRepository, times(2)).save(captor.capture());
+    Block newBlock = captor.getAllValues().get(1);
+    assertThat(newBlock.getPosition()).isEqualTo(1);
+  }
+
+  @Test
   void upsert_updateExisting_updatesContent() {
     UUID blockId = UUID.randomUUID();
     Block existing = block(blockId, null, 0);
