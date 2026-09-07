@@ -134,7 +134,11 @@ public class BoardService {
   public void deleteColumn(UUID boardId, UUID columnId) {
     BoardColumn column = requireColumn(columnId);
     requireBelongsToBoard(column.getBoard().getId(), boardId);
-    columnRepository.delete(column); // DB 级联删卡片
+    // 缓存感知逐卡删除（避免 DB 级联与 Hibernate 缓存不一致导致 flush 校验异常），DB 级联仅作兜底
+    List<BoardCard> columnCards =
+        cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(columnId);
+    cardRepository.deleteAll(columnCards);
+    columnRepository.delete(column);
   }
 
   /** 列重排（Notion 拖动列头调整顺序）：目标列插入 position，其余列顺移。 */
@@ -210,7 +214,8 @@ public class BoardService {
     Board board = get(boardId);
     BoardColumn column = requireColumn(columnId);
     requireBelongsToBoard(column.getBoard().getId(), boardId);
-    List<BoardCard> cards = cardRepository.findByColumn_IdOrderByPositionAsc(columnId);
+    List<BoardCard> cards =
+        cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(columnId);
     int nextPosition = cards.stream().mapToInt(BoardCard::getPosition).max().orElse(-1) + 1;
     BoardCard card =
         new BoardCard(
@@ -300,13 +305,44 @@ public class BoardService {
   public void deleteCard(UUID boardId, UUID cardId) {
     BoardCard card = requireCard(cardId);
     requireBelongsToBoard(card.getBoard().getId(), boardId);
+    card.softDelete();
+    cardRepository.save(card);
+  }
+
+  /** 彻底删除（回收站内永久清除，不可恢复）。 */
+  @Transactional
+  public void hardDeleteCard(UUID boardId, UUID cardId) {
+    BoardCard card = requireCard(cardId);
+    requireBelongsToBoard(card.getBoard().getId(), boardId);
     cardRepository.delete(card);
+  }
+
+  /** 回收站列表（Notion 删除可恢复）：软删除卡片按更新时间倒序。 */
+  public List<BoardCard> deletedCards(UUID boardId) {
+    get(boardId);
+    return cardRepository.findByBoard_IdAndDeletedTrueOrderByUpdatedAtDesc(boardId);
+  }
+
+  /** 恢复软删除卡片到原列末尾。 */
+  @Transactional
+  public BoardCard restoreCard(UUID boardId, UUID cardId) {
+    BoardCard card = requireCard(cardId);
+    requireBelongsToBoard(card.getBoard().getId(), boardId);
+    if (!card.isDeleted()) {
+      return card;
+    }
+    List<BoardCard> columnCards =
+        cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(card.getColumn().getId());
+    int nextPosition = columnCards.stream().mapToInt(BoardCard::getPosition).max().orElse(-1) + 1;
+    card.restore();
+    card.setPosition(nextPosition);
+    return cardRepository.save(card);
   }
 
   /** 从列中移除卡片并重排其余（跨列移动后旧列使用，卡片不插回）。 */
   private void reorderAfterRemoval(UUID columnId, BoardCard removed) {
     List<BoardCard> ordered =
-        new ArrayList<>(cardRepository.findByColumn_IdOrderByPositionAsc(columnId));
+        new ArrayList<>(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(columnId));
     ordered.remove(removed);
     for (int i = 0; i < ordered.size(); i++) {
       ordered.get(i).setPosition(i);
@@ -317,7 +353,7 @@ public class BoardService {
   /** 同列重排：移除移动卡片后在目标位置插入，position 重写 0..n-1；position 为空追加末尾。 */
   private void reorderColumn(UUID columnId, BoardCard moved, Integer position) {
     List<BoardCard> ordered =
-        new ArrayList<>(cardRepository.findByColumn_IdOrderByPositionAsc(columnId));
+        new ArrayList<>(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(columnId));
     ordered.remove(moved);
     int insertAt =
         position == null ? ordered.size() : Math.min(Math.max(0, position), ordered.size());

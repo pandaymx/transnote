@@ -96,6 +96,36 @@ export function useMoveColumn(boardId: string) {
   });
 }
 
+/** 回收站列表（Notion 删除可恢复）。 */
+export function useDeletedCards(boardId: string) {
+  return useQuery({
+    queryKey: ['board', boardId, 'deleted'],
+    queryFn: () => api().deletedCards(boardId),
+    enabled: !!boardId,
+  });
+}
+
+/** 恢复卡片（回到原列末尾）。 */
+export function useRestoreCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cardId: string) => api().restoreCard(boardId, cardId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['board', boardId] });
+      qc.invalidateQueries({ queryKey: ['board', boardId, 'deleted'] });
+    },
+  });
+}
+
+/** 彻底删除（回收站永久清除）。 */
+export function useHardDeleteCard(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cardId: string) => api().hardDeleteCard(boardId, cardId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['board', boardId, 'deleted'] }),
+  });
+}
+
 /** 列删除：后端 DB 级联删卡片；前端乐观移除列并同步清掉该列卡片缓存。 */
 export function useDeleteColumn(boardId: string) {
   const qc = useQueryClient();
@@ -221,7 +251,10 @@ export function useDeleteCard(boardId: string) {
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(QK.cards(boardId), ctx.prev);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: QK.cards(boardId) }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: QK.cards(boardId) });
+      qc.invalidateQueries({ queryKey: ['board', boardId, 'deleted'] });
+    },
   });
 }
 

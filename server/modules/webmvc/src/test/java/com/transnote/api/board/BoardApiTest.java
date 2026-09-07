@@ -212,6 +212,36 @@ class BoardApiTest {
         .perform(get("/api/v1/boards/{id}/cards", boardId).param("columnId", col2))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.length()").value(0));
+
+    // 回收站（Notion 删除可恢复）：软删 → 列表不含 → 回收站含 → 恢复 → 列表含 → 彻底删
+    mockMvc
+        .perform(delete("/api/v1/boards/{id}/cards/{cardId}", boardId, card1))
+        .andExpect(status().isOk());
+    mockMvc
+        .perform(get("/api/v1/boards/{id}/cards", boardId).param("columnId", col1))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(0));
+    mockMvc
+        .perform(get("/api/v1/boards/{id}/cards/deleted", boardId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].id").value(card1))
+        .andExpect(jsonPath("$.data[0].deleted").value(true));
+    mockMvc
+        .perform(post("/api/v1/boards/{id}/cards/{cardId}/restore", boardId, card1))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.deleted").value(false));
+    mockMvc
+        .perform(get("/api/v1/boards/{id}/cards", boardId).param("columnId", col1))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(1));
+    mockMvc
+        .perform(delete("/api/v1/boards/{id}/cards/{cardId}/hard", boardId, card1))
+        .andExpect(status().isOk());
+    mockMvc
+        .perform(get("/api/v1/boards/{id}/cards/deleted", boardId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(0));
   }
 
   @Test

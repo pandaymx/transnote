@@ -180,5 +180,28 @@ public class BoardController {
     return ApiResponse.ok(null);
   }
 
+  /** 回收站列表（Notion 删除可恢复）。 */
+  @GetMapping("/{id}/cards/deleted")
+  public ApiResponse<List<BoardCardResponse>> deletedCards(@PathVariable UUID id) {
+    List<BoardCardResponse> cards =
+        boardService.deletedCards(id).stream().map(BoardCardResponse::from).toList();
+    return ApiResponse.ok(cards);
+  }
+
+  /** 恢复软删除卡片到原列末尾。 */
+  @PostMapping("/{id}/cards/{cardId}/restore")
+  public ApiResponse<BoardCardResponse> restoreCard(
+      @PathVariable UUID id, @PathVariable UUID cardId) {
+    BoardCard card = boardService.restoreCard(id, cardId);
+    return ApiResponse.ok(BoardCardResponse.from(card));
+  }
+
+  /** 彻底删除（回收站永久清除）。 */
+  @DeleteMapping("/{id}/cards/{cardId}/hard")
+  public ApiResponse<Void> hardDeleteCard(@PathVariable UUID id, @PathVariable UUID cardId) {
+    boardService.hardDeleteCard(id, cardId);
+    return ApiResponse.ok(null);
+  }
+
   public record RenameRequest(String title, Integer position) {}
 }

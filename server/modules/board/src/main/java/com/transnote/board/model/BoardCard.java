@@ -72,6 +72,10 @@ public class BoardCard {
   @Column(nullable = false)
   private boolean checked = false;
 
+  /** 软删除标记（回收站，V7）：deleted=true 不出现在看板，可恢复。 */
+  @Column(nullable = false)
+  private boolean deleted = false;
+
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "source_evidence", columnDefinition = "jsonb")
   private String sourceEvidence;
@@ -243,6 +247,18 @@ public class BoardCard {
 
   public void setChecked(boolean checked) {
     this.checked = checked;
+  }
+
+  public boolean isDeleted() {
+    return deleted;
+  }
+
+  public void softDelete() {
+    this.deleted = true;
+  }
+
+  public void restore() {
+    this.deleted = false;
   }
 
   public UUID getSourceDocumentId() {

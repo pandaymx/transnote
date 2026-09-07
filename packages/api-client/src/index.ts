@@ -105,6 +105,23 @@ export class TransnoteClient {
     return request(this.baseUrl,`/api/v1/boards/${id}`);
   }
 
+  /** 回收站（Notion 删除可恢复）。 */
+  deletedCards(boardId: string): Promise<BoardCard[]> {
+    return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/deleted`);
+  }
+
+  restoreCard(boardId: string, cardId: string): Promise<BoardCard> {
+    return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/${cardId}/restore`, {
+      method: 'POST',
+    });
+  }
+
+  hardDeleteCard(boardId: string, cardId: string): Promise<void> {
+    return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/${cardId}/hard`, {
+      method: 'DELETE',
+    });
+  }
+
   addColumn(boardId: string, title: string): Promise<BoardColumn> {
     return request(this.baseUrl,`/api/v1/boards/${boardId}/columns`, {
       method: 'POST',

@@ -8,10 +8,13 @@ import {
   useBoard,
   useBoardCards,
   useBoardUi,
+  useDeletedCards,
   useDeleteCard,
   useDeleteColumn,
+  useHardDeleteCard,
   useMoveColumn,
   useRenameColumn,
+  useRestoreCard,
   useUpdateCard,
   sortCardsByColumn,
 } from '@transnote/core';
@@ -34,6 +37,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const renameColumn = useRenameColumn(boardId);
   const addColumn = useAddColumn(boardId);
   const moveColumn = useMoveColumn(boardId);
+  const { data: trashCards } = useDeletedCards(boardId);
+  const restoreCard = useRestoreCard(boardId);
+  const hardDeleteCard = useHardDeleteCard(boardId);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
 
   const columns: BoardColumn[] = board?.columns ?? [];
@@ -68,6 +74,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [dropColIndex, setDropColIndex] = useState<number | null>(null);
   /** 卡片详情弹窗（Notion 单击卡片打开）。 */
   const [detailCardId, setDetailCardId] = useState<string | null>(null);
+  /** 回收站弹窗（Notion 删除可恢复）。 */
+  const [trashOpen, setTrashOpen] = useState(false);
   /** 标签输入（点击 + 徽标添加新标签）。 */
   const [editLabel, setEditLabel] = useState<{ cardId: string; value: string } | null>(null);
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
@@ -288,6 +296,12 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             }}
           >
             导出 Word
+          </button>
+          <button className="btn secondary" onClick={() => setTrashOpen(true)}>
+            回收站
+            {(trashCards?.length ?? 0) > 0 && (
+              <span className="notion-trash-count">{(trashCards ?? []).length}</span>
+            )}
           </button>
           <button
             className="btn"
@@ -937,6 +951,56 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           );
         })()}
+
+      {trashOpen && (
+        <div className="notion-modal-overlay" onClick={() => setTrashOpen(false)}>
+          <div className="notion-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="notion-modal-head">
+              <div className="notion-modal-title" style={{ fontSize: 16 }}>
+                回收站（{(trashCards ?? []).length}）
+              </div>
+              <button className="notion-modal-close" onClick={() => setTrashOpen(false)}>
+                ✕
+              </button>
+            </div>
+            {(trashCards ?? []).length === 0 && (
+              <p className="muted" style={{ margin: 0 }}>
+                回收站是空的。
+              </p>
+            )}
+            {(trashCards ?? []).map((card) => (
+              <div key={card.id} className="notion-trash-row">
+                <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontWeight: 600 }}>{card.title}</div>
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    {card.columnId ? '已删除卡片' : ''}
+                  </div>
+                </div>
+                <div className="row" style={{ gap: 6, flexShrink: 0 }}>
+                  <button
+                    className="notion-tool-btn"
+                    onClick={() => {
+                      restoreCard.mutate(card.id);
+                    }}
+                  >
+                    恢复
+                  </button>
+                  <button
+                    className="notion-trash-hard"
+                    onClick={() => {
+                      if (window.confirm('彻底删除「' + card.title + '」？此操作不可恢复。')) {
+                        hardDeleteCard.mutate(card.id);
+                      }
+                    }}
+                  >
+                    彻底删除
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -116,7 +116,8 @@ class BoardServiceTest {
     UUID columnId = UUID.randomUUID();
     BoardColumn col = column(columnId, 0);
     when(columnRepository.findById(columnId)).thenReturn(Optional.of(col));
-    when(cardRepository.findByColumn_IdOrderByPositionAsc(columnId)).thenReturn(List.of());
+    when(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(columnId))
+        .thenReturn(List.of());
     when(cardRepository.save(any(BoardCard.class))).thenAnswer(inv -> inv.getArgument(0));
 
     BoardCard created =
@@ -211,8 +212,10 @@ class BoardServiceTest {
     when(columnRepository.findById(colA)).thenReturn(Optional.of(columnA));
     when(columnRepository.findById(colB)).thenReturn(Optional.of(columnB));
     when(cardRepository.findById(cardId)).thenReturn(Optional.of(moved));
-    when(cardRepository.findByColumn_IdOrderByPositionAsc(colA)).thenReturn(List.of(a1, moved));
-    when(cardRepository.findByColumn_IdOrderByPositionAsc(colB)).thenReturn(List.of(b1));
+    when(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(colA))
+        .thenReturn(List.of(a1, moved));
+    when(cardRepository.findByColumn_IdAndDeletedFalseOrderByPositionAsc(colB))
+        .thenReturn(List.of(b1));
     when(cardRepository.saveAll(any())).thenReturn(List.of());
     when(cardRepository.save(any(BoardCard.class))).thenAnswer(inv -> inv.getArgument(0));
 

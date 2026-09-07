@@ -941,3 +941,39 @@ input[type='file'] {
 .notion-modal-delete:hover {
   background: #ffe8e6;
 }
+
+.notion-trash-count {
+  display: inline-block;
+  margin-left: 6px;
+  background: #cf1322;
+  color: #fff;
+  border-radius: 9px;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.notion-trash-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f7f7f5;
+  border-radius: 8px;
+}
+
+.notion-trash-hard {
+  border: none;
+  background: #fff1f0;
+  color: #cf1322;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 18px;
+}
+
+.notion-trash-hard:hover {
+  background: #ffe8e6;
+}
