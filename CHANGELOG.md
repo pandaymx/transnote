@@ -1,3 +1,16 @@
+## [1.21.0](https://github.com/pandaymx/transnote/compare/v1.20.0...v1.21.0) (2026-09-07)
+
+### Features
+
+* **conversion:** 导出卡片颜色与色值映射 ([d608fcf](https://github.com/pandaymx/transnote/commit/d608fcf507b282ff5dc746ecb164f818a70baeb3))
+* **desktop:** 看板详情勾选与完成进度 ([4bbe714](https://github.com/pandaymx/transnote/commit/4bbe714dbe79c96f238fd9b1777e67a5e7ea081f))
+* **web:** 全局快捷键新建搜索关闭弹窗 ([fa58e6c](https://github.com/pandaymx/transnote/commit/fa58e6c25b183955fa703e3494d2917947c67a36))
+* **web:** 列头批量勾选完成状态 ([e591215](https://github.com/pandaymx/transnote/commit/e5912152cc2f8bb7318d005ebb13dccbced48b55))
+* **web:** 看板列表视图切换 ([07644fd](https://github.com/pandaymx/transnote/commit/07644fdeaf0f9f817b291256dbb0067b2117dc21))
+* **web:** 看板标题内联重命名 ([04c1f84](https://github.com/pandaymx/transnote/commit/04c1f844936ad971d093f26253f6fd7b8663c020))
+* **web:** 视图状态持久化记忆折叠筛选 ([1838760](https://github.com/pandaymx/transnote/commit/1838760d4f0ea68c94f98088cf502ac7f58527cc))
+* **web:** 详情弹窗复制卡片保留属性 ([b6b61b2](https://github.com/pandaymx/transnote/commit/b6b61b2d27224335b6883aba534f7e27b75b77d2))
+
 ## [1.20.0](https://github.com/pandaymx/transnote/compare/v1.19.0...v1.20.0) (2026-09-07)
 
 ### Features
