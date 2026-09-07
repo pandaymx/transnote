@@ -165,3 +165,226 @@ input[type='file'] {
   font-size: 12px;
   color: #6b7280;
 }
+
+/* ---- Notion 代办样式（T4d：勾选/划线/徽标/计数/悬停操作） ---- */
+.notion-column {
+  flex: 1 1 280px;
+  min-width: 250px;
+  background: #f7f7f5;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notion-column-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 6px;
+}
+
+.notion-column-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #37352f;
+}
+
+.notion-count {
+  background: #e9e9e7;
+  color: #787774;
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 0 7px;
+  line-height: 18px;
+}
+
+.notion-add {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #787774;
+  cursor: pointer;
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  line-height: 1;
+}
+
+.notion-add:hover {
+  background: #e9e9e7;
+  color: #37352f;
+}
+
+.notion-card {
+  background: #fff;
+  border: 1px solid #e9e9e7;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  cursor: grab;
+  transition: box-shadow 0.12s ease;
+  position: relative;
+}
+
+.notion-card:hover {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+.notion-card.dragging {
+  opacity: 0.45;
+}
+
+.notion-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.notion-checkbox {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  border: 1.5px solid #c9c9c7;
+  border-radius: 3px;
+  cursor: pointer;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #fff;
+  line-height: 1;
+  user-select: none;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+.notion-checkbox:hover {
+  border-color: #37352f;
+}
+
+.notion-checkbox.checked {
+  background: #2f6fec;
+  border-color: #2f6fec;
+}
+
+.notion-title {
+  font-size: 14px;
+  color: #37352f;
+  line-height: 1.45;
+  word-break: break-word;
+  cursor: text;
+}
+
+.notion-title.done {
+  color: #9b9b9b;
+  text-decoration: line-through;
+}
+
+.notion-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.notion-pill {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #f1f1ef;
+  color: #787774;
+  line-height: 18px;
+}
+
+.notion-pill.p1 {
+  background: #fdecec;
+  color: #d44c47;
+}
+
+.notion-pill.p2 {
+  background: #fdf3e3;
+  color: #d9730d;
+}
+
+.notion-pill.p3 {
+  background: #eef1fb;
+  color: #2f6fec;
+}
+
+.notion-pill.due-overdue {
+  background: #fdecec;
+  color: #d44c47;
+}
+
+.notion-desc {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9b9b9b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notion-card-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: none;
+  background: transparent;
+  color: #c9c9c7;
+  cursor: pointer;
+  font-size: 13px;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.notion-card:hover .notion-card-del {
+  opacity: 1;
+}
+
+.notion-card-del:hover {
+  background: #f1f1ef;
+  color: #37352f;
+}
+
+.notion-card-input {
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.notion-add-input-row {
+  display: flex;
+  gap: 6px;
+}
+
+.notion-add-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.notion-add-btn {
+  border: none;
+  background: #e9e9e7;
+  color: #37352f;
+  border-radius: 6px;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.notion-add-btn:hover {
+  background: #dcdcd9;
+}

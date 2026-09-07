@@ -99,6 +99,7 @@ export interface CardPatch {
   dueDate?: string;
   priority?: number;
   labels?: string[];
+  checked?: boolean;
   columnId?: string;
   position?: number;
 }
@@ -124,6 +125,7 @@ export function useUpdateCard(boardId: string) {
                   ...(patch.dueDate !== undefined ? { dueDate: patch.dueDate } : {}),
                   ...(patch.priority !== undefined ? { priority: patch.priority } : {}),
                   ...(patch.labels !== undefined ? { labels: patch.labels } : {}),
+                  ...(patch.checked !== undefined ? { checked: patch.checked } : {}),
                   ...(patch.columnId !== undefined ? { columnId: patch.columnId } : {}),
                   ...(patch.position !== undefined ? { position: patch.position } : {}),
                 }

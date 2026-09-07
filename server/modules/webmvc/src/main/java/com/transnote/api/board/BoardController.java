@@ -121,7 +121,8 @@ public class BoardController {
           || request.assigneeId() != null
           || request.dueDate() != null
           || request.priority() != null
-          || request.labels() != null) {
+          || request.labels() != null
+          || request.checked() != null) {
         card =
             boardService.updateCard(
                 id,
@@ -131,7 +132,8 @@ public class BoardController {
                 request.assigneeId(),
                 request.dueDate(),
                 request.priority(),
-                request.labels());
+                request.labels(),
+                request.checked());
       }
     } else {
       card =
@@ -143,7 +145,8 @@ public class BoardController {
               request.assigneeId(),
               request.dueDate(),
               request.priority(),
-              request.labels());
+              request.labels(),
+              request.checked());
     }
     return ApiResponse.ok(BoardCardResponse.from(card));
   }

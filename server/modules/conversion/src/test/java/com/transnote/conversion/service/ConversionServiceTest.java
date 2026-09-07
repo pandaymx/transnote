@@ -3,6 +3,7 @@ package com.transnote.conversion.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -79,16 +80,21 @@ class ConversionServiceTest {
   private byte[] buildMinimalDocx(String text) {
     String ct =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-            + "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
-            + "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
-            + "<Default Extension=\"xml\" ContentType=\"application/xml\"/>"
-            + "<Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/>"
+            + "<Types"
+            + " xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default"
+            + " Extension=\"rels\""
+            + " ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default"
+            + " Extension=\"xml\" ContentType=\"application/xml\"/><Override"
+            + " PartName=\"/word/document.xml\""
+            + " ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/>"
             + "</Types>";
     String rels =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-            + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
-            + "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"word/document.xml\"/>"
-            + "</Relationships>";
+            + "<Relationships"
+            + " xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship"
+            + " Id=\"rId1\""
+            + " Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\""
+            + " Target=\"word/document.xml\"/></Relationships>";
     String body =
         "<w:body xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">"
             + "<w:p><w:r><w:t>"
@@ -98,7 +104,8 @@ class ConversionServiceTest {
             + "</w:body>";
     String document =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-            + "<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">"
+            + "<w:document"
+            + " xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">"
             + body
             + "</w:document>";
     try {
@@ -243,7 +250,8 @@ class ConversionServiceTest {
             eq((short) 1),
             eq(null),
             eq(null),
-            anyString());
+            anyString(),
+            anyBoolean());
     verify(itemRepository).save(any(ConversionItem.class));
   }
 
@@ -267,7 +275,8 @@ class ConversionServiceTest {
             any(),
             any(),
             any(),
-            anyString());
+            anyString(),
+            anyBoolean());
   }
 
   @Test

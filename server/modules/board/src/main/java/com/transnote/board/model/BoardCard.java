@@ -68,6 +68,10 @@ public class BoardCard {
   @Column(name = "source_document_id")
   private UUID sourceDocumentId;
 
+  /** 卡片级完成态（Notion 代办勾选，V6）。 */
+  @Column(nullable = false)
+  private boolean checked = false;
+
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "source_evidence", columnDefinition = "jsonb")
   private String sourceEvidence;
@@ -160,7 +164,8 @@ public class BoardCard {
       UUID assigneeId,
       LocalDate dueDate,
       Short priority,
-      List<String> labels) {
+      List<String> labels,
+      Boolean checked) {
     if (title != null) {
       this.title = title;
     }
@@ -178,6 +183,9 @@ public class BoardCard {
     }
     if (labels != null) {
       this.labels = new ArrayList<>(labels);
+    }
+    if (checked != null) {
+      this.checked = checked;
     }
   }
 
@@ -223,6 +231,14 @@ public class BoardCard {
 
   public List<String> getLabels() {
     return labels;
+  }
+
+  public boolean isChecked() {
+    return checked;
+  }
+
+  public void setChecked(boolean checked) {
+    this.checked = checked;
   }
 
   public UUID getSourceDocumentId() {

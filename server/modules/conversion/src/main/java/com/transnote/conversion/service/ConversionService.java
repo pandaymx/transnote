@@ -220,7 +220,8 @@ public class ConversionService {
                                         card.getDescription(),
                                         card.getAssigneeName(),
                                         card.getDueDate(),
-                                        card.getPriority()))
+                                        card.getPriority(),
+                                        card.isChecked()))
                             .toList()))
             .toList();
 
@@ -300,7 +301,8 @@ public class ConversionService {
           item.getPriority(),
           null,
           null, // sourceDocumentId：Word 转换暂未落 documents
-          item.getEvidence());
+          item.getEvidence(),
+          isDoneColumn(category)); // checked：完成列初始化为已完成（V6 代办勾选）
     }
     return boardId;
   }

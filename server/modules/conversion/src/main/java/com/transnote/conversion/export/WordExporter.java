@@ -49,18 +49,24 @@ public final class WordExporter {
     }
 
     public int doneCards() {
+      // 卡片级完成态优先（V6）；兼容旧数据：无勾选时回退列级 completed
+      long cardLevel =
+          columns.stream().flatMap(c -> c.cards().stream()).filter(CardExport::checked).count();
+      if (cardLevel > 0) {
+        return (int) cardLevel;
+      }
       return columns.stream().filter(ColumnExport::completed).mapToInt(c -> c.cards().size()).sum();
     }
 
-    /** 延期项：dueDate 早于今天且不在完成列。 */
+    /** 延期项：dueDate 早于今天且未完成（卡片级 checked 优先，列级 completed 兜底）。 */
     public List<CardExport> overdueCards() {
       LocalDate today = LocalDate.now();
       List<CardExport> overdue = new ArrayList<>();
       for (ColumnExport col : columns) {
-        if (col.completed()) {
-          continue;
-        }
         for (CardExport card : col.cards()) {
+          if (card.checked() || col.completed()) {
+            continue;
+          }
           if (card.dueDate() != null && card.dueDate().isBefore(today)) {
             overdue.add(card);
           }
@@ -72,8 +78,14 @@ public final class WordExporter {
 
   public record ColumnExport(String title, boolean completed, List<CardExport> cards) {}
 
+  /** 卡片导出；checked 为卡片级完成态（V6），导出统计与状态列以其为准。 */
   public record CardExport(
-      String title, String description, String assigneeName, LocalDate dueDate, Short priority) {}
+      String title,
+      String description,
+      String assigneeName,
+      LocalDate dueDate,
+      Short priority,
+      boolean checked) {}
 
   public static byte[] export(BoardExportData data) {
     try (XWPFDocument doc = new XWPFDocument()) {
@@ -137,7 +149,7 @@ public final class WordExporter {
       int r = 1;
       for (CardExport card : col.cards()) {
         XWPFTableRow row = table.getRow(r++);
-        setCell(row.getCell(0), col.completed() ? "☑" : "☐", false);
+        setCell(row.getCell(0), card.checked() ? "☑" : "☐", false);
         setCell(row.getCell(1), card.title(), false);
         setCell(row.getCell(2), card.assigneeName() == null ? "" : card.assigneeName(), false);
         setCell(

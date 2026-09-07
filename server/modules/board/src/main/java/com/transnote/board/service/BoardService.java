@@ -162,10 +162,11 @@ public class BoardService {
         priority,
         labels,
         sourceDocumentId,
-        sourceEvidence);
+        sourceEvidence,
+        false);
   }
 
-  /** 带负责人人名（T8 转换建卡走此重载）。 */
+  /** 带负责人人名（T8 转换建卡走此重载）。checked 为卡片级完成态（V6，Notion 代办勾选）。 */
   @Transactional
   public BoardCard addCard(
       UUID boardId,
@@ -178,7 +179,8 @@ public class BoardService {
       Short priority,
       List<String> labels,
       UUID sourceDocumentId,
-      String sourceEvidence) {
+      String sourceEvidence,
+      boolean checked) {
     validateTitle(title, BoardCard.MAX_TITLE_LENGTH);
     validatePriority(priority);
     validateJson("description", description);
@@ -189,7 +191,7 @@ public class BoardService {
     requireBelongsToBoard(column.getBoard().getId(), boardId);
     List<BoardCard> cards = cardRepository.findByColumn_IdOrderByPositionAsc(columnId);
     int nextPosition = cards.stream().mapToInt(BoardCard::getPosition).max().orElse(-1) + 1;
-    return cardRepository.save(
+    BoardCard card =
         new BoardCard(
             board,
             column,
@@ -202,7 +204,9 @@ public class BoardService {
             priority == null ? (short) 1 : priority,
             labels,
             sourceDocumentId,
-            sourceEvidence));
+            sourceEvidence);
+    card.setChecked(checked);
+    return cardRepository.save(card);
   }
 
   public List<BoardCard> listCards(UUID boardId, UUID columnId, UUID assigneeId, Short priority) {
@@ -228,7 +232,8 @@ public class BoardService {
       UUID assigneeId,
       LocalDate dueDate,
       Short priority,
-      List<String> labels) {
+      List<String> labels,
+      Boolean checked) {
     BoardCard card = requireCard(cardId);
     requireBelongsToBoard(card.getBoard().getId(), boardId);
     if (title != null) {
@@ -238,7 +243,13 @@ public class BoardService {
     validateJson("description", description);
     validateLabels(labels);
     card.update(
-        title == null ? null : title.trim(), description, assigneeId, dueDate, priority, labels);
+        title == null ? null : title.trim(),
+        description,
+        assigneeId,
+        dueDate,
+        priority,
+        labels,
+        checked);
     return cardRepository.save(card);
   }
 

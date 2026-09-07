@@ -28,9 +28,12 @@ class WordExporterTest {
                 "待办",
                 false,
                 List.of(
-                    new CardExport("完成接口联调", "{}", "王五", LocalDate.of(2026, 9, 12), (short) 1))),
+                    new CardExport(
+                        "完成接口联调", "{}", "王五", LocalDate.of(2026, 9, 12), (short) 1, false))),
             new ColumnExport(
-                "已完成", true, List.of(new CardExport("备份数据库", "{}", null, null, (short) 2)))));
+                "已完成",
+                true,
+                List.of(new CardExport("备份数据库", "{}", null, null, (short) 2, false)))));
   }
 
   @Test
@@ -61,7 +64,31 @@ class WordExporterTest {
       assertThat(todo.getRow(1).getCell(4).getText()).isEqualTo("P1");
 
       XWPFTable done = doc.getTables().get(1);
-      assertThat(done.getRow(1).getCell(0).getText()).isEqualTo("☑");
+      // 卡片未勾选（checked=false）→ 状态列 ☐（V6 卡片级优先，列级仅作统计兜底）
+      assertThat(done.getRow(1).getCell(0).getText()).isEqualTo("☐");
+    }
+  }
+
+  @Test
+  void checkedCardDrivesStatusAndStats() throws IOException {
+    // 待办列卡片级勾选 → 状态 ☑ 且统计按卡片级（不再依赖列名）
+    BoardExportData data =
+        new BoardExportData(
+            UUID.randomUUID(),
+            "发布上线",
+            "task-list",
+            List.of(
+                new ColumnExport(
+                    "待办",
+                    false,
+                    List.of(
+                        new CardExport(
+                            "完成接口联调", "{}", "王五", LocalDate.of(2026, 9, 12), (short) 1, true))),
+                new ColumnExport("已完成", true, List.of())));
+    byte[] docx = WordExporter.export(data);
+    try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {
+      assertThat(paragraphsText(doc)).contains("任务 1 项，已完成 1 项，完成率 100%");
+      assertThat(doc.getTables().get(0).getRow(1).getCell(0).getText()).isEqualTo("☑");
     }
   }
 
@@ -94,7 +121,7 @@ class WordExporterTest {
                     false,
                     List.of(
                         new CardExport(
-                            "完成接口联调", "{}", "王五", LocalDate.now().minusDays(1), (short) 1))),
+                            "完成接口联调", "{}", "王五", LocalDate.now().minusDays(1), (short) 1, false))),
                 data.columns().get(1)));
     byte[] docx = WordExporter.export(overdueData);
     try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(docx))) {

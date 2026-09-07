@@ -168,11 +168,33 @@ class BoardServiceTest {
 
     BoardCard updated =
         service.updateCard(
-            boardId, cardId, null, "{\"text\":[{\"t\":\"描述\"}]}", null, null, (short) 2, null);
+            boardId,
+            cardId,
+            null,
+            "{\"text\":[{\"t\":\"描述\"}]}",
+            null,
+            null,
+            (short) 2,
+            null,
+            null);
 
     assertThat(updated.getTitle()).isEqualTo("卡片"); // 未更新
     assertThat(updated.getDescription()).contains("描述");
     assertThat(updated.getPriority()).isEqualTo((short) 2);
+    assertThat(updated.isChecked()).isFalse(); // checked 未传不更新
+  }
+
+  @Test
+  void updateCard_toggleChecked() {
+    UUID cardId = UUID.randomUUID();
+    BoardCard card = card(cardId, UUID.randomUUID(), 0);
+    when(cardRepository.findById(cardId)).thenReturn(Optional.of(card));
+    when(cardRepository.save(card)).thenReturn(card);
+
+    BoardCard updated =
+        service.updateCard(boardId, cardId, null, null, null, null, null, null, true);
+
+    assertThat(updated.isChecked()).isTrue();
   }
 
   @Test

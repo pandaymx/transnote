@@ -57,6 +57,7 @@ export interface BoardCard {
   dueDate?: string | null;
   priority?: number | null;
   labels?: string[] | null;
+  checked?: boolean | null;
   sourceEvidence?: string | null;
 }
 
