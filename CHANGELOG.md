@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/pandaymx/transnote/compare/v1.9.0...v1.10.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板列内拖拽排序支持 Notion 样式 ([025b25b](https://github.com/pandaymx/transnote/commit/025b25bba573155c7209b19b73ce92fd83506b2d))
+
 ## [1.9.0](https://github.com/pandaymx/transnote/compare/v1.8.1...v1.9.0) (2026-09-07)
 
 ### Features
