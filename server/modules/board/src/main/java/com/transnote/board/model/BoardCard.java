@@ -162,6 +162,7 @@ public class BoardCard {
       String title,
       String description,
       UUID assigneeId,
+      String assigneeName,
       LocalDate dueDate,
       Short priority,
       List<String> labels,
@@ -174,6 +175,9 @@ public class BoardCard {
     }
     if (assigneeId != null) {
       this.assigneeId = assigneeId;
+    }
+    if (assigneeName != null) {
+      this.assigneeName = assigneeName;
     }
     if (dueDate != null) {
       this.dueDate = dueDate;

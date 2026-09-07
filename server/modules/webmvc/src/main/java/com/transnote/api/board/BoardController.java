@@ -119,6 +119,7 @@ public class BoardController {
       if (request.title() != null
           || request.description() != null
           || request.assigneeId() != null
+          || request.assigneeName() != null
           || request.dueDate() != null
           || request.priority() != null
           || request.labels() != null
@@ -130,6 +131,7 @@ public class BoardController {
                 request.title(),
                 request.description(),
                 request.assigneeId(),
+                request.assigneeName(),
                 request.dueDate(),
                 request.priority(),
                 request.labels(),
@@ -143,6 +145,7 @@ public class BoardController {
               request.title(),
               request.description(),
               request.assigneeId(),
+              request.assigneeName(),
               request.dueDate(),
               request.priority(),
               request.labels(),

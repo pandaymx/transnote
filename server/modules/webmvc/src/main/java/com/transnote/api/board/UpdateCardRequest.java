@@ -9,6 +9,7 @@ public record UpdateCardRequest(
     String title,
     String description,
     UUID assigneeId,
+    String assigneeName,
     LocalDate dueDate,
     Short priority,
     List<String> labels,

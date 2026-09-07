@@ -37,6 +37,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [dropIndex, setDropIndex] = useState<{ colId: string; index: number } | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  /** 属性徽标内联编辑（截止日期/负责人）；priority 用点击循环。 */
+  const [editPill, setEditPill] = useState<{ cardId: string; field: 'due' | 'assignee'; value: string } | null>(null);
+  const [pillValue, setPillValue] = useState('');
 
   const onAdd = async (columnId: string) => {
     const title = drafts[columnId]?.trim();
@@ -70,6 +73,27 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     if (title) updateCard.mutate({ cardId, patch: { title } });
   };
 
+  /** 优先级点击循环：P1→P2→P3→P1（null=不更新语义，故不清空）。 */
+  const cyclePriority = (cardId: string, current: number | null | undefined) => {
+    const next = current == null ? 1 : current >= 3 ? 1 : current + 1;
+    updateCard.mutate({ cardId, patch: { priority: next } });
+  };
+
+  /** 属性徽标编辑提交。 */
+  const commitPill = (cardId: string) => {
+    const f = editPill?.field;
+    if (!f) return;
+    if (f === 'due') {
+      const v = pillValue.trim();
+      updateCard.mutate({ cardId, patch: { dueDate: v ? v : undefined } });
+    } else if (f === 'assignee') {
+      // 空串 = 清空负责人（后端 assigneeName!=null 即更新）
+      updateCard.mutate({ cardId, patch: { assigneeName: pillValue.trim() } });
+    }
+    setEditPill(null);
+  };
+
+  /** 截止日期为今天及以前且未完成 → 标红（Notion 逾期样式）。 */
   const dueOverdue = (due: string | null | undefined) => {
     if (!due) return false;
     return due < new Date().toISOString().slice(0, 10);
@@ -239,21 +263,76 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                       </span>
                     )}
                   </div>
-                  {(card.assigneeName || card.dueDate || card.priority != null) && (
-                    <div className="notion-pills">
-                      {card.assigneeName && <span className="notion-pill">👤 {card.assigneeName}</span>}
-                      {card.dueDate && (
-                        <span className={'notion-pill' + (dueOverdue(card.dueDate) && !card.checked ? ' due-overdue' : '')}>
-                          📅 {card.dueDate}
-                        </span>
-                      )}
-                      {card.priority != null && (
-                        <span className={'notion-pill' + (card.priority === 1 ? ' p1' : card.priority === 2 ? ' p2' : ' p3')}>
-                          P{card.priority}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div className="notion-pills">
+                    {editPill?.cardId === card.id && editPill.field === 'assignee' ? (
+                      <input
+                        className="notion-pill-input"
+                        autoFocus
+                        type="text"
+                        placeholder="负责人"
+                        value={pillValue}
+                        onChange={(e) => setPillValue(e.target.value)}
+                        onBlur={() => commitPill(card.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitPill(card.id);
+                          if (e.key === 'Escape') setEditPill(null);
+                        }}
+                      />
+                    ) : (
+                      <span
+                        className={'notion-pill' + (card.assigneeName ? '' : ' add')}
+                        title={card.assigneeName ? '点击编辑负责人' : '添加负责人'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditPill({ cardId: card.id, field: 'assignee', value: card.assigneeName ?? '' });
+                          setPillValue(card.assigneeName ?? '');
+                        }}
+                      >
+                        👤 {card.assigneeName || '+'}
+                      </span>
+                    )}
+                    {editPill?.cardId === card.id && editPill.field === 'due' ? (
+                      <input
+                        className="notion-pill-input"
+                        autoFocus
+                        type="date"
+                        value={pillValue}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          updateCard.mutate({ cardId: card.id, patch: { dueDate: v ? v : undefined } });
+                          setEditPill(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') setEditPill(null);
+                        }}
+                      />
+                    ) : (
+                      <span
+                        className={
+                          'notion-pill' +
+                          (card.dueDate ? (dueOverdue(card.dueDate) && !card.checked ? ' due-overdue' : '') : ' add')
+                        }
+                        title={card.dueDate ? '点击修改截止日期' : '添加截止日期'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditPill({ cardId: card.id, field: 'due', value: card.dueDate ?? '' });
+                          setPillValue(card.dueDate ?? '');
+                        }}
+                      >
+                        📅 {card.dueDate || '＋'}
+                      </span>
+                    )}
+                    <span
+                      className={'notion-pill' + (card.priority === 1 ? ' p1' : card.priority === 2 ? ' p2' : card.priority === 3 ? ' p3' : ' add')}
+                      title="点击切换优先级"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        cyclePriority(card.id, card.priority);
+                      }}
+                    >
+                      {card.priority != null ? `P${card.priority}` : 'P＋'}
+                    </span>
+                  </div>
                   {descText(card.description) && (
                     <div className="notion-desc">{descText(card.description)}</div>
                   )}

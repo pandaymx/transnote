@@ -174,6 +174,7 @@ class BoardServiceTest {
             "{\"text\":[{\"t\":\"描述\"}]}",
             null,
             null,
+            null,
             (short) 2,
             null,
             null);
@@ -192,7 +193,7 @@ class BoardServiceTest {
     when(cardRepository.save(card)).thenReturn(card);
 
     BoardCard updated =
-        service.updateCard(boardId, cardId, null, null, null, null, null, null, true);
+        service.updateCard(boardId, cardId, null, null, null, null, null, null, null, true);
 
     assertThat(updated.isChecked()).isTrue();
   }

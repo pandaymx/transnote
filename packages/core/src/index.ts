@@ -96,6 +96,7 @@ export function useAddCard(boardId: string) {
 export interface CardPatch {
   title?: string;
   description?: string;
+  assigneeName?: string;
   dueDate?: string;
   priority?: number;
   labels?: string[];
@@ -122,6 +123,7 @@ export function useUpdateCard(boardId: string) {
                   ...c,
                   ...(patch.title !== undefined ? { title: patch.title } : {}),
                   ...(patch.description !== undefined ? { description: patch.description } : {}),
+                  ...(patch.assigneeName !== undefined ? { assigneeName: patch.assigneeName } : {}),
                   ...(patch.dueDate !== undefined ? { dueDate: patch.dueDate } : {}),
                   ...(patch.priority !== undefined ? { priority: patch.priority } : {}),
                   ...(patch.labels !== undefined ? { labels: patch.labels } : {}),
