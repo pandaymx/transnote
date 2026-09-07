@@ -67,6 +67,15 @@ export function useCreateBoard(workspaceId: string) {
   });
 }
 
+/** 看板视图切换（看板/列表），成功后刷新看板。 */
+export function useUpdateBoardLayout(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (layout: string) => api().updateBoard(boardId, { layout }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.board(boardId) }),
+  });
+}
+
 /** 列重命名（Notion 双击列头编辑），成功后刷新看板（列标题变化）。 */
 export function useRenameColumn(boardId: string) {
   const qc = useQueryClient();

@@ -91,6 +91,16 @@ public class BoardService {
   }
 
   @Transactional
+  public Board updateLayout(UUID id, String layout) {
+    if (!StringUtils.hasText(layout) || !(layout.equals("kanban") || layout.equals("list"))) {
+      throw new IllegalArgumentException("layout 仅支持 kanban/list");
+    }
+    Board board = get(id);
+    board.setLayout(layout);
+    return boardRepository.save(board);
+  }
+
+  @Transactional
   public void delete(UUID id) {
     if (!boardRepository.existsById(id)) {
       throw new BoardNotFoundException(id);

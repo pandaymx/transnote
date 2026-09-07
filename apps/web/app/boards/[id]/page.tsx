@@ -16,6 +16,7 @@ import {
   useRenameColumn,
   useRestoreCard,
   useUpdateCard,
+  useUpdateBoardLayout,
   sortCardsByColumn,
 } from '@transnote/core';
 import type { CardPatch } from '@transnote/core';
@@ -44,6 +45,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const { data: cards, isLoading } = useBoardCards(boardId);
   const addCard = useAddCard(boardId);
   const updateCard = useUpdateCard(boardId);
+  const updateBoardLayout = useUpdateBoardLayout(boardId);
   const deleteCard = useDeleteCard(boardId);
   const deleteColumn = useDeleteColumn(boardId);
   const renameColumn = useRenameColumn(boardId);
@@ -120,11 +122,13 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       list = [...list].sort(
         (a, b) => (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31'),
       );
-    } else if (sortBy === 'priority') {
-      list = [...list].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
+    } else if (sortBy === 'priority') {      list = [...list].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
     }
     return list;
   };
+
+  /** 列表视图：跨列聚合的全部筛选卡片。 */
+  const allViewCards = columns.flatMap((c) => viewCards(c.id));
 
   /** 可筛选负责人列表（去重，卡片有 assigneeName 的）。 */
   const assigneeOptions = Array.from(
@@ -276,6 +280,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     if (!due) return false;
     return due < new Date().toISOString().slice(0, 10);
   };
+  const isOverdue = (card: BoardCard) =>
+    !card.checked && dueOverdue(card.dueDate);
 
   /** description 为 JSONB 字符串（{"text":...}），解析出可读文本。 */
   const descText = (raw: string | null | undefined): string => {
@@ -416,9 +422,93 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             </button>
           ))}
         </div>
+        <div className="row" style={{ gap: 6 }}>
+          <div className="notion-view-switch">
+            {(['kanban', 'list'] as const).map((l) => (
+              <button
+                key={l}
+                className={'notion-tool-btn' + ((board?.layout ?? 'kanban') === l ? ' active' : '')}
+                onClick={() => updateBoardLayout.mutate(l)}
+              >
+                {l === 'kanban' ? '看板' : '列表'}
+              </button>
+            ))}
+          </div>
+          <button className="btn secondary" onClick={() => setTrashOpen(true)}>
+            回收站
+            {(trashCards?.length ?? 0) > 0 && (
+              <span className="notion-trash-count">{(trashCards ?? []).length}</span>
+            )}
+          </button>
+          <button className="btn secondary" onClick={() => setStatsOpen(true)}>
+            统计
+          </button>
+        </div>
       </div>
-      <div className="columns">
-        {columns.map((col, i) => {
+      {(board?.layout ?? 'kanban') === 'list' ? (
+        <div className="notion-list-view">
+          {allViewCards.length === 0 && (
+            <p className="muted" style={{ padding: '16px 4px', margin: 0 }}>
+              没有匹配的任务。
+            </p>
+          )}
+          {allViewCards.map((card) => {
+            const col = columns.find((c) => c.id === card.columnId);
+            return (
+              <div key={card.id} className="notion-list-row" onClick={() => setDetailCardId(card.id)}>
+                <span
+                  className={'notion-checkbox' + (card.checked ? ' checked' : '')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateCard.mutate({ cardId: card.id, patch: { checked: !card.checked } });
+                  }}
+                >
+                  {card.checked ? '✓' : ''}
+                </span>
+                {card.color && (
+                  <span
+                    className="notion-list-dot"
+                    style={{ background: CARD_COLORS[card.color] ?? '#D3D1CB' }}
+                  />
+                )}
+                <span className={'notion-list-title' + (card.checked ? ' done' : '')}>
+                  {card.title}
+                </span>
+                {card.assigneeName && (
+                  <span className="notion-list-meta">👤 {card.assigneeName}</span>
+                )}
+                {card.dueDate && (
+                  <span
+                    className={
+                      'notion-list-meta' +
+                      (isOverdue(card) ? ' overdue' : '')
+                    }
+                  >
+                    📅 {card.dueDate}
+                  </span>
+                )}
+                {card.priority != null && (
+                  <span className={'notion-list-meta p' + card.priority}>
+                    P{card.priority}
+                  </span>
+                )}
+                {(card.labels ?? []).map((lb) => (
+                  <span key={lb} className="notion-list-meta label">
+                    {lb}
+                  </span>
+                ))}
+                {col && (
+                  <span className="notion-list-meta col" style={{ marginLeft: 'auto' }}>
+                    {col.title}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="columns">
+          {columns.map((col, i) => {
           const colCards = viewCards(col.id);
           const canDrag = sortBy === 'manual' && filterState === 'all';
           return (
@@ -846,6 +936,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           </button>
         )}
       </div>
+      )}
 
       {detailCardId &&
         (() => {

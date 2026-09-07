@@ -125,6 +125,23 @@ class BoardApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.title").value("产品迭代看板"));
 
+    // 切换列表视图（V9：layout 走 updateLayout）
+    mockMvc
+        .perform(
+            patch("/api/v1/boards/{id}", boardId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"layout\":\"list\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.layout").value("list"));
+
+    // 非法 layout 拒绝
+    mockMvc
+        .perform(
+            patch("/api/v1/boards/{id}", boardId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"layout\":\"timeline\"}"))
+        .andExpect(status().isUnprocessableEntity());
+
     // 删除
     mockMvc.perform(delete("/api/v1/boards/{id}", boardId)).andExpect(status().isOk());
     mockMvc.perform(get("/api/v1/boards/{id}", boardId)).andExpect(status().isNotFound());

@@ -1019,3 +1019,91 @@ input[type='file'] {
 .notion-stat-row .notion-progress-track {
   max-width: none;
 }
+
+.notion-view-switch {
+  display: flex;
+  border: 1px solid #e9e9e7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.notion-view-switch .notion-tool-btn {
+  border: none;
+  border-radius: 0;
+}
+
+.notion-view-switch .notion-tool-btn.active {
+  background: #f1f1ef;
+}
+
+.notion-list-view {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e9e9e7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.notion-list-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f1ef;
+  cursor: pointer;
+}
+
+.notion-list-row:last-child {
+  border-bottom: none;
+}
+
+.notion-list-row:hover {
+  background: #f7f7f5;
+}
+
+.notion-list-row .notion-checkbox {
+  flex: none;
+}
+
+.notion-list-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.notion-list-title {
+  font-size: 14px;
+  color: #37352f;
+}
+
+.notion-list-title.done {
+  color: #9b9a97;
+  text-decoration: line-through;
+}
+
+.notion-list-meta {
+  font-size: 12px;
+  color: #787774;
+  white-space: nowrap;
+}
+
+.notion-list-meta.overdue {
+  color: #d44c47;
+}
+
+.notion-list-meta.p1 {
+  color: #d44c47;
+}
+
+.notion-list-meta.p2 {
+  color: #e09100;
+}
+
+.notion-list-meta.label {
+  background: #f1f1ef;
+  color: #37352f;
+  border-radius: 4px;
+  padding: 1px 6px;
+}

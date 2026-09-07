@@ -105,6 +105,17 @@ export class TransnoteClient {
     return request(this.baseUrl,`/api/v1/boards/${id}`);
   }
 
+  /** 看板更新：title 走改名，layout 走视图切换（kanban/list）。 */
+  updateBoard(
+    id: string,
+    patch: { title?: string; layout?: string },
+  ): Promise<Board & { columns: BoardColumn[] }> {
+    return request(this.baseUrl, `/api/v1/boards/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  }
+
   /** 回收站（Notion 删除可恢复）。 */
   deletedCards(boardId: string): Promise<BoardCard[]> {
     return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/deleted`);

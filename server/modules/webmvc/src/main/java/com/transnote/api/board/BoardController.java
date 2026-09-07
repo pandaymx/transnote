@@ -51,9 +51,12 @@ public class BoardController {
   }
 
   @PatchMapping("/{id}")
-  public ApiResponse<BoardResponse> rename(
+  public ApiResponse<BoardResponse> update(
       @PathVariable UUID id, @RequestBody RenameRequest request) {
-    Board board = boardService.rename(id, request.title());
+    Board board =
+        (request.layout() != null && !request.layout().isBlank())
+            ? boardService.updateLayout(id, request.layout())
+            : boardService.rename(id, request.title());
     return ApiResponse.ok(BoardResponse.from(board, boardService.columns(id)));
   }
 
@@ -206,5 +209,5 @@ public class BoardController {
     return ApiResponse.ok(null);
   }
 
-  public record RenameRequest(String title, Integer position) {}
+  public record RenameRequest(String title, Integer position, String layout) {}
 }

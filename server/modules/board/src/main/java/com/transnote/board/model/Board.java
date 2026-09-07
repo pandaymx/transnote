@@ -65,6 +65,10 @@ public class Board {
     this.title = title;
   }
 
+  public void setLayout(String layout) {
+    this.layout = layout;
+  }
+
   public void setConfig(String config) {
     this.config = config;
   }
