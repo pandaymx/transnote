@@ -20,6 +20,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /** 文档服务：创建/列表/详情/改名，以及文档 → 看板（todo 块转卡片）。 */
@@ -71,7 +72,8 @@ public class DocumentService {
 
   private int collectTodo(BlockNode node, UUID boardId, UUID columnId, UUID documentId) {
     int created = 0;
-    if ("todo".equals(node.type()) && StringUtils.hasText(node.content())) {
+    String text = textOf(node);
+    if ("todo".equals(node.type()) && StringUtils.hasText(text)) {
       boolean checked = false;
       if (StringUtils.hasText(node.properties())) {
         try {
@@ -83,18 +85,7 @@ public class DocumentService {
         }
       }
       boardService.addCard(
-          boardId,
-          columnId,
-          node.content(),
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          documentId,
-          null,
-          checked);
+          boardId, columnId, text, null, null, null, null, null, null, documentId, null, checked);
       created++;
     }
     for (BlockNode child : node.children()) {
@@ -169,7 +160,7 @@ public class DocumentService {
   }
 
   private void renderNode(BlockNode node, XWPFDocument docx, int numbered) {
-    String text = node.content() == null ? "" : node.content();
+    String text = textOf(node);
     switch (node.type()) {
       case "heading_1" -> addParagraph(docx, text, 18, true, false, null);
       case "heading_2" -> addParagraph(docx, text, 15, true, false, null);
@@ -219,6 +210,19 @@ public class DocumentService {
           objectMapper.readTree(node.properties()).path("checked").asText("false"));
     } catch (Exception ignored) {
       return false;
+    }
+  }
+
+  /** content 契约为 JSON 字符串字面量（如 "正文"）；解析失败按原样文本兼容旧数据。 */
+  private String textOf(BlockNode node) {
+    if (node.content() == null) {
+      return "";
+    }
+    try {
+      JsonNode n = objectMapper.readTree(node.content());
+      return n.isTextual() ? n.asText() : "";
+    } catch (Exception e) {
+      return node.content();
     }
   }
 

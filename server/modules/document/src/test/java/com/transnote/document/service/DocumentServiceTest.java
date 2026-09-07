@@ -134,10 +134,10 @@ class DocumentServiceTest {
 
     BlockNode todo =
         new BlockNode(
-            UUID.randomUUID(), null, "todo", "写周报", "{\"checked\":false}", 0, 0, List.of());
+            UUID.randomUUID(), null, "todo", "\"写周报\"", "{\"checked\":false}", 0, 0, List.of());
     BlockNode done =
         new BlockNode(
-            UUID.randomUUID(), null, "todo", "发邮件", "{\"checked\":true}", 1, 0, List.of());
+            UUID.randomUUID(), null, "todo", "\"发邮件\"", "{\"checked\":true}", 1, 0, List.of());
     when(blockService.tree(docId)).thenReturn(List.of(todo, done));
 
     DocumentService.ToBoardResult result = service.toBoard(docId, null);
@@ -229,10 +229,10 @@ class DocumentServiceTest {
     when(repository.findById(docId)).thenReturn(Optional.of(document));
 
     BlockNode heading =
-        new BlockNode(UUID.randomUUID(), null, "heading_1", "周一例会", "{}", 0, 0, List.of());
+        new BlockNode(UUID.randomUUID(), null, "heading_1", "\"周一例会\"", "{}", 0, 0, List.of());
     BlockNode todo =
         new BlockNode(
-            UUID.randomUUID(), null, "todo", "写周报", "{\"checked\":true}", 1, 0, List.of());
+            UUID.randomUUID(), null, "todo", "\"写周报\"", "{\"checked\":true}", 1, 0, List.of());
     when(blockService.tree(docId)).thenReturn(List.of(heading, todo));
 
     byte[] bytes = service.exportWord(docId);

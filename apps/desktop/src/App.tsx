@@ -438,6 +438,17 @@ export default function App() {
   );
 }
 
+/** content 契约为 JSON 字符串字面量（如 "正文"）；解析失败按原样文本兼容旧数据。 */
+function displayText(raw?: string | null): string {
+  if (!raw) return '';
+  try {
+    const p = JSON.parse(raw);
+    return typeof p === 'string' ? p : '';
+  } catch {
+    return raw;
+  }
+}
+
 /** 桌面端文档块渲染（只读 + todo 勾选 + 标题内联重命名）。 */
 function DocBlock({
   block,
@@ -450,7 +461,7 @@ function DocBlock({
 }) {
   const [editing, setEditing] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [draft, setDraft] = useState(block.content ?? '');
+  const [draft, setDraft] = useState(displayText(block.content));
   const checked = (() => {
     try {
       return !!JSON.parse(block.properties ?? '{}').checked;
@@ -474,17 +485,17 @@ function DocBlock({
     };
     switch (block.type) {
       case 'heading_1':
-        return <div style={{ ...base, fontSize: 26, fontWeight: 700 }}>{block.content}</div>;
+        return <div style={{ ...base, fontSize: 26, fontWeight: 700 }}>{displayText(block.content)}</div>;
       case 'heading_2':
-        return <div style={{ ...base, fontSize: 21, fontWeight: 600 }}>{block.content}</div>;
+        return <div style={{ ...base, fontSize: 21, fontWeight: 600 }}>{displayText(block.content)}</div>;
       case 'heading_3':
-        return <div style={{ ...base, fontSize: 17, fontWeight: 600 }}>{block.content}</div>;
+        return <div style={{ ...base, fontSize: 17, fontWeight: 600 }}>{displayText(block.content)}</div>;
       case 'quote':
-        return <div style={{ ...base, borderLeft: '3px solid #d3d1cb', paddingLeft: 12 }}>{block.content}</div>;
+        return <div style={{ ...base, borderLeft: '3px solid #d3d1cb', paddingLeft: 12 }}>{displayText(block.content)}</div>;
       case 'code':
         return (
           <pre style={{ ...base, background: '#f7f6f3', borderRadius: 6, padding: '10px 12px', fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap' }}>
-            {block.content}
+            {displayText(block.content)}
           </pre>
         );
       case 'divider':
@@ -498,7 +509,7 @@ function DocBlock({
             >
               {collapsed ? '▶' : '▼'}
             </button>
-            <div style={{ ...base, flex: 1, fontWeight: 600 }}>{block.content}</div>
+            <div style={{ ...base, flex: 1, fontWeight: 600 }}>{displayText(block.content)}</div>
           </div>
         );
       case 'todo':
@@ -514,7 +525,7 @@ function DocBlock({
                 ])
               }
             />
-            <div style={{ ...base, flex: 1 }}>{block.content}</div>
+            <div style={{ ...base, flex: 1 }}>{displayText(block.content)}</div>
           </div>
         );
       default:
@@ -526,14 +537,14 @@ function DocBlock({
               onChange={(e) => setDraft(e.target.value)}
               onBlur={() => {
                 setEditing(false);
-                if (draft !== (block.content ?? '')) {
-                  updateBlocks.mutate([{ op: 'upsert', block: { id: block.id, content: draft } }]);
+                if (draft !== displayText(block.content)) {
+                  updateBlocks.mutate([{ op: 'upsert', block: { id: block.id, content: JSON.stringify(draft) } }]);
                 }
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
                 if (e.key === 'Escape') {
-                  setDraft(block.content ?? '');
+                  setDraft(displayText(block.content));
                   setEditing(false);
                 }
               }}
@@ -542,8 +553,8 @@ function DocBlock({
           );
         }
         return (
-          <div style={{ ...base, cursor: 'text', borderRadius: 3, paddingLeft: 2 }} onClick={() => { setDraft(block.content ?? ''); setEditing(true); }}>
-            {block.content}
+          <div style={{ ...base, cursor: 'text', borderRadius: 3, paddingLeft: 2 }} onClick={() => { setDraft(displayText(block.content)); setEditing(true); }}>
+            {displayText(block.content)}
           </div>
         );
     }

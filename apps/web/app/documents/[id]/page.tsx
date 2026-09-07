@@ -112,6 +112,17 @@ function parseChecked(properties?: string | null): boolean {
   }
 }
 
+/** content 契约为 JSON 字符串字面量（如 "正文"）；解析失败按原样文本兼容旧数据。 */
+function displayText(raw?: string | null): string {
+  if (!raw) return '';
+  try {
+    const p = JSON.parse(raw);
+    return typeof p === 'string' ? p : '';
+  } catch {
+    return raw;
+  }
+}
+
 function BlockItem({
   block,
   depth,
@@ -137,10 +148,10 @@ function BlockItem({
   onDelete: (blockId: string) => void;
   onMove: (blockId: string, parentId: string | null, position: number | null) => void;
 }) {
-  const [value, setValue] = useState(block.content ?? '');
+  const [value, setValue] = useState(displayText(block.content));
   const [checked, setChecked] = useState(parseChecked(block.properties));
   const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => setValue(block.content ?? ''), [block.content]);
+  useEffect(() => setValue(displayText(block.content)), [block.content]);
   useEffect(() => setChecked(parseChecked(block.properties)), [block.properties]);
 
   const commit = () => {
@@ -148,12 +159,12 @@ function BlockItem({
     if (m) {
       const [newType, text] = m;
       setValue(text);
-      onUpdate(block.id, text);
+      onUpdate(block.id, JSON.stringify(text));
       onUpdateType(block.id, newType);
       return;
     }
-    if (value !== (block.content ?? '')) {
-      onUpdate(block.id, value);
+    if (value !== displayText(block.content)) {
+      onUpdate(block.id, JSON.stringify(value));
     }
   };
 
@@ -227,7 +238,7 @@ function BlockItem({
                   commit();
                   onAddAfter(block.id);
                 }
-                if (e.key === 'Backspace' && value === '' && (block.content ?? '') === '') {
+                if (e.key === 'Backspace' && value === '' && displayText(block.content) === '') {
                   e.preventDefault();
                   onDelete(block.id);
                 }
