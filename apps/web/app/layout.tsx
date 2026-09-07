@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from './providers';
+import Sidebar from './sidebar';
 
 export const metadata: Metadata = {
   title: 'TransNote',
@@ -11,7 +12,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <body>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          <div className="app-shell">
+            <Sidebar />
+            <main className="app-main">{children}</main>
+          </div>
+        </AppProviders>
       </body>
     </html>
   );
