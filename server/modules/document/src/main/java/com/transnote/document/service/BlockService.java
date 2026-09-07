@@ -36,7 +36,8 @@ public class BlockService {
           "numbered_list",
           "quote",
           "code",
-          "divider");
+          "divider",
+          "toggle");
 
   private final BlockRepository blockRepository;
   private final DocumentRepository documentRepository;

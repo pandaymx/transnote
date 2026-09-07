@@ -57,6 +57,7 @@ function BlockItem({
 }) {
   const [value, setValue] = useState(block.content ?? '');
   const [checked, setChecked] = useState(parseChecked(block.properties));
+  const [collapsed, setCollapsed] = useState(false);
   useEffect(() => setValue(block.content ?? ''), [block.content]);
   useEffect(() => setChecked(parseChecked(block.properties)), [block.properties]);
 
@@ -69,6 +70,15 @@ function BlockItem({
   return (
     <div className="doc-block" style={{ marginLeft: depth * 20 }}>
       <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+        {block.type === 'toggle' ? (
+          <button
+            className="doc-toggle-btn"
+            title={collapsed ? '展开' : '折叠'}
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed ? '▶' : '▼'}
+          </button>
+        ) : null}
         {block.type === 'todo' ? (
           <input
             type="checkbox"
@@ -156,6 +166,7 @@ function BlockItem({
             <option value="quote">引用</option>
             <option value="code">代码</option>
             <option value="divider">分割线</option>
+            <option value="toggle">折叠块</option>
           </select>
           <button className="ws-board-btn" title="在此下方新增块" onClick={() => onAddAfter(block.id)}>
             ＋
@@ -165,20 +176,21 @@ function BlockItem({
           </button>
         </span>
       </div>
-      {(block.children ?? []).map((child, i) => (
-        <BlockItem
-          key={child.id}
-          block={child}
-          depth={depth + 1}
-          siblings={block.children ?? []}
-          index={i}
-          onUpdate={onUpdate}
-          onUpdateType={onUpdateType}
-          onAddAfter={onAddAfter}
-          onDelete={onDelete}
-          onMove={onMove}
-        />
-      ))}
+      {!(block.type === 'toggle' && collapsed) &&
+        (block.children ?? []).map((child, i) => (
+          <BlockItem
+            key={child.id}
+            block={child}
+            depth={depth + 1}
+            siblings={block.children ?? []}
+            index={i}
+            onUpdate={onUpdate}
+            onUpdateType={onUpdateType}
+            onAddAfter={onAddAfter}
+            onDelete={onDelete}
+            onMove={onMove}
+          />
+        ))}
     </div>
   );
 }
