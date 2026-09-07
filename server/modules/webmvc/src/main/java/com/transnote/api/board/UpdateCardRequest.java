@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-/** 卡片部分更新；columnId/position 同时出现（或任一出现）时按"拖拽"处理（换列+重排一次提交）。checked 为完成态勾选（V6）。 */
+/** 卡片部分更新；columnId/position 同时出现（或任一出现）时按"拖拽"处理（换列+重排一次提交）。checked 为完成态勾选（V6），color 为卡片顶部色条（V8）。 */
 public record UpdateCardRequest(
     String title,
     String description,
@@ -14,6 +14,7 @@ public record UpdateCardRequest(
     Short priority,
     List<String> labels,
     Boolean checked,
+    String color,
     UUID columnId,
     Integer position) {
 

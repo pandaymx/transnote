@@ -21,6 +21,18 @@ import {
 import type { CardPatch } from '@transnote/core';
 import type { BoardCard, BoardColumn } from '@transnote/schema';
 
+/** Notion 卡片色条色板（V8）：key 存库，null = 无颜色。 */
+const CARD_COLORS: Record<string, string> = {
+  gray: '#D3D1CB',
+  brown: '#D6C5B4',
+  orange: '#F5C9A3',
+  yellow: '#F2D99B',
+  green: '#B8D6B5',
+  blue: '#A8C7E8',
+  purple: '#C8B8E8',
+  pink: '#E8B8CE',
+};
+
 /** 看板详情（T4c + T4d + V7 + V8）：Notion 代办样式——勾选完成/划线、属性徽标、列头计数、悬停操作、列内/跨列拖拽排序、内联编辑、列折叠/描述/自动收纳、完成态置灰、属性筛选。 */
 export default function BoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -552,6 +564,12 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   {dropIndex?.colId === col.id && dropIndex.index === i && (
                     <div className="notion-drop-line" />
                   )}
+                  {card.color && (
+                    <div
+                      className="notion-card-color"
+                      style={{ background: CARD_COLORS[card.color] ?? '#D3D1CB' }}
+                    />
+                  )}
                   <button
                     className="notion-card-del"
                     title="删除卡片"
@@ -902,6 +920,28 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                       {card.priority ? `P${card.priority}` : '未设'}
                     </button>
                   </label>
+                </div>
+                <div className="notion-modal-labels">
+                  <span className="notion-modal-field-label">颜色</span>
+                  <button
+                    className={'notion-color-swatch' + (!card.color ? ' active' : '')}
+                    title="无颜色"
+                    onClick={() =>
+                      updateCard.mutate({ cardId: card.id, patch: { color: '' } })
+                    }
+                    style={{ background: '#f1f1ef' }}
+                  />
+                  {Object.entries(CARD_COLORS).map(([key, value]) => (
+                    <button
+                      key={key}
+                      className={'notion-color-swatch' + (card.color === key ? ' active' : '')}
+                      title={key}
+                      onClick={() =>
+                        updateCard.mutate({ cardId: card.id, patch: { color: key } })
+                      }
+                      style={{ background: value }}
+                    />
+                  ))}
                 </div>
                 <div className="notion-modal-labels">
                   <span className="notion-modal-field-label">标签</span>

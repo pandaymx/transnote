@@ -503,6 +503,25 @@ input[type='file'] {
   cursor: grab;
   transition: box-shadow 0.12s ease;
   position: relative;
+  overflow: hidden;
+}
+
+.notion-card-color {
+  height: 4px;
+  margin: -8px -10px 6px;
+}
+
+.notion-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.notion-color-swatch.active {
+  border-color: #37352f;
 }
 
 .notion-card:hover {

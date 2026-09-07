@@ -178,6 +178,7 @@ class BoardServiceTest {
             null,
             (short) 2,
             null,
+            null,
             null);
 
     assertThat(updated.getTitle()).isEqualTo("卡片"); // 未更新
@@ -194,7 +195,7 @@ class BoardServiceTest {
     when(cardRepository.save(card)).thenReturn(card);
 
     BoardCard updated =
-        service.updateCard(boardId, cardId, null, null, null, null, null, null, null, true);
+        service.updateCard(boardId, cardId, null, null, null, null, null, null, null, true, null);
 
     assertThat(updated.isChecked()).isTrue();
   }

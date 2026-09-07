@@ -76,6 +76,10 @@ public class BoardCard {
   @Column(nullable = false)
   private boolean deleted = false;
 
+  /** 卡片颜色（Notion 卡片顶部色条，V8）：null = 默认。 */
+  @Column(length = 16)
+  private String color;
+
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "source_evidence", columnDefinition = "jsonb")
   private String sourceEvidence;
@@ -170,7 +174,8 @@ public class BoardCard {
       LocalDate dueDate,
       Short priority,
       List<String> labels,
-      Boolean checked) {
+      Boolean checked,
+      String color) {
     if (title != null) {
       this.title = title;
     }
@@ -194,6 +199,9 @@ public class BoardCard {
     }
     if (checked != null) {
       this.checked = checked;
+    }
+    if (color != null) {
+      this.color = color.isEmpty() ? null : color;
     }
   }
 
@@ -251,6 +259,10 @@ public class BoardCard {
 
   public boolean isDeleted() {
     return deleted;
+  }
+
+  public String getColor() {
+    return color;
   }
 
   public void softDelete() {

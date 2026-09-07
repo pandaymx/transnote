@@ -260,7 +260,8 @@ public class BoardService {
       LocalDate dueDate,
       Short priority,
       List<String> labels,
-      Boolean checked) {
+      Boolean checked,
+      String color) {
     BoardCard card = requireCard(cardId);
     requireBelongsToBoard(card.getBoard().getId(), boardId);
     if (title != null) {
@@ -277,7 +278,8 @@ public class BoardService {
         dueDate,
         priority,
         labels,
-        checked);
+        checked,
+        color);
     return cardRepository.save(card);
   }
 

@@ -58,6 +58,8 @@ export interface BoardCard {
   priority?: number | null;
   labels?: string[] | null;
   checked?: boolean | null;
+  deleted?: boolean | null;
+  color?: string | null;
   sourceEvidence?: string | null;
 }
 

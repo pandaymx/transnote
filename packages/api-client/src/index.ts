@@ -188,6 +188,7 @@ export class TransnoteClient {
       priority?: number;
       labels?: string[];
       checked?: boolean;
+      color?: string;
       columnId?: string;
       position?: number;
     },
