@@ -291,6 +291,21 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {isLoading && <p className="muted">加载中…</p>}
+      {!isLoading && (cards ?? []).length > 0 && (
+        <div className="notion-progress-row">
+          <div className="notion-progress-track">
+            <div
+              className="notion-progress-bar"
+              style={{
+                width: `${Math.round(((cards ?? []).filter((c) => c.checked).length / (cards ?? []).length) * 100)}%`,
+              }}
+            />
+          </div>
+          <span className="notion-progress-label">
+            {(cards ?? []).filter((c) => c.checked).length} / {(cards ?? []).length} 完成
+          </span>
+        </div>
+      )}
       <div className="notion-toolbar">
         <div className="row" style={{ gap: 6 }}>
           {(['all', 'open', 'done'] as const).map((f) => (
