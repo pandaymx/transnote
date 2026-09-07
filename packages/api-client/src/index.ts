@@ -112,6 +112,12 @@ export class TransnoteClient {
     });
   }
 
+  deleteColumn(boardId: string, columnId: string): Promise<void> {
+    return request(this.baseUrl,`/api/v1/boards/${boardId}/columns/${columnId}`, {
+      method: 'DELETE',
+    });
+  }
+
   listCards(
     boardId: string,
     columnId?: string,
@@ -143,9 +149,11 @@ export class TransnoteClient {
     patch: {
       title?: string;
       description?: string;
+      assigneeName?: string;
       dueDate?: string;
       priority?: number;
       labels?: string[];
+      checked?: boolean;
       columnId?: string;
       position?: number;
     },

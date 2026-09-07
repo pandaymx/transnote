@@ -8,13 +8,14 @@ import {
   useBoardCards,
   useBoardUi,
   useDeleteCard,
+  useDeleteColumn,
   useUpdateCard,
   sortCardsByColumn,
 } from '@transnote/core';
 import type { CardPatch } from '@transnote/core';
 import type { BoardCard, BoardColumn } from '@transnote/schema';
 
-/** 看板详情（T4c + T4d + V7）：Notion 代办样式——勾选完成/划线、属性徽标、列头计数、悬停操作、列内/跨列拖拽排序、内联编辑。 */
+/** 看板详情（T4c + T4d + V7 + V8）：Notion 代办样式——勾选完成/划线、属性徽标、列头计数、悬停操作、列内/跨列拖拽排序、内联编辑、列折叠/描述/自动收纳、完成态置灰、属性筛选。 */
 export default function BoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
@@ -26,12 +27,15 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const addCard = useAddCard(boardId);
   const updateCard = useUpdateCard(boardId);
   const deleteCard = useDeleteCard(boardId);
+  const deleteColumn = useDeleteColumn(boardId);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
 
   const columns: BoardColumn[] = board?.columns ?? [];
   const byColumn = sortCardsByColumn(cards ?? []);
-  /** 视图工具栏（Notion View）：筛选完成态 + 排序。 */
+  /** 视图工具栏（Notion View）：筛选完成态 + 负责人 + 优先级 + 排序。 */
   const [filterState, setFilterState] = useState<'all' | 'open' | 'done'>('all');
+  const [filterAssignee, setFilterAssignee] = useState<string | null>(null);
+  const [filterPriority, setFilterPriority] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'manual' | 'due' | 'priority'>('manual');
   const [adding, setAdding] = useState<Record<string, boolean>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -59,6 +63,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     let list = byColumn[colId] ?? [];
     if (filterState === 'open') list = list.filter((c) => !c.checked);
     if (filterState === 'done') list = list.filter((c) => c.checked);
+    if (filterAssignee) list = list.filter((c) => (c.assigneeName ?? '') === filterAssignee);
+    if (filterPriority != null) list = list.filter((c) => (c.priority ?? 0) === filterPriority);
     if (sortBy === 'due') {
       list = [...list].sort(
         (a, b) => (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31'),
@@ -68,6 +74,11 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     }
     return list;
   };
+
+  /** 可筛选负责人列表（去重，卡片有 assigneeName 的）。 */
+  const assigneeOptions = Array.from(
+    new Set((cards ?? []).map((c) => c.assigneeName).filter((v): v is string => !!v)),
+  ).sort();
 
   const onAdd = async (columnId: string) => {
     const title = drafts[columnId]?.trim();
@@ -215,6 +226,36 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           ))}
         </div>
         <div className="row" style={{ gap: 6 }}>
+          <select
+            className="notion-tool-select"
+            value={filterAssignee ?? ''}
+            onChange={(e) => setFilterAssignee(e.target.value || null)}
+          >
+            <option value="">全部负责人</option>
+            {assigneeOptions.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+          {(
+            [
+              [null, '全部'],
+              [1, 'P1'],
+              [2, 'P2'],
+              [3, 'P3'],
+            ] as const
+          ).map(([p, label]) => (
+            <button
+              key={String(p)}
+              className={'notion-tool-btn' + (filterPriority === p ? ' active' : '')}
+              onClick={() => setFilterPriority(p)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="row" style={{ gap: 6 }}>
           {(
             [
               ['manual', '手动'],
@@ -278,6 +319,18 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     +
                   </button>
                 )}
+                <button
+                  className="notion-col-del"
+                  title="删除列（级联删除列内卡片）"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`删除列「${col.title}」及其中 ${colCards.length} 张卡片？`)) {
+                      deleteColumn.mutate(col.id);
+                    }
+                  }}
+                >
+                  ✕
+                </button>
               </div>
 
               {!collapsed[col.id] &&

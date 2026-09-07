@@ -67,6 +67,32 @@ export function useCreateBoard(workspaceId: string) {
   });
 }
 
+/** 列删除：后端 DB 级联删卡片；前端乐观移除列并同步清掉该列卡片缓存。 */
+export function useDeleteColumn(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (columnId: string) => api().deleteColumn(boardId, columnId),
+    onMutate: async (columnId) => {
+      await qc.cancelQueries({ queryKey: QK.cards(boardId) });
+      const prevCards = qc.getQueryData<BoardCard[]>(QK.cards(boardId));
+      if (prevCards) {
+        qc.setQueryData<BoardCard[]>(
+          QK.cards(boardId),
+          prevCards.filter((c) => c.columnId !== columnId),
+        );
+      }
+      return { prevCards };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prevCards) qc.setQueryData(QK.cards(boardId), ctx.prevCards);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: QK.board(boardId) });
+      qc.invalidateQueries({ queryKey: QK.cards(boardId) });
+    },
+  });
+}
+
 export function useBoard(id: string) {
   return useQuery({ queryKey: QK.board(id), queryFn: () => api().getBoard(id), enabled: !!id });
 }
