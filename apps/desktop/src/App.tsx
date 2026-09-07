@@ -449,6 +449,7 @@ function DocBlock({
   updateBlocks: ReturnType<typeof useUpdateBlocks>;
 }) {
   const [editing, setEditing] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [draft, setDraft] = useState(block.content ?? '');
   const checked = (() => {
     try {
@@ -488,6 +489,18 @@ function DocBlock({
         );
       case 'divider':
         return <div style={{ height: 1, background: '#e4e3dd', margin: '8px 0' }} />;
+      case 'toggle':
+        return (
+          <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+            <button
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9b9a97', padding: '2px 4px' }}
+              onClick={() => setCollapsed((v) => !v)}
+            >
+              {collapsed ? '▶' : '▼'}
+            </button>
+            <div style={{ ...base, flex: 1, fontWeight: 600 }}>{block.content}</div>
+          </div>
+        );
       case 'todo':
         return (
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -539,9 +552,10 @@ function DocBlock({
   return (
     <div style={{ marginLeft: depth * 20 }}>
       {render()}
-      {(block.children ?? []).map((child) => (
-        <DocBlock key={child.id} block={child} depth={depth + 1} updateBlocks={updateBlocks} />
-      ))}
+      {!collapsed &&
+        (block.children ?? []).map((child) => (
+          <DocBlock key={child.id} block={child} depth={depth + 1} updateBlocks={updateBlocks} />
+        ))}
     </div>
   );
 }
