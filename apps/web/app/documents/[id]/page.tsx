@@ -25,8 +25,7 @@ const TYPE_CLASS: Record<string, string> = {
   divider: 'doc-divider',
 };
 
-/** Markdown 行首快捷语法 → 块类型（Notion 风格）。 */
-const MARKDOWN_PREFIX: Array<[RegExp, string]> = [
+/** Markdown 行首快捷语法 → 块类型（Notion 风格）。 */const MARKDOWN_PREFIX: Array<[RegExp, string]> = [
   [/^#\s/, 'heading_1'],
   [/^##\s/, 'heading_2'],
   [/^###\s/, 'heading_3'],
@@ -46,6 +45,61 @@ function matchMarkdownPrefix(text: string, currentType: string): [string, string
     }
   }
   return null;
+}
+
+/** 块树 → Markdown 文本（带缩进与各类型映射）。 */
+function blocksToMarkdown(blocks: BlockNode[]): string {
+  const render = (b: BlockNode, depth: number): string => {
+    const text = b.content ?? '';
+    const indent = '  '.repeat(depth);
+    const checked = (() => {
+      try {
+        return !!JSON.parse(b.properties ?? '{}').checked;
+      } catch {
+        return false;
+      }
+    })();
+    let line: string;
+    switch (b.type) {
+      case 'heading_1':
+        line = `# ${text}`;
+        break;
+      case 'heading_2':
+        line = `## ${text}`;
+        break;
+      case 'heading_3':
+        line = `### ${text}`;
+        break;
+      case 'todo':
+        line = `- [${checked ? 'x' : ' '}] ${text}`;
+        break;
+      case 'bulleted_list':
+        line = `- ${text}`;
+        break;
+      case 'numbered_list':
+        line = `1. ${text}`;
+        break;
+      case 'quote':
+        line = `> ${text}`;
+        break;
+      case 'code':
+        line = '```\n' + text + '\n```';
+        break;
+      case 'divider':
+        line = '---';
+        break;
+      case 'toggle':
+        line = `<details>\n<summary>${text}</summary>\n${(b.children ?? [])
+          .map((c) => render(c, depth + 1))
+          .join('\n')}\n</details>`;
+        return line;
+      default:
+        line = text;
+    }
+    const children = (b.children ?? []).map((c) => render(c, depth + 1)).join('\n');
+    return [indent + line, children].filter(Boolean).join('\n');
+  };
+  return blocks.map((b) => render(b, 0)).join('\n');
 }
 
 function parseChecked(properties?: string | null): boolean {
@@ -281,6 +335,17 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
     return out;
   }, [tree]);
 
+  /** 块树 → Markdown 文本（Notion 复制纯文本）。 */
+  const copyMarkdown = async () => {
+    const md = blocksToMarkdown(tree?.blocks ?? []);
+    try {
+      await navigator.clipboard.writeText(md);
+      alert('已复制 Markdown 到剪贴板。');
+    } catch {
+      alert('复制失败，请手动选中复制。');
+    }
+  };
+
   const onUpdate = (blockId: string, content: string, properties?: string) => {
     updateBlocks.mutate([
       { op: 'upsert', block: { id: blockId, content, ...(properties ? { properties } : {}) } },
@@ -401,6 +466,9 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
             导出 Word
           </a>
         )}
+        <button className="btn secondary" onClick={copyMarkdown} style={{ marginLeft: 8 }}>
+          复制 Markdown
+        </button>
       </div>
 
       <div className="doc-stats">
