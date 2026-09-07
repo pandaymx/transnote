@@ -118,14 +118,16 @@ public class BoardService {
       copyTitle = copyTitle.substring(0, Board.MAX_TITLE_LENGTH);
     }
     Board copy =
-        boardRepository.save(new Board(workspace, copyTitle, source.getLayout(), source.getConfig()));
+        boardRepository.save(
+            new Board(workspace, copyTitle, source.getLayout(), source.getConfig()));
     List<BoardColumn> sourceColumns =
         columnRepository.findByBoard_IdOrderByPositionAsc(source.getId());
     List<BoardColumn> copyColumns = new ArrayList<>();
     for (BoardColumn column : sourceColumns) {
       copyColumns.add(
           columnRepository.save(
-              new BoardColumn(copy, column.getTitle(), column.getPosition(), column.getStatusColor())));
+              new BoardColumn(
+                  copy, column.getTitle(), column.getPosition(), column.getStatusColor())));
     }
     for (int i = 0; i < copyColumns.size(); i++) {
       BoardColumn sourceColumn = sourceColumns.get(i);
