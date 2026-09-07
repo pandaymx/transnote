@@ -161,7 +161,8 @@ jobs:
 
   release:
     name: Semantic release
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # 排除 semantic-release 自动提交，防二次发布循环（[skip ci] 对 GITHUB_TOKEN push 不总是生效）
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')
     needs: [server, commitlint, desktop-bundle, windows-bundle]
     runs-on: ubuntu-latest
     permissions:
