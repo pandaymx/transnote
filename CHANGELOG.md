@@ -1,3 +1,9 @@
+## [1.24.0](https://github.com/pandaymx/transnote/compare/v1.23.0...v1.24.0) (2026-09-07)
+
+### Features
+
+* **document:** 文档转为看板 ([50742ae](https://github.com/pandaymx/transnote/commit/50742aefdc4f976f510ef1860bbd486ee0a9b2c3))
+
 ## [1.23.0](https://github.com/pandaymx/transnote/compare/v1.22.0...v1.23.0) (2026-09-07)
 
 ### Features
