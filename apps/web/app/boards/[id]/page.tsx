@@ -830,7 +830,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     {collapsed[col.id] ? '▸' : '▾'} {col.title}
                   </span>
                 )}
-                <span className="notion-count">{colCards.length}</span>
+                <span className="notion-count">
+                  {doneCount > 0 ? `${doneCount}/${colCards.length}` : colCards.length}
+                </span>
                 {colCards.length > 0 && (
                   <span className="notion-col-batch">
                     <button
