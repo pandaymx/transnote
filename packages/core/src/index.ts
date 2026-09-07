@@ -88,6 +88,17 @@ export function useDuplicateBoard(workspaceId: string) {
   });
 }
 
+/** 删除看板（Notion 删除页面），成功后刷新看板列表。 */
+export function useDeleteBoard(workspaceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (boardId: string) => api().deleteBoard(boardId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.boards(workspaceId) });
+    },
+  });
+}
+
 /** 列重命名（Notion 双击列头编辑），成功后刷新看板（列标题变化）。 */
 export function useRenameColumn(boardId: string) {
   const qc = useQueryClient();

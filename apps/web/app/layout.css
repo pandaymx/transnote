@@ -884,6 +884,49 @@ input[type='file'] {
   background: #e9e9e7;
 }
 
+.ws-board-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f1f1ef;
+  border-radius: 6px;
+  padding: 2px 4px 2px 0;
+}
+
+.ws-board-item .ws-board-link {
+  background: transparent;
+}
+
+.ws-board-item:hover {
+  background: #e9e9e7;
+}
+
+.ws-board-actions {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.ws-board-item:hover .ws-board-actions {
+  opacity: 1;
+}
+
+.ws-board-btn {
+  border: none;
+  background: transparent;
+  color: #6b6a66;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ws-board-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #37352f;
+}
+
 .ws-board-more {
   align-self: center;
   font-size: 12px;
@@ -1168,6 +1211,16 @@ input[type='file'] {
 .notion-list-title.done {
   color: #9b9a97;
   text-decoration: line-through;
+}
+
+/** 列表视图描述摘要（单行省略）。 */
+.notion-list-desc {
+  font-size: 12px;
+  color: #787774;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .notion-list-meta {

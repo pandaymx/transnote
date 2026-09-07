@@ -123,6 +123,12 @@ export class TransnoteClient {
     });
   }
 
+  deleteBoard(id: string): Promise<void> {
+    return request(this.baseUrl, `/api/v1/boards/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   /** 回收站（Notion 删除可恢复）。 */
   deletedCards(boardId: string): Promise<BoardCard[]> {
     return request(this.baseUrl, `/api/v1/boards/${boardId}/cards/deleted`);

@@ -600,6 +600,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 <span className={'notion-list-title' + (card.checked ? ' done' : '')}>
                   {card.title}
                 </span>
+                {descText(card.description) && (
+                  <span className="notion-list-desc">{descText(card.description)}</span>
+                )}
                 {card.assigneeName && (
                   <span className="notion-list-meta">👤 {card.assigneeName}</span>
                 )}
