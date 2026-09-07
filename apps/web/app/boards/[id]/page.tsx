@@ -1166,18 +1166,32 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   </button>
                 </div>
               ) : (
-                <button
-                  className="notion-add-btn"
-                  style={{ alignSelf: 'flex-start', marginTop: 2 }}
-                  onClick={() => setAdding((a) => ({ ...a, [col.id]: true }))}
-                >
-                  + 添加
-                </button>
+                <>
+                  {sortedCards.length === 0 && (
+                    <p className="muted notion-col-empty">暂无卡片，点击下方添加或拖入卡片</p>
+                  )}
+                  <button
+                    className="notion-add-btn"
+                    style={{ alignSelf: 'flex-start', marginTop: 2 }}
+                    onClick={() => setAdding((a) => ({ ...a, [col.id]: true }))}
+                  >
+                    + 添加
+                  </button>
+                </>
               ))}
             </div>
           );
         })}
-        {!isLoading && columns.length === 0 && <p className="muted">看板还没有列。</p>}
+        {!isLoading && columns.length === 0 && (
+          <div className="notion-empty-board">
+            <p className="muted" style={{ margin: 0 }}>
+              看板还没有列，添加第一列开始规划任务。
+            </p>
+            <button className="btn" onClick={() => setAddingCol(true)}>
+              ＋ 添加第一列
+            </button>
+          </div>
+        )}
         {addingCol ? (
           <div className="notion-add-col">
             <input
