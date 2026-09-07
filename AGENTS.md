@@ -24,7 +24,10 @@
 | T3 | 文档/块 CRUD + 版本号 | server/modules/document + blocks 表 | ✅ |
 | T4 | 块编辑器（Web + 桌面） | packages/core + apps/web/app/documents + apps/desktop（块树编辑、todo、折叠块、Tab 缩进） | ✅ |
 | T4.1 | 文档 ↔ 看板 双向转换 | POST /documents/{id}/to-board、POST /documents/from-board（todo 块 ↔ 卡片） | ✅ |
+| T4.2 | 文档导出 Word / 复制 Markdown | GET /documents/{id}/export-word（POI 渲染块树）、前端 blocksToMarkdown | ✅ |
+| T4.3 | 文档体验增强 | 行首语法快捷转块、统计条、标题大纲导航、图标编辑、折叠块（Web+桌面） | ✅ |
 | T5 | 看板 CRUD + 拖拽 | server/modules/board（apps/web 待 T4 前端） | ✅ |
+| T5.1 | 看板 Notion 体验 | 列折叠、卡片详情（描述/负责人/截止/优先级/标签/颜色/勾选）、回收站、复制看板、复制卡片 | ✅ |
 | T6 | Word 解析 + 分块 | server/modules/conversion（POI 5.5.1 + DocElement 树） | ✅ |
 | T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取（规则回退基线可用） | ✅ |
 | T8 | Word→看板 全链路 + 人工校对 | job/items 落库 + 置信度分流 + review + 自动建板（V4） | ✅ |
@@ -277,6 +280,7 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **卡片颜色（V8）**：`board_cards.color varchar(16)`（null=无）；PATCH 传 `color`（空串=清除）；BoardCardResponse 含 `deleted`/`color` 字段。
 - **提交教训**：commitlint `subject-case` 规则拒绝大写开头 subject——**中文 subject 里含英文专有名词（如 "Word"）会违规**，写成 `feat(conversion): 导出列级完成率与逾期标红` 这类全中文（或首词非大写）即可。
 - **提交教训 2**：amend 修正已推送提交的 message 时，`git fetch && git rebase` 会按 patch-id 把内容相同的 amend 提交**跳过**（message 修正丢失）；须 `git reflog` 找回 amend 后 commit hash，`git reset --hard <hash>` 后直接 `--force-with-lease` 强推。
+- **提交教训 3（CSS 结构破坏）**：对 layout.css 用 Edit 插入新规则时，若 old_string 选的是某规则块内部片段，可能把新规则**插进原规则内部**导致大括号错位——本地 `tsc` 不查 CSS，只有 `bun run build`（Next/PostCSS）才报 `Invalid token in pseudo element`。**前端改动后必须跑 `bun run build`**，不能只跑 tsc。
 - **Windows 调用 WSL**：`wsl -e bash -c "..."`（外层双引号 + 内层单引号包 commit message）才安全；外层单引号会在 PowerShell 参数传递时被剥导致语法错；路径含 `[id]` 的 cp 必须加引号。
 
 ### §14 文档模块前端与双向转换（2026-09-07 追加）
