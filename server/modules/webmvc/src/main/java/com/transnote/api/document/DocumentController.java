@@ -83,6 +83,20 @@ public class DocumentController {
     return ApiResponse.ok(new ToBoardResponse(result.boardId(), result.created()));
   }
 
+  /** 看板 → 文档：列转标题、卡片转 todo 块（documentId 空则自动新建）。 */
+  @PostMapping("/from-board")
+  public ApiResponse<FromBoardResponse> fromBoard(@Valid @RequestBody FromBoardRequest request) {
+    DocumentService.ToDocumentResult result =
+        documentService.toDocument(request.boardId(), request.documentId());
+    return ApiResponse.ok(new FromBoardResponse(result.documentId(), result.created()));
+  }
+
+  /** 看板 → 文档请求体。 */
+  public record FromBoardRequest(UUID boardId, UUID documentId) {}
+
+  /** 看板 → 文档响应体。 */
+  public record FromBoardResponse(UUID documentId, int created) {}
+
   /** 文档 → 看板请求体。 */
   public record ToBoardRequest(UUID boardId) {}
 

@@ -1,6 +1,7 @@
 package com.transnote.document.service;
 
 import com.transnote.board.model.Board;
+import com.transnote.board.model.BoardCard;
 import com.transnote.board.model.BoardColumn;
 import com.transnote.board.service.BoardService;
 import com.transnote.document.DocumentNotFoundException;
@@ -98,6 +99,37 @@ public class DocumentService {
 
   /** 文档 → 看板结果。 */
   public record ToBoardResult(UUID boardId, int created) {}
+
+  /** 看板 → 文档：列转标题块、卡片转 todo 块；无 documentId 时按看板名自动建文档。 */
+  @Transactional
+  public ToDocumentResult toDocument(UUID boardId, UUID documentId) {
+    Board board = boardService.get(boardId);
+    Document document;
+    if (documentId != null) {
+      document = get(documentId);
+    } else {
+      document = create(board.getWorkspace().getId(), board.getTitle(), "📋");
+    }
+    int created = 0;
+    for (BoardColumn column : boardService.columns(boardId)) {
+      blockService.upsert(document.getId(), null, null, "heading_2", column.getTitle(), null, null);
+      for (BoardCard card : boardService.listCards(boardId, column.getId(), null, null)) {
+        blockService.upsert(
+            document.getId(),
+            null,
+            null,
+            "todo",
+            card.getTitle(),
+            "{\"checked\":" + card.isChecked() + "}",
+            null);
+        created++;
+      }
+    }
+    return new ToDocumentResult(document.getId(), created);
+  }
+
+  /** 看板 → 文档结果。 */
+  public record ToDocumentResult(UUID documentId, int created) {}
 
   @Transactional
   public Document create(UUID workspaceId, String title, String icon) {

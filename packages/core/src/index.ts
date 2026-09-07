@@ -132,6 +132,16 @@ export function useDocumentToBoard() {
   });
 }
 
+/** 看板 → 文档（列转标题、卡片转 todo 块）。 */
+export function useBoardToDocument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ boardId, documentId }: { boardId: string; documentId?: string }) =>
+      api().boardToDocument(boardId, documentId),
+    onSuccess: (r) => qc.invalidateQueries({ queryKey: QK.documents('') }),
+  });
+}
+
 // ---- Board ----
 export function useBoards(workspaceId?: string) {
   return useQuery({

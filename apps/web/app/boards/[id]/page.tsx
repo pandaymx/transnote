@@ -8,6 +8,7 @@ import {
   useAddColumn,
   useBoard,
   useBoardCards,
+  useBoardToDocument,
   useBoardUi,
   useBoards,
   useDeletedCards,
@@ -53,6 +54,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const updateBoard = useUpdateBoard(boardId);
   const duplicateBoard = useDuplicateBoard(board?.workspaceId ?? '');
   const deleteBoard = useDeleteBoard(board?.workspaceId ?? '');
+  const toDocument = useBoardToDocument();
   const deleteCard = useDeleteCard(boardId);
   const deleteColumn = useDeleteColumn(boardId);
   const renameColumn = useRenameColumn(boardId);
@@ -543,6 +545,20 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             统计
           </button>
           <button
+            className="btn secondary"
+            disabled={!boardId || toDocument.isPending}
+            onClick={() =>
+              toDocument.mutate({ boardId }, {
+                onSuccess: (r) => {
+                  alert(`已生成文档，转入 ${r.created} 个待办。`);
+                  router.push(`/documents/${r.documentId}`);
+                },
+              })
+            }
+          >
+            {toDocument.isPending ? "转换中…" : "转为文档"}
+          </button>
+          <button
             className="btn"
             onClick={() => {
               if (board) {
@@ -688,6 +704,20 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           </button>
           <button className="btn secondary" onClick={() => setStatsOpen(true)}>
             统计
+          </button>
+          <button
+            className="btn secondary"
+            disabled={!boardId || toDocument.isPending}
+            onClick={() =>
+              toDocument.mutate({ boardId }, {
+                onSuccess: (r) => {
+                  alert(`已生成文档，转入 ${r.created} 个待办。`);
+                  router.push(`/documents/${r.documentId}`);
+                },
+              })
+            }
+          >
+            {toDocument.isPending ? "转换中…" : "转为文档"}
           </button>
           <button
             className="btn secondary"

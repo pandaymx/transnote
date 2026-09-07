@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.transnote.board.model.Board;
+import com.transnote.board.model.BoardCard;
 import com.transnote.board.model.BoardColumn;
 import com.transnote.board.service.BoardService;
 import com.transnote.document.DocumentNotFoundException;
@@ -170,5 +171,53 @@ class DocumentServiceTest {
             eq(docId),
             isNull(),
             eq(true));
+  }
+
+  @Test
+  void toDocument_autoCreatesAndMapsColumnsAndCards() {
+    UUID boardId = UUID.randomUUID();
+    UUID wsId = UUID.randomUUID();
+    Board board = new Board(workspace(wsId), "发布计划", "kanban", null);
+    ReflectionTestUtils.setField(board, "id", boardId);
+    when(boardService.get(boardId)).thenReturn(board);
+
+    Document document = new Document(workspace(wsId), "发布计划", "📋");
+    ReflectionTestUtils.setField(document, "id", UUID.randomUUID());
+    when(repository.save(any(Document.class))).thenReturn(document);
+
+    BoardColumn todo = new BoardColumn(board, "待办", 0, "gray");
+    ReflectionTestUtils.setField(todo, "id", UUID.randomUUID());
+    BoardColumn done = new BoardColumn(board, "已完成", 1, "green");
+    ReflectionTestUtils.setField(done, "id", UUID.randomUUID());
+    when(boardService.columns(boardId)).thenReturn(List.of(todo, done));
+
+    BoardCard card =
+        new BoardCard(board, todo, 0, "写周报", null, null, null, null, (short) 0, null, null, null);
+    ReflectionTestUtils.setField(card, "id", UUID.randomUUID());
+    when(boardService.listCards(boardId, todo.getId(), null, null)).thenReturn(List.of(card));
+    when(boardService.listCards(boardId, done.getId(), null, null)).thenReturn(List.of());
+
+    DocumentService.ToDocumentResult result = service.toDocument(boardId, null);
+
+    assertThat(result.created()).isEqualTo(1);
+    assertThat(result.documentId()).isEqualTo(document.getId());
+    verify(blockService)
+        .upsert(
+            eq(document.getId()),
+            isNull(),
+            isNull(),
+            eq("heading_2"),
+            eq("待办"),
+            isNull(),
+            isNull());
+    verify(blockService)
+        .upsert(
+            eq(document.getId()),
+            isNull(),
+            isNull(),
+            eq("todo"),
+            eq("写周报"),
+            eq("{\"checked\":false}"),
+            isNull());
   }
 }
