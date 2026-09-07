@@ -218,7 +218,7 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 ### §8 环境坑表（2026-09-06 追加：Docker/PG18）
 
 - **Docker 引擎在 Windows 侧（Docker Desktop）**：WSL 里 `docker` 是纯客户端；WSL 内 socket（`/mnt/wsl/docker-desktop/shared-sockets`）为 tmpfs `mode=755` root 独占，**WSL 内无法直连**（sudo 需密码也不可行）。统一用 Windows 侧 CLI：`& "C:\Program Files\Docker\Docker\resources\bin\docker.exe" compose -f <win路径> up -d`；引擎就绪探测：`docker.exe info`。
-- **.wslconfig 是 Mirrored 网络**：Windows 宿主端口在 WSL 内 `localhost:<port>` 直达（已验证 5433/6379/9000）。
+- **.wslconfig 是 Mirrored 网络**：Windows 宿主端口在 WSL 内 `localhost:<port>` 直达（已验证 5433/6379/9000）。**反向（Windows 内浏览器访问 WSL 的 3000/8080）在 2026-09-07 起持续失效**（`wsl --shutdown`/Docker Desktop 重启均无法恢复；Hyper-V 防火墙 DefaultInboundAction=Allow 非拦截原因；疑 Windows 镜像模式 localhost 转发 wslrelay bug）。普通权限无解：改 NAT 需管理员防火墙放行 WSL→宿主 5433 反向也不通。**e2e 浏览器验证受阻时在 WSL 内用 curl 冒烟替代**，勿再投入网络排查。临时切 NAT 验证过（Windows→WSL IP 直连也不通，标准防火墙拦）后已恢复 Mirrored。
 - **Docker Hub 直连超时**：compose 镜像默认走 `IMAGE_PREFIX:-docker.m.daocloud.io` 加速（已验证可拉）；切官方源设 `IMAGE_PREFIX=` 空。Docker Desktop 的 settings-store.json 里 registryMirrors 字段名不对（新版不认），别改；改了还要小心 **PowerShell `Set-Content -Encoding UTF8` 会写 BOM**，Docker 解析报 `invalid character '茂'` 导致 backend 崩溃（用 `[IO.File]::WriteAllText(..., UTF8Encoding($false))`）。
 - **PG 18 官方镜像挂载变更**：必须挂 `/var/lib/postgresql` 根（数据在子目录），挂旧路径 `/var/lib/postgresql/data` 直接报错退出。
 - **宿主 5432 被 `ai-copilot-postgres-1` 占用**：transnote PG 定 **5433**（compose + application.yml + 文档 DB_URL 三处一致）。

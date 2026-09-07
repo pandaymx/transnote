@@ -102,14 +102,20 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     updateCard.mutate({ cardId, patch: { description: JSON.stringify({ text: v }) } });
   };
 
-  /** 拖拽结束：落到 dropIndex 指示位置（默认目标列末尾，position=目标列当前卡片数）。 */
+  /** 拖拽结束：落到 dropIndex 指示位置（默认目标列末尾，position=目标列当前卡片数）。拖入"已完成"列且卡片未完成 → 自动勾选（对称于勾选自动收纳）。 */
   const onDropColumn = (columnId: string) => {
     if (!dragCardId) return;
     const idx =
       dropIndex?.colId === columnId
         ? dropIndex.index
         : (byColumn[columnId] ?? []).filter((c) => c.id !== dragCardId).length;
-    updateCard.mutate({ cardId: dragCardId, patch: { columnId, position: idx } });
+    const patch: CardPatch = { columnId, position: idx };
+    const doneCol = columns.find((c) => isDoneCol(c));
+    const cur = (cards ?? []).find((c) => c.id === dragCardId);
+    if (doneCol && columnId === doneCol.id && cur && !cur.checked) {
+      patch.checked = true;
+    }
+    updateCard.mutate({ cardId: dragCardId, patch });
     setDragCardId(null);
     setOverColumnId(null);
     setDropIndex(null);
@@ -277,7 +283,11 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
               {!collapsed[col.id] &&
                 colCards.map((card, i) => (
                 <div
-                  className={'notion-card' + (dragCardId === card.id ? ' dragging' : '')}
+                  className={
+                    'notion-card' +
+                    (card.checked ? ' done' : '') +
+                    (dragCardId === card.id ? ' dragging' : '')
+                  }
                   key={card.id}
                   draggable={canDrag}
                   onDragStart={(e) => {

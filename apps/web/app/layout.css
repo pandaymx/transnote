@@ -273,6 +273,16 @@ input[type='file'] {
   opacity: 0.45;
 }
 
+.notion-card.done {
+  opacity: 0.55;
+  background: #fafaf8;
+}
+
+.notion-card.done .notion-pill,
+.notion-card.done .notion-desc {
+  opacity: 0.7;
+}
+
 .notion-title-row {
   display: flex;
   align-items: flex-start;
