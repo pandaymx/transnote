@@ -78,10 +78,19 @@ public class BoardController {
     return ApiResponse.ok(null);
   }
 
+  /** 列更新：title 出现 = 重命名；position 出现 = 拖列重排（可与重命名同发）。 */
   @PatchMapping("/{id}/columns/{columnId}")
-  public ApiResponse<BoardColumnResponse> renameColumn(
+  public ApiResponse<BoardColumnResponse> updateColumn(
       @PathVariable UUID id, @PathVariable UUID columnId, @RequestBody RenameRequest request) {
-    BoardColumn column = boardService.renameColumn(id, columnId, request.title());
+    BoardColumn column;
+    if (request.position() != null) {
+      column = boardService.moveColumn(id, columnId, request.position());
+      if (request.title() != null && !request.title().isBlank()) {
+        column = boardService.renameColumn(id, columnId, request.title());
+      }
+    } else {
+      column = boardService.renameColumn(id, columnId, request.title());
+    }
     return ApiResponse.ok(
         new BoardColumnResponse(
             column.getId(), column.getTitle(), column.getPosition(), column.getStatusColor()));
@@ -171,5 +180,5 @@ public class BoardController {
     return ApiResponse.ok(null);
   }
 
-  public record RenameRequest(String title) {}
+  public record RenameRequest(String title, Integer position) {}
 }

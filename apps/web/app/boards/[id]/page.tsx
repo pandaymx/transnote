@@ -10,6 +10,7 @@ import {
   useBoardUi,
   useDeleteCard,
   useDeleteColumn,
+  useMoveColumn,
   useRenameColumn,
   useUpdateCard,
   sortCardsByColumn,
@@ -32,6 +33,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const deleteColumn = useDeleteColumn(boardId);
   const renameColumn = useRenameColumn(boardId);
   const addColumn = useAddColumn(boardId);
+  const moveColumn = useMoveColumn(boardId);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
 
   const columns: BoardColumn[] = board?.columns ?? [];
@@ -59,6 +61,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 添加列（Notion 看板最右 ＋ 添加列）。 */
   const [addingCol, setAddingCol] = useState(false);
   const [newColTitle, setNewColTitle] = useState('');
+  /** 列头拖拽排序（Notion 拖动列头）。 */
+  const [dragColId, setDragColId] = useState<string | null>(null);
+  const [dropColIndex, setDropColIndex] = useState<number | null>(null);
   /** 标签输入（点击 + 徽标添加新标签）。 */
   const [editLabel, setEditLabel] = useState<{ cardId: string; value: string } | null>(null);
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
@@ -165,6 +170,18 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     setNewColTitle('');
     setAddingCol(false);
     if (t) addColumn.mutate(t);
+  };
+
+  /** 列头拖拽结束：落到 dropColIndex 位置（0..n-1）。 */
+  const onDropColumnHead = () => {
+    if (dragColId && dropColIndex != null) {
+      const target = columns.findIndex((c) => c.id === dragColId);
+      if (target !== -1 && target !== dropColIndex) {
+        moveColumn.mutate({ columnId: dragColId, position: dropColIndex });
+      }
+    }
+    setDragColId(null);
+    setDropColIndex(null);
   };
 
   /** 描述保存：写回 JSONB {"text": ...}；空值清空。 */
@@ -335,7 +352,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
       <div className="columns">
-        {columns.map((col) => {
+        {columns.map((col, i) => {
           const colCards = viewCards(col.id);
           const canDrag = sortBy === 'manual' && filterState === 'all';
           return (
@@ -360,9 +377,39 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 e.preventDefault();
                 onDropColumn(col.id);
               }}
-              style={overColumnId === col.id ? { outline: '2px dashed #2f6fec', outlineOffset: -2 } : undefined}
+              style={
+                overColumnId === col.id || (dragColId && dropColIndex === i)
+                  ? { outline: '2px dashed #2f6fec', outlineOffset: -2 }
+                  : undefined
+              }
             >
-              <div className="notion-column-head">
+              <div
+                className="notion-column-head"
+                draggable={!dragCardId}
+                onDragStart={(e) => {
+                  setDragColId(col.id);
+                  e.dataTransfer.setData('text/plain', col.id);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  if (dragCardId) return; // 卡片拖拽走列容器逻辑
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const r = e.currentTarget.getBoundingClientRect();
+                  const before = e.clientX < r.left + r.width / 2;
+                  setDropColIndex(before ? columns.findIndex((c) => c.id === col.id) : columns.findIndex((c) => c.id === col.id) + 1);
+                }}
+                onDrop={(e) => {
+                  if (dragCardId) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDropColumnHead();
+                }}
+                onDragEnd={() => {
+                  setDragColId(null);
+                  setDropColIndex(null);
+                }}
+              >
                 {editCol?.colId === col.id ? (
                   <input
                     className="notion-col-input"

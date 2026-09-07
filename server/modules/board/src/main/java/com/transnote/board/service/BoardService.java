@@ -137,6 +137,27 @@ public class BoardService {
     columnRepository.delete(column); // DB 级联删卡片
   }
 
+  /** 列重排（Notion 拖动列头调整顺序）：目标列插入 position，其余列顺移。 */
+  @Transactional
+  public BoardColumn moveColumn(UUID boardId, UUID columnId, int position) {
+    BoardColumn column = requireColumn(columnId);
+    requireBelongsToBoard(column.getBoard().getId(), boardId);
+    List<BoardColumn> ordered =
+        new java.util.ArrayList<>(columnRepository.findByBoard_IdOrderByPositionAsc(boardId));
+    ordered.remove(column);
+    if (position < 0) {
+      position = 0;
+    }
+    if (position > ordered.size()) {
+      position = ordered.size();
+    }
+    ordered.add(position, column);
+    for (int i = 0; i < ordered.size(); i++) {
+      ordered.get(i).setPosition(i);
+    }
+    return columnRepository.save(column);
+  }
+
   // ---------- 卡片 ----------
 
   @Transactional

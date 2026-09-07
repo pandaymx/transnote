@@ -190,6 +190,20 @@ class BoardApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.title").value("待办改"));
 
+    // 列重排（Notion 拖动列头）：col1 → 位置 1（col2 顺移到 0）
+    mockMvc
+        .perform(
+            patch("/api/v1/boards/{id}/columns/{columnId}", boardId, col1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"position\":1}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.position").value(1));
+    mockMvc
+        .perform(get("/api/v1/boards/{id}", boardId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.columns[0].id").value(col2))
+        .andExpect(jsonPath("$.data.columns[1].id").value(col1));
+
     // 删列级联删卡片
     mockMvc
         .perform(delete("/api/v1/boards/{id}/columns/{columnId}", boardId, col2))

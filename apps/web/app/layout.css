@@ -183,6 +183,11 @@ input[type='file'] {
   align-items: center;
   gap: 6px;
   padding: 2px 6px 6px;
+  cursor: grab;
+}
+
+.notion-column-head:active {
+  cursor: grabbing;
 }
 
 .notion-column-title {
