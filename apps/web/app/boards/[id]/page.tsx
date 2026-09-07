@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   useAddCard,
@@ -97,6 +97,32 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
   const [editDesc, setEditDesc] = useState<{ cardId: string } | null>(null);
   const [descValue, setDescValue] = useState('');
+
+  /** 全局快捷键（Notion 风格）：n 新建第一个列卡片、/ 聚焦搜索、Esc 关闭弹窗。 */
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const typing =
+        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      if (e.key === 'Escape') {
+        setDetailCardId(null);
+        setTrashOpen(false);
+        setStatsOpen(false);
+        return;
+      }
+      if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '/' && searchRef.current) {
+        e.preventDefault();
+        searchRef.current.focus();
+      } else if ((e.key === 'n' || e.key === 'N') && columns.length > 0) {
+        setAdding((a) => ({ ...a, [columns[0].id]: true }));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columns.length]);
 
   /** 判定"已完成"列（自动收纳目标）：statusColor=green 或列名含 完成/done。 */
   const isDoneCol = (c: BoardColumn) =>
@@ -359,6 +385,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       <div className="notion-toolbar">
         <div className="row" style={{ gap: 6 }}>
           <input
+            ref={searchRef}
             className="notion-search-input"
             type="search"
             placeholder="搜索任务…"
