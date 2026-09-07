@@ -75,8 +75,22 @@ function ConvertInner() {
       setError('请填写看板 ID');
       return;
     }
+    // 看板页"导出当前视图"带过来的筛选（fState/fAssignee/fPriority/fLabel）
+    const fState = params.get('fState');
+    const fAssignee = params.get('fAssignee');
+    const fPriority = params.get('fPriority');
+    const fLabel = params.get('fLabel');
+    const filter =
+      fState || fAssignee || fPriority || fLabel
+        ? {
+            state: fState ?? undefined,
+            assigneeName: fAssignee ?? undefined,
+            priority: fPriority ? Number(fPriority) : undefined,
+            label: fLabel ?? undefined,
+          }
+        : null;
     try {
-      await exportJob.mutateAsync({ boardId: exportBoardId, template });
+      await exportJob.mutateAsync({ boardId: exportBoardId, template, filter });
     } catch (e) {
       setError(e instanceof Error ? e.message : '导出失败');
     }

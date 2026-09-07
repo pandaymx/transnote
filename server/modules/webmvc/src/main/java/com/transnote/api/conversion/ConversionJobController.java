@@ -47,12 +47,21 @@ public class ConversionJobController {
     return ApiResponse.ok(new SubmitResponse(job.getId(), job.getStatus(), job.getTargetBoardId()));
   }
 
-  /** §8.5：看板 → Word 导出（JSON body，契约 §7.2）。 */
+  /** §8.5：看板 → Word 导出（JSON body，契约 §7.2；filter 可空=导出全部）。 */
   @PostMapping("/board-to-word")
   public ApiResponse<SubmitResponse> boardToWord(
       @RequestParam UUID workspaceId, @RequestBody BoardToWordRequest request) {
+    ConversionService.ExportFilter svcFilter =
+        request.filter() == null
+            ? null
+            : new ConversionService.ExportFilter(
+                request.filter().state(),
+                request.filter().assigneeName(),
+                request.filter().priority(),
+                request.filter().label());
     ConversionJob job =
-        conversionService.submitBoardToWord(workspaceId, request.boardId(), request.template());
+        conversionService.submitBoardToWord(
+            workspaceId, request.boardId(), request.template(), svcFilter);
     return ApiResponse.ok(new SubmitResponse(job.getId(), job.getStatus(), job.getSourceBoardId()));
   }
 
@@ -209,5 +218,9 @@ public class ConversionJobController {
     public record ReviewItem(UUID id, String reviewStatus, String taskTitle) {}
   }
 
-  public record BoardToWordRequest(UUID boardId, String template, Boolean withLlm) {}
+  public record BoardToWordRequest(
+      UUID boardId, String template, Boolean withLlm, ExportFilter filter) {}
+
+  /** 导出筛选（与 Web 视图筛选一致；全部可空=不过滤）。 */
+  public record ExportFilter(String state, String assigneeName, Integer priority, String label) {}
 }

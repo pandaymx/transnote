@@ -330,8 +330,15 @@ export function useJobs(workspaceId: string) {
 
 export function useBoardToWord(workspaceId: string) {
   return useMutation({
-    mutationFn: ({ boardId, template }: { boardId: string; template: 'task-list' | 'weekly-report' }) =>
-      api().boardToWord(workspaceId, boardId, template),
+    mutationFn: ({
+      boardId,
+      template,
+      filter,
+    }: {
+      boardId: string;
+      template: 'task-list' | 'weekly-report';
+      filter?: { state?: string; assigneeName?: string; priority?: number; label?: string } | null;
+    }) => api().boardToWord(workspaceId, boardId, template, filter),
   });
 }
 

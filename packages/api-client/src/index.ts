@@ -281,10 +281,14 @@ export class TransnoteClient {
     workspaceId: string,
     boardId: string,
     template: 'task-list' | 'weekly-report',
+    filter?: { state?: string; assigneeName?: string; priority?: number; label?: string } | null,
   ): Promise<{ jobId: string; status: ConversionStatus; boardId?: string }> {
     return request(this.baseUrl,
       `/api/v1/conversions/board-to-word?workspaceId=${encodeURIComponent(workspaceId)}`,
-      { method: 'POST', body: JSON.stringify({ boardId, template, withLlm: false }) },
+      {
+        method: 'POST',
+        body: JSON.stringify({ boardId, template, withLlm: false, filter: filter ?? null }),
+      },
     );
   }
 

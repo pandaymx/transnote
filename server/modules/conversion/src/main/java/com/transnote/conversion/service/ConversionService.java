@@ -193,14 +193,17 @@ public class ConversionService {
 
   /** §8.5：看板 → Word（聚合 → 渲染 → 落盘 → COMPLETED）。MVP 同步执行。 */
   @Transactional
-  public ConversionJob submitBoardToWord(UUID workspaceId, UUID boardId, String template) {
+  public ConversionJob submitBoardToWord(
+      UUID workspaceId, UUID boardId, String template, ExportFilter filter) {
     String resolvedTemplate = template == null ? "task-list" : template;
     if (!TEMPLATES.contains(resolvedTemplate)) {
       throw new IllegalArgumentException("template 仅支持 task-list/weekly-report");
     }
     Board board = boardService.get(boardId); // 不存在抛 404
     List<BoardColumn> columns = boardService.columns(boardId);
-    List<BoardCard> cards = boardService.listCards(boardId, null, null, null);
+    List<BoardCard> allCards = boardService.listCards(boardId, null, null, null);
+    List<BoardCard> cards =
+        filter == null ? allCards : allCards.stream().filter(filter::matches).toList();
     java.util.Map<UUID, List<BoardCard>> byColumn = new java.util.LinkedHashMap<>();
     for (BoardCard card : cards) {
       byColumn.computeIfAbsent(card.getColumn().getId(), k -> new ArrayList<>()).add(card);
@@ -252,6 +255,30 @@ public class ConversionService {
   private static boolean isDoneColumn(String title) {
     String t = title == null ? "" : title.toLowerCase(Locale.ROOT);
     return t.contains("完成") || t.contains("done");
+  }
+
+  /**
+   * 导出筛选（与 Web 视图筛选一致；字段为 null/空表示不过滤）。
+   *
+   * <p>state：all/open/done；assigneeName：负责人精确匹配；priority：1-3；label：标签包含。
+   */
+  public record ExportFilter(
+      String state, String assigneeName, Integer priority, String label) {
+
+    boolean matches(BoardCard card) {
+      if (state != null) {
+        if ("open".equals(state) && card.isChecked()) return false;
+        if ("done".equals(state) && !card.isChecked()) return false;
+      }
+      if (assigneeName != null && !assigneeName.isEmpty()) {
+        if (!assigneeName.equals(card.getAssigneeName())) return false;
+      }
+      if (priority != null && !priority.equals(card.getPriority())) return false;
+      if (label != null && !label.isEmpty()) {
+        if (card.getLabels() == null || !card.getLabels().contains(label)) return false;
+      }
+      return true;
+    }
   }
 
   public ConversionJob getJob(UUID jobId, UUID workspaceId) {

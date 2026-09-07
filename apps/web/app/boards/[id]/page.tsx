@@ -469,11 +469,24 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             onClick={() => {
               if (board) {
                 setWorkspace(board.workspaceId);
-                router.push(`/convert?ws=${board.workspaceId}&board=${board.id}&tab=export`);
+                const hasFilter =
+                  filterState !== 'all' || filterAssignee || filterPriority != null || filterLabel;
+                const q = new URLSearchParams({
+                  ws: board.workspaceId,
+                  board: board.id,
+                  tab: 'export',
+                });
+                if (hasFilter) {
+                  if (filterState !== 'all') q.set('fState', filterState);
+                  if (filterAssignee) q.set('fAssignee', filterAssignee);
+                  if (filterPriority != null) q.set('fPriority', String(filterPriority));
+                  if (filterLabel) q.set('fLabel', filterLabel);
+                }
+                router.push(`/convert?${q.toString()}`);
               }
             }}
           >
-            导出 Word
+            导出 Word{filterState !== 'all' || filterAssignee || filterPriority != null || filterLabel ? '（当前视图）' : ''}
           </button>
           <button className="btn secondary" onClick={() => setTrashOpen(true)}>
             回收站
