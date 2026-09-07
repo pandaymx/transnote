@@ -1,3 +1,18 @@
+## [1.28.0](https://github.com/pandaymx/transnote/compare/v1.27.0...v1.28.0) (2026-09-07)
+
+### Features
+
+* **desktop:** 文档折叠块展开收起 ([f93d73e](https://github.com/pandaymx/transnote/commit/f93d73e3cab384b4af7d327dc443f4bc25891519))
+* **document:** 回车新建块插入当前位置 ([eb4dfeb](https://github.com/pandaymx/transnote/commit/eb4dfebf2d486ecbe4edc846bf0c0b9c878c4392))
+* **web:** 全局侧边导航栏 ([ea66a09](https://github.com/pandaymx/transnote/commit/ea66a09bdc0e402a152d0f0fa8d1a9f4152f91ea))
+* **web:** 文档列表搜索 ([d242f1c](https://github.com/pandaymx/transnote/commit/d242f1cf7d568cc33cc23b9752116ad2b8113a19))
+* **web:** 文档块拖拽排序 ([98213b4](https://github.com/pandaymx/transnote/commit/98213b40fb9893058535dec44f330ee829fd8306))
+* **web:** 文档复制 Markdown ([1388134](https://github.com/pandaymx/transnote/commit/13881346bd1bf65a52f73f5c26e3e9e7f26f6ca3))
+
+### Bug Fixes
+
+* **web:** 修复卡片弹窗样式结构 ([5da844d](https://github.com/pandaymx/transnote/commit/5da844d8a716a9e1b5c49253b19b1c0e8ddd68c2))
+
 ## [1.27.0](https://github.com/pandaymx/transnote/compare/v1.26.0...v1.27.0) (2026-09-07)
 
 ### Features
