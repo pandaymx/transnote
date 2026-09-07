@@ -139,8 +139,11 @@ export class TransnoteClient {
       columnId: string;
       title: string;
       description?: string;
+      assigneeName?: string;
       dueDate?: string;
       priority?: number;
+      labels?: string[];
+      checked?: boolean;
     },
   ): Promise<BoardCard> {
     return request(this.baseUrl,`/api/v1/boards/${boardId}/cards`, {

@@ -136,6 +136,24 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     updateCard.mutate({ cardId, patch: { labels: next } });
   };
 
+  /** 卡片复制（Notion Duplicate）：克隆标题+属性，标题加" 副本"，checked 重置。 */
+  const duplicateCard = (card: BoardCard) => {
+    addCard.mutate({
+      columnId: card.columnId,
+      title: `${card.title ?? ''} 副本`,
+      description: card.description ?? undefined,
+      dueDate: card.dueDate ?? undefined,
+      priority: card.priority ?? undefined,
+      assigneeName: card.assigneeName ?? undefined,
+      labels: card.labels ?? undefined,
+      checked: false,
+    });
+  };
+
+  /** 列内逾期未完成卡片数（Notion 逾期标红计数）。 */
+  const overdueCount = (colCards: BoardCard[]) =>
+    colCards.filter((c) => !c.checked && dueOverdue(c.dueDate)).length;
+
   /** 描述保存：写回 JSONB {"text": ...}；空值清空。 */
   const commitDesc = (cardId: string) => {
     const v = descValue.trim();
@@ -359,6 +377,11 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
                 <span className="notion-count">{colCards.length}</span>
+                {overdueCount(colCards) > 0 && (
+                  <span className="notion-overdue-count" title="逾期未完成">
+                    {overdueCount(colCards)} 逾期
+                  </span>
+                )}
                 {!collapsed[col.id] && (
                   <button
                     className="notion-add"
@@ -425,6 +448,13 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     onClick={() => deleteCard.mutate(card.id)}
                   >
                     ✕
+                  </button>
+                  <button
+                    className="notion-card-copy"
+                    title="复制卡片"
+                    onClick={() => duplicateCard(card)}
+                  >
+                    ⧉
                   </button>
                   <div className="notion-title-row">
                     <span

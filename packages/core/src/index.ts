@@ -122,8 +122,11 @@ export function useAddCard(boardId: string) {
       columnId: string;
       title: string;
       description?: string;
+      assigneeName?: string;
       dueDate?: string;
       priority?: number;
+      labels?: string[];
+      checked?: boolean;
     }) => api().addCard(boardId, card),
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.cards(boardId) }),
   });
