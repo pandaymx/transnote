@@ -996,3 +996,26 @@ input[type='file'] {
 .notion-trash-hard:hover {
   background: #ffe8e6;
 }
+
+.notion-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notion-stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notion-stat-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.notion-stat-row .notion-progress-track {
+  max-width: none;
+}

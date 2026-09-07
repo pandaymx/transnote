@@ -88,6 +88,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [detailCardId, setDetailCardId] = useState<string | null>(null);
   /** 回收站弹窗（Notion 删除可恢复）。 */
   const [trashOpen, setTrashOpen] = useState(false);
+  /** 看板统计弹窗（各列完成率）。 */
+  const [statsOpen, setStatsOpen] = useState(false);
   /** 标签输入（点击 + 徽标添加新标签）。 */
   const [editLabel, setEditLabel] = useState<{ cardId: string; value: string } | null>(null);
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
@@ -314,6 +316,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             {(trashCards?.length ?? 0) > 0 && (
               <span className="notion-trash-count">{(trashCards ?? []).length}</span>
             )}
+          </button>
+          <button className="btn secondary" onClick={() => setStatsOpen(true)}>
+            统计
           </button>
           <button
             className="btn"
@@ -991,6 +996,55 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           );
         })()}
+
+      {statsOpen && (
+        <div className="notion-modal-overlay" onClick={() => setStatsOpen(false)}>
+          <div className="notion-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="notion-modal-head">
+              <div className="notion-modal-title" style={{ fontSize: 16 }}>
+                看板统计
+              </div>
+              <button className="notion-modal-close" onClick={() => setStatsOpen(false)}>
+                ✕
+              </button>
+            </div>
+            {(cards ?? []).length === 0 && (
+              <p className="muted" style={{ margin: 0 }}>
+                还没有任务，先添加一些卡片。
+              </p>
+            )}
+            {(cards ?? []).length > 0 && (
+              <div className="notion-stats">
+                {columns.map((col) => {
+                  const colCards = byColumn[col.id] ?? [];
+                  if (colCards.length === 0) return null;
+                  const done = colCards.filter((c) => c.checked).length;
+                  const rate = Math.round((done / colCards.length) * 100);
+                  return (
+                    <div key={col.id} className="notion-stat-row">
+                      <div className="notion-stat-label">
+                        <span style={{ fontWeight: 600 }}>{col.title}</span>
+                        <span className="muted">
+                          {done} / {colCards.length}（{rate}%）
+                        </span>
+                      </div>
+                      <div className="notion-progress-track">
+                        <div
+                          className="notion-progress-bar"
+                          style={{
+                            width: `${rate}%`,
+                            background: rate === 100 ? '#52c41a' : '#2f6fec',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {trashOpen && (
         <div className="notion-modal-overlay" onClick={() => setTrashOpen(false)}>
