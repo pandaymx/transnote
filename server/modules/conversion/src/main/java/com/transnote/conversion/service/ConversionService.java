@@ -262,8 +262,7 @@ public class ConversionService {
    *
    * <p>state：all/open/done；assigneeName：负责人精确匹配；priority：1-3；label：标签包含。
    */
-  public record ExportFilter(
-      String state, String assigneeName, Integer priority, String label) {
+  public record ExportFilter(String state, String assigneeName, Integer priority, String label) {
 
     boolean matches(BoardCard card) {
       if (state != null) {
