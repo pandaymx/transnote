@@ -1,3 +1,9 @@
+## [1.29.0](https://github.com/pandaymx/transnote/compare/v1.28.0...v1.29.0) (2026-09-07)
+
+### Features
+
+* **board:** 全局搜索跨看板查找卡片 ([9658fec](https://github.com/pandaymx/transnote/commit/9658fec9aeb3c85c39ef73e6291d99656bf010be))
+
 ## [1.28.0](https://github.com/pandaymx/transnote/compare/v1.27.0...v1.28.0) (2026-09-07)
 
 ### Features
