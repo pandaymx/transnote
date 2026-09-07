@@ -89,6 +89,17 @@ export class TransnoteClient {
     });
   }
 
+  renameWorkspace(id: string, name: string): Promise<Workspace> {
+    return request(this.baseUrl,`/api/v1/workspaces/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  deleteWorkspace(id: string): Promise<void> {
+    return request(this.baseUrl,`/api/v1/workspaces/${id}`, { method: 'DELETE' });
+  }
+
   // ---- Boards ----
   listBoards(workspaceId: string): Promise<Board[]> {
     return request(this.baseUrl,`/api/v1/boards?workspaceId=${encodeURIComponent(workspaceId)}`);

@@ -8,7 +8,9 @@ import {
   useBoards,
   useCreateWorkspace,
   useDeleteBoard,
+  useDeleteWorkspace,
   useDuplicateBoard,
+  useRenameWorkspace,
   useWorkspaces,
 } from '@transnote/core';
 import { useBoardUi } from '@transnote/core';
@@ -84,6 +86,8 @@ function WorkspaceCard({ ws }: { ws: { id: string; name: string; description?: s
   const { data: boards } = useBoards(ws.id);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
   const router = useRouter();
+  const renameWorkspace = useRenameWorkspace();
+  const deleteWorkspace = useDeleteWorkspace();
   return (
     <div className="card">
       <div className="row" style={{ justifyContent: 'space-between' }}>
@@ -92,6 +96,30 @@ function WorkspaceCard({ ws }: { ws: { id: string; name: string; description?: s
           <div className="muted">{ws.description || '暂无描述'}</div>
         </div>
         <div className="row">
+          <button
+            className="ws-board-btn"
+            title="重命名工作区"
+            onClick={() => {
+              const next = window.prompt('新的工作区名称', ws.name);
+              if (next?.trim() && next.trim() !== ws.name) {
+                renameWorkspace.mutate({ id: ws.id, name: next.trim() });
+              }
+            }}
+          >
+            ✎
+          </button>
+          <button
+            className="ws-board-btn"
+            title="删除工作区"
+            style={{ color: '#cf1322' }}
+            onClick={() => {
+              if (window.confirm(`删除工作区「${ws.name}」？其下所有看板与卡片将一并删除。`)) {
+                deleteWorkspace.mutate(ws.id);
+              }
+            }}
+          >
+            ✕
+          </button>
           <Link
             className="btn secondary"
             href={`/boards?ws=${ws.id}`}

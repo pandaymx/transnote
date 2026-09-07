@@ -49,6 +49,23 @@ export function useCreateWorkspace() {
   });
 }
 
+export function useRenameWorkspace() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      api().renameWorkspace(id, name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.workspaces }),
+  });
+}
+
+export function useDeleteWorkspace() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api().deleteWorkspace(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK.workspaces }),
+  });
+}
+
 // ---- Board ----
 export function useBoards(workspaceId?: string) {
   return useQuery({
