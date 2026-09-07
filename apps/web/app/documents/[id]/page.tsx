@@ -33,12 +33,14 @@ function BlockItem({
   block,
   depth,
   onUpdate,
+  onUpdateType,
   onAddAfter,
   onDelete,
 }: {
   block: BlockNode;
   depth: number;
   onUpdate: (blockId: string, content: string, properties?: string) => void;
+  onUpdateType: (blockId: string, type: string) => void;
   onAddAfter: (blockId: string) => void;
   onDelete: (blockId: string) => void;
 }) {
@@ -106,6 +108,23 @@ function BlockItem({
           )}
         </div>
         <span className="doc-block-actions">
+          <select
+            className="doc-type-select"
+            title="切换块类型"
+            value={block.type}
+            onChange={(e) => onUpdateType(block.id, e.target.value)}
+          >
+            <option value="paragraph">正文</option>
+            <option value="heading_1">标题 1</option>
+            <option value="heading_2">标题 2</option>
+            <option value="heading_3">标题 3</option>
+            <option value="todo">待办</option>
+            <option value="bulleted_list">列表</option>
+            <option value="numbered_list">编号</option>
+            <option value="quote">引用</option>
+            <option value="code">代码</option>
+            <option value="divider">分割线</option>
+          </select>
           <button className="ws-board-btn" title="在此下方新增块" onClick={() => onAddAfter(block.id)}>
             ＋
           </button>
@@ -115,7 +134,7 @@ function BlockItem({
         </span>
       </div>
       {(block.children ?? []).map((child) => (
-        <BlockItem key={child.id} block={child} depth={depth + 1} onUpdate={onUpdate} onAddAfter={onAddAfter} onDelete={onDelete} />
+        <BlockItem key={child.id} block={child} depth={depth + 1} onUpdate={onUpdate} onUpdateType={onUpdateType} onAddAfter={onAddAfter} onDelete={onDelete} />
       ))}
     </div>
   );
@@ -137,6 +156,10 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
     updateBlocks.mutate([
       { op: 'upsert', block: { id: blockId, content, ...(properties ? { properties } : {}) } },
     ]);
+  };
+
+  const onUpdateType = (blockId: string, type: string) => {
+    updateBlocks.mutate([{ op: 'upsert', block: { id: blockId, type } }]);
   };
 
   const onAddAfter = (blockId: string) => {
@@ -206,6 +229,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
           block={block}
           depth={0}
           onUpdate={onUpdate}
+          onUpdateType={onUpdateType}
           onAddAfter={onAddAfter}
           onDelete={onDelete}
         />

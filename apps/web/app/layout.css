@@ -815,6 +815,20 @@ mark.notion-hl {
   opacity: 1;
 }
 
+.doc-type-select {
+  border: none;
+  background: transparent;
+  color: #9b9a97;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  max-width: 20px;
+}
+
+.doc-type-select:hover {
+  color: #37352f;
+}
+
 .notion-card.selected {
   outline: 2px solid #2f6fec;
   outline-offset: -2px;
