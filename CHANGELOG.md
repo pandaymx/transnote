@@ -1,3 +1,9 @@
+## [1.12.0](https://github.com/pandaymx/transnote/compare/v1.11.0...v1.12.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板视图工具栏支持筛选与排序对齐 Notion ([23934b0](https://github.com/pandaymx/transnote/commit/23934b0f7557de89581728d71981baa1628f55ec))
+
 ## [1.11.0](https://github.com/pandaymx/transnote/compare/v1.10.0...v1.11.0) (2026-09-07)
 
 ### Features
