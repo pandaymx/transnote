@@ -64,6 +64,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 列头拖拽排序（Notion 拖动列头）。 */
   const [dragColId, setDragColId] = useState<string | null>(null);
   const [dropColIndex, setDropColIndex] = useState<number | null>(null);
+  /** 卡片详情弹窗（Notion 单击卡片打开）。 */
+  const [detailCardId, setDetailCardId] = useState<string | null>(null);
   /** 标签输入（点击 + 徽标添加新标签）。 */
   const [editLabel, setEditLabel] = useState<{ cardId: string; value: string } | null>(null);
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
@@ -490,6 +492,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   }
                   key={card.id}
                   draggable={canDrag}
+                  onClick={() => setDetailCardId(card.id)}
                   onDragStart={(e) => {
                     setDragCardId(card.id);
                     e.dataTransfer.setData('text/plain', card.id);
@@ -520,14 +523,20 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   <button
                     className="notion-card-del"
                     title="删除卡片"
-                    onClick={() => deleteCard.mutate(card.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteCard.mutate(card.id);
+                    }}
                   >
                     ✕
                   </button>
                   <button
                     className="notion-card-copy"
                     title="复制卡片"
-                    onClick={() => duplicateCard(card)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      duplicateCard(card);
+                    }}
                   >
                     ⧉
                   </button>
@@ -560,11 +569,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     ) : (
                       <span
                         className={'notion-title' + (card.checked ? ' done' : '')}
-                        title="双击编辑"
-                        onDoubleClick={() => {
-                          setEditing(card.id);
-                          setEditTitle(card.title ?? '');
-                        }}
+                        title="单击打开详情"
                       >
                         {card.title}
                       </span>
@@ -786,6 +791,134 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           </button>
         )}
       </div>
+
+      {detailCardId &&
+        (() => {
+          const card = (cards ?? []).find((c) => c.id === detailCardId);
+          if (!card) return null;
+          return (
+            <div className="notion-modal-overlay" onClick={() => setDetailCardId(null)}>
+              <div className="notion-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="notion-modal-head">
+                  <input
+                    className="notion-modal-title"
+                    type="text"
+                    defaultValue={card.title}
+                    onBlur={(e) => {
+                      const t = e.target.value.trim();
+                      if (t && t !== card.title) {
+                        updateCard.mutate({ cardId: card.id, patch: { title: t } });
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                      if (e.key === 'Escape') setDetailCardId(null);
+                    }}
+                  />
+                  <button className="notion-modal-close" onClick={() => setDetailCardId(null)}>
+                    ✕
+                  </button>
+                </div>
+                <textarea
+                  className="notion-modal-desc"
+                  defaultValue={descText(card.description)}
+                  placeholder="添加描述…"
+                  onBlur={(e) => {
+                    const v = e.target.value;
+                    if (v !== descText(card.description)) {
+                      updateCard.mutate({
+                        cardId: card.id,
+                        patch: { description: v ? JSON.stringify({ text: v }) : undefined },
+                      });
+                    }
+                  }}
+                />
+                <div className="notion-modal-fields">
+                  <label>
+                    负责人
+                    <input
+                      type="text"
+                      defaultValue={card.assigneeName ?? ''}
+                      placeholder="未分配"
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v !== (card.assigneeName ?? '')) {
+                          updateCard.mutate({ cardId: card.id, patch: { assigneeName: v } });
+                        }
+                      }}
+                    />
+                  </label>
+                  <label>
+                    截止
+                    <input
+                      type="date"
+                      defaultValue={card.dueDate ?? ''}
+                      onChange={(e) =>
+                        updateCard.mutate({
+                          cardId: card.id,
+                          patch: { dueDate: e.target.value || undefined },
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    优先级
+                    <button
+                      className="notion-tool-btn"
+                      onClick={() => cyclePriority(card.id, card.priority)}
+                    >
+                      {card.priority ? `P${card.priority}` : '未设'}
+                    </button>
+                  </label>
+                </div>
+                <div className="notion-modal-labels">
+                  <span className="notion-modal-field-label">标签</span>
+                  {(card.labels ?? []).map((l) => (
+                    <span
+                      key={l}
+                      className="notion-label"
+                      onClick={() =>
+                        updateCard.mutate({
+                          cardId: card.id,
+                          patch: { labels: (card.labels ?? []).filter((x) => x !== l) },
+                        })
+                      }
+                    >
+                      {l} ✕
+                    </span>
+                  ))}
+                  <input
+                    className="notion-label-input"
+                    placeholder="＋ 标签"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const v = (e.target as HTMLInputElement).value.trim();
+                        (e.target as HTMLInputElement).value = '';
+                        if (v && !(card.labels ?? []).includes(v)) {
+                          updateCard.mutate({
+                            cardId: card.id,
+                            patch: { labels: [...(card.labels ?? []), v] },
+                          });
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                <button
+                  className="notion-modal-delete"
+                  onClick={() => {
+                    if (window.confirm('删除该卡片？')) {
+                      deleteCard.mutate(card.id);
+                      setDetailCardId(null);
+                    }
+                  }}
+                >
+                  删除卡片
+                </button>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }

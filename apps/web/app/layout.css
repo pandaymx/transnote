@@ -768,3 +768,135 @@ input[type='file'] {
   background: #eef1fb;
   color: #2f6fec;
 }
+
+.notion-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 16px 16px;
+}
+
+.notion-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(15, 15, 15, 0.18);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notion-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notion-modal-title {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 20px;
+  font-weight: 700;
+  color: #37352f;
+  background: transparent;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.notion-modal-title:focus {
+  background: #f1f1ef;
+}
+
+.notion-modal-close {
+  border: none;
+  background: transparent;
+  color: #787774;
+  font-size: 16px;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.notion-modal-close:hover {
+  background: #f1f1ef;
+  color: #37352f;
+}
+
+.notion-modal-desc {
+  width: 100%;
+  min-height: 64px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-size: 14px;
+  color: #37352f;
+  background: #f7f7f5;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.notion-modal-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.notion-modal-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #787774;
+}
+
+.notion-modal-fields input {
+  border: 1px solid #e4e3dd;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  color: #37352f;
+  outline: none;
+}
+
+.notion-modal-fields input:focus {
+  border-color: #2f6fec;
+}
+
+.notion-modal-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.notion-modal-field-label {
+  font-size: 12px;
+  color: #787774;
+}
+
+.notion-modal-delete {
+  align-self: flex-start;
+  border: none;
+  background: #fff1f0;
+  color: #cf1322;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.notion-modal-delete:hover {
+  background: #ffe8e6;
+}
