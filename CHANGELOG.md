@@ -1,3 +1,10 @@
+## [1.17.0](https://github.com/pandaymx/transnote/compare/v1.16.0...v1.17.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板列逾期计数与卡片复制对齐 Notion ([948b628](https://github.com/pandaymx/transnote/commit/948b628f7f215ee0566fce60394be4aeb74499ff))
+* **web:** 看板支持添加列对齐 Notion ([24f462d](https://github.com/pandaymx/transnote/commit/24f462d9e2cbf8fed1abe682d1bf2104fd3b2760))
+
 ## [1.16.0](https://github.com/pandaymx/transnote/compare/v1.15.0...v1.16.0) (2026-09-07)
 
 ### Features
