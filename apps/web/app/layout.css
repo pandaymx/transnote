@@ -769,6 +769,32 @@ input[type='file'] {
   color: #2f6fec;
 }
 
+.ws-boards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ws-board-link {
+  display: inline-block;
+  background: #f1f1ef;
+  color: #37352f;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.ws-board-link:hover {
+  background: #e9e9e7;
+}
+
+.ws-board-more {
+  align-self: center;
+  font-size: 12px;
+}
+
 .notion-modal-overlay {
   position: fixed;
   inset: 0;
