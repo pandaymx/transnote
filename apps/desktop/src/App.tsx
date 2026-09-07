@@ -4,19 +4,27 @@ import {
   useBoardCards,
   useBoards,
   useCreateBoard,
+  useCreateDocument,
   useCreateWorkspace,
   useDeleteBoard,
+  useDeleteDocument,
+  useDocumentTree,
+  useDocuments,
   useDuplicateBoard,
+  useRenameDocument,
+  useUpdateBlocks,
   useUpdateCard,
   useWorkspaces,
   sortCardsByColumn,
 } from '@transnote/core';
-import type { BoardCard, BoardColumn } from '@transnote/schema';
+import type { BlockNode, BoardCard, BoardColumn } from '@transnote/schema';
 
 type View =
   | { name: 'workspaces' }
   | { name: 'boards'; workspaceId: string }
-  | { name: 'board'; boardId: string; workspaceId: string };
+  | { name: 'board'; boardId: string; workspaceId: string }
+  | { name: 'docs'; workspaceId: string }
+  | { name: 'doc'; docId: string; workspaceId: string };
 
 interface BoardWithColumns {
   id: string;
@@ -27,7 +35,7 @@ interface BoardWithColumns {
   columns: BoardColumn[];
 }
 
-/** 桌面壳 MVP（契约 §9.3）：工作区 → 看板 → 看板详情三视图，复用 packages/core。 */
+/** 桌面壳（契约 §9.3）：工作区 → 看板/文档 → 详情，复用 packages/core。 */
 export default function App() {
   const [view, setView] = useState<View>({ name: 'workspaces' });
   const [wsName, setWsName] = useState('');
@@ -45,6 +53,13 @@ export default function App() {
   const { data: board } = useBoard(boardId);
   const { data: cards } = useBoardCards(boardId);
   const updateCard = useUpdateCard(boardId);
+  const { data: documents } = useDocuments(view.name === 'docs' || view.name === 'doc' ? workspaceId : '');
+  const createDocument = useCreateDocument(workspaceId);
+  const deleteDocument = useDeleteDocument(workspaceId);
+  const docId = view.name === 'doc' ? view.docId : '';
+  const { data: docTree } = useDocumentTree(docId, view.name === 'doc');
+  const renameDocument = useRenameDocument();
+  const updateBlocks = useUpdateBlocks(docId);
 
   const onNewWorkspace = async () => {
     setError(null);
@@ -99,7 +114,7 @@ export default function App() {
                 style={{ ...cardBtnStyle, display: 'block', width: '100%', textAlign: 'left' }}
               >
                 <strong>{ws.name}</strong>
-                <div style={{ color: '#6b7280', fontSize: 13 }}>{ws.description || '进入看板 →'}</div>
+                <div style={{ color: '#6b7280', fontSize: 13 }}>{ws.description || '进入工作区 →'}</div>
               </button>
             ))}
             {workspaces?.length === 0 && <p style={{ color: '#6b7280' }}>还没有工作区。</p>}
@@ -111,6 +126,7 @@ export default function App() {
         <>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
             <button style={ghostBtn} onClick={() => setView({ name: 'workspaces' })}>← 工作区</button>
+            <button style={ghostBtn} onClick={() => setView({ name: 'docs', workspaceId })}>文档</button>
             <h1 style={{ margin: 0, fontSize: 22 }}>看板</h1>
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -166,6 +182,83 @@ export default function App() {
               </div>
             ))}
             {boards?.length === 0 && <p style={{ color: '#6b7280' }}>还没有看板。</p>}
+          </div>
+        </>
+      )}
+
+      {view.name === 'docs' && (
+        <>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <button style={ghostBtn} onClick={() => setView({ name: 'boards', workspaceId })}>← 看板</button>
+            <h1 style={{ margin: 0, fontSize: 22 }}>文档</h1>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <input
+              placeholder="新文档标题"
+              value={boardTitle}
+              onChange={(e) => setBoardTitle(e.target.value)}
+              style={inputStyle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && boardTitle.trim()) {
+                  createDocument.mutate(boardTitle.trim(), {
+                    onSuccess: (doc) => {
+                      setBoardTitle('');
+                      setView({ name: 'doc', docId: doc.id, workspaceId });
+                    },
+                  });
+                }
+              }}
+            />
+            <button
+              style={btnStyle}
+              disabled={!boardTitle.trim() || createDocument.isPending}
+              onClick={() =>
+                createDocument.mutate(boardTitle.trim(), {
+                  onSuccess: (doc) => {
+                    setBoardTitle('');
+                    setView({ name: 'doc', docId: doc.id, workspaceId });
+                  },
+                })
+              }
+            >
+              新建文档
+            </button>
+          </div>
+          <div>
+            {(documents ?? []).map((doc) => (
+              <div key={doc.id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                <button
+                  onClick={() => setView({ name: 'doc', docId: doc.id, workspaceId })}
+                  style={{ ...cardBtnStyle, flex: 1, textAlign: 'left', marginBottom: 0 }}
+                >
+                  <strong>{doc.icon ? `${doc.icon} ` : ''}{doc.title}</strong>
+                </button>
+                <button
+                  style={ghostBtn}
+                  title="重命名"
+                  onClick={() => {
+                    const next = window.prompt('新的文档标题', doc.title);
+                    if (next?.trim() && next.trim() !== doc.title) {
+                      renameDocument.mutate({ id: doc.id, title: next.trim() });
+                    }
+                  }}
+                >
+                  ✎
+                </button>
+                <button
+                  style={{ ...ghostBtn, color: '#cf1322' }}
+                  title="删除文档"
+                  onClick={() => {
+                    if (window.confirm(`删除文档「${doc.title}」？`)) {
+                      deleteDocument.mutate(doc.id);
+                    }
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            {documents?.length === 0 && <p style={{ color: '#6b7280' }}>还没有文档。</p>}
           </div>
         </>
       )}
@@ -283,7 +376,133 @@ export default function App() {
           </div>
         </>
       )}
+
+      {view.name === 'doc' && (
+        <>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <button style={ghostBtn} onClick={() => setView({ name: 'docs', workspaceId })}>← 文档</button>
+            <h1 style={{ margin: 0, fontSize: 22 }}>
+              {docTree?.icon ? `${docTree.icon} ` : ''}
+              {docTree?.title ?? '文档'}
+            </h1>
+          </div>
+          <div style={{ maxWidth: 720 }}>
+            {(docTree?.blocks ?? []).map((block) => (
+              <DocBlock key={block.id} block={block} depth={0} updateBlocks={updateBlocks} />
+            ))}
+            {(docTree?.blocks ?? []).length === 0 && <p style={{ color: '#6b7280' }}>空文档。</p>}
+          </div>
+        </>
+      )}
     </main>
+  );
+}
+
+/** 桌面端文档块渲染（只读 + todo 勾选 + 标题内联重命名）。 */
+function DocBlock({
+  block,
+  depth,
+  updateBlocks,
+}: {
+  block: BlockNode;
+  depth: number;
+  updateBlocks: ReturnType<typeof useUpdateBlocks>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(block.content ?? '');
+  const checked = (() => {
+    try {
+      return !!JSON.parse(block.properties ?? '{}').checked;
+    } catch {
+      return false;
+    }
+  })();
+
+  const render = () => {
+    const base: React.CSSProperties = {
+      width: '100%',
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: 'inherit',
+      padding: '2px 0',
+      fontSize: 15,
+      lineHeight: 1.6,
+      textDecoration: block.type === 'todo' && checked ? 'line-through' : 'none',
+      color: block.type === 'todo' && checked ? '#9b9a97' : '#37352f',
+    };
+    switch (block.type) {
+      case 'heading_1':
+        return <div style={{ ...base, fontSize: 26, fontWeight: 700 }}>{block.content}</div>;
+      case 'heading_2':
+        return <div style={{ ...base, fontSize: 21, fontWeight: 600 }}>{block.content}</div>;
+      case 'heading_3':
+        return <div style={{ ...base, fontSize: 17, fontWeight: 600 }}>{block.content}</div>;
+      case 'quote':
+        return <div style={{ ...base, borderLeft: '3px solid #d3d1cb', paddingLeft: 12 }}>{block.content}</div>;
+      case 'code':
+        return (
+          <pre style={{ ...base, background: '#f7f6f3', borderRadius: 6, padding: '10px 12px', fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap' }}>
+            {block.content}
+          </pre>
+        );
+      case 'divider':
+        return <div style={{ height: 1, background: '#e4e3dd', margin: '8px 0' }} />;
+      case 'todo':
+        return (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+            <input
+              type="checkbox"
+              style={{ marginTop: 4, width: 16, height: 16, accentColor: '#2f54eb' }}
+              checked={checked}
+              onChange={(e) =>
+                updateBlocks.mutate([
+                  { op: 'upsert', block: { id: block.id, properties: JSON.stringify({ checked: e.target.checked }) } },
+                ])
+              }
+            />
+            <div style={{ ...base, flex: 1 }}>{block.content}</div>
+          </div>
+        );
+      default:
+        if (editing) {
+          return (
+            <input
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={() => {
+                setEditing(false);
+                if (draft !== (block.content ?? '')) {
+                  updateBlocks.mutate([{ op: 'upsert', block: { id: block.id, content: draft } }]);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                if (e.key === 'Escape') {
+                  setDraft(block.content ?? '');
+                  setEditing(false);
+                }
+              }}
+              style={{ ...base, background: '#f7f6f3' }}
+            />
+          );
+        }
+        return (
+          <div style={{ ...base, cursor: 'text', borderRadius: 3, paddingLeft: 2 }} onClick={() => { setDraft(block.content ?? ''); setEditing(true); }}>
+            {block.content}
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div style={{ marginLeft: depth * 20 }}>
+      {render()}
+      {(block.children ?? []).map((child) => (
+        <DocBlock key={child.id} block={child} depth={depth + 1} updateBlocks={updateBlocks} />
+      ))}
+    </div>
   );
 }
 
@@ -306,6 +525,7 @@ const CARD_COLORS: Record<string, string> = {
   pink: '#C14C8A',
   red: '#D44C47',
 };
+
 const btnStyle: React.CSSProperties = {
   padding: '8px 16px',
   borderRadius: 8,
@@ -315,6 +535,7 @@ const btnStyle: React.CSSProperties = {
   cursor: 'pointer',
   fontSize: 14,
 };
+
 const ghostBtn: React.CSSProperties = {
   padding: '6px 12px',
   borderRadius: 8,
@@ -323,6 +544,7 @@ const ghostBtn: React.CSSProperties = {
   cursor: 'pointer',
   fontSize: 13,
 };
+
 const cardBtnStyle: React.CSSProperties = {
   padding: '12px 16px',
   marginBottom: 8,
