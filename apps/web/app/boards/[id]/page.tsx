@@ -1453,6 +1453,64 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     </div>
                   );
                 })}
+                {assigneeOptions.length > 0 && (
+                  <div className="notion-stats-section">
+                    <div className="notion-stats-title">按负责人</div>
+                    {assigneeOptions.map((a) => {
+                      const list = (cards ?? []).filter((c) => (c.assigneeName ?? '') === a);
+                      const done = list.filter((c) => c.checked).length;
+                      const rate = Math.round((done / list.length) * 100);
+                      return (
+                        <div key={a} className="notion-stat-row">
+                          <div className="notion-stat-label">
+                            <span style={{ fontWeight: 600 }}>{a}</span>
+                            <span className="muted">
+                              {done} / {list.length}（{rate}%）
+                            </span>
+                          </div>
+                          <div className="notion-progress-track">
+                            <div
+                              className="notion-progress-bar"
+                              style={{
+                                width: `${rate}%`,
+                                background: rate === 100 ? '#52c41a' : '#2f6fec',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {labelOptions.length > 0 && (
+                  <div className="notion-stats-section">
+                    <div className="notion-stats-title">按标签</div>
+                    {labelOptions.map((l) => {
+                      const list = (cards ?? []).filter((c) => (c.labels ?? []).includes(l));
+                      const done = list.filter((c) => c.checked).length;
+                      const rate = Math.round((done / list.length) * 100);
+                      return (
+                        <div key={l} className="notion-stat-row">
+                          <div className="notion-stat-label">
+                            <span style={{ fontWeight: 600 }}>{l}</span>
+                            <span className="muted">
+                              {done} / {list.length}（{rate}%）
+                            </span>
+                          </div>
+                          <div className="notion-progress-track">
+                            <div
+                              className="notion-progress-bar"
+                              style={{
+                                width: `${rate}%`,
+                                background: rate === 100 ? '#52c41a' : '#2f6fec',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>

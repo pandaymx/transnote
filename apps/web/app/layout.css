@@ -620,6 +620,18 @@ input[type='file'] {
   color: #37352f;
 }
 
+/** 统计弹窗分组（按负责人/标签）。 */
+.notion-stats-section {
+  margin-top: 18px;
+}
+
+.notion-stats-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #37352f;
+}
+
 .notion-card.selected {
   outline: 2px solid #2f6fec;
   outline-offset: -2px;
