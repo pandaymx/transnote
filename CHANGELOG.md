@@ -1,3 +1,13 @@
+## [1.15.0](https://github.com/pandaymx/transnote/compare/v1.14.0...v1.15.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板列删除与负责人优先级筛选对齐 Notion ([460b649](https://github.com/pandaymx/transnote/commit/460b64937b0717006b12e23fc73b774f888f97a0))
+
+### Bug Fixes
+
+* **ci:** 排除 semantic-release 自动提交防发布循环 ([fc0a10b](https://github.com/pandaymx/transnote/commit/fc0a10bfce1ab15d38ce1730925d99b009b1296f))
+
 ## [1.14.0](https://github.com/pandaymx/transnote/compare/v1.13.0...v1.14.0) (2026-09-07)
 
 ### Features
