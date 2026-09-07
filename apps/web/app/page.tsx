@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
+  useBoardCards,
   useBoards,
   useCreateWorkspace,
   useDeleteBoard,
@@ -12,12 +13,76 @@ import {
 } from '@transnote/core';
 import { useBoardUi } from '@transnote/core';
 
+/** 首页看板项：标题 + 完成率进度 + 复制/删除（Notion 首页待办总览）。 */
+function BoardMini({
+  wsId,
+  board,
+}: {
+  wsId: string;
+  board: { id: string; title: string; layout?: string | null };
+}) {
+  const { data: cards } = useBoardCards(board.id);
+  const setWorkspace = useBoardUi((s) => s.setWorkspace);
+  const duplicateBoard = useDuplicateBoard(wsId);
+  const deleteBoard = useDeleteBoard(wsId);
+  const router = useRouter();
+  const total = (cards ?? []).length;
+  const done = (cards ?? []).filter((c) => c.checked).length;
+  const rate = total ? Math.round((done / total) * 100) : 0;
+  return (
+    <div className="ws-board-item">
+      <Link
+        className="ws-board-link"
+        href={`/boards/${board.id}`}
+        onClick={() => setWorkspace(wsId)}
+      >
+        {board.title}
+      </Link>
+      {total > 0 && (
+        <span className="ws-board-progress">
+          <span className="ws-board-progress-track">
+            <span
+              className="ws-board-progress-bar"
+              style={{ width: `${rate}%`, background: rate === 100 ? '#52c41a' : '#2f6fec' }}
+            />
+          </span>
+          <span className="ws-board-progress-label">
+            {done}/{total}
+          </span>
+        </span>
+      )}
+      <span className="ws-board-actions">
+        <button
+          className="ws-board-btn"
+          title="复制看板"
+          onClick={() =>
+            duplicateBoard.mutate(board.id, {
+              onSuccess: (copy) => router.push(`/boards/${copy.id}`),
+            })
+          }
+        >
+          ⧉
+        </button>
+        <button
+          className="ws-board-btn"
+          title="删除看板"
+          onClick={() => {
+            if (window.confirm(`删除看板「${board.title}」？`)) {
+              deleteBoard.mutate(board.id);
+            }
+          }}
+        >
+          ✕
+        </button>
+      </span>
+    </div>
+  );
+}
+
 /** 工作区卡片：基本信息 + 最近看板预览（Notion 首页风格）。 */
 function WorkspaceCard({ ws }: { ws: { id: string; name: string; description?: string | null } }) {
   const { data: boards } = useBoards(ws.id);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
-  const duplicateBoard = useDuplicateBoard(ws.id);
-  const deleteBoard = useDeleteBoard(ws.id);
   const router = useRouter();
   return (
     <div className="card">
@@ -42,39 +107,7 @@ function WorkspaceCard({ ws }: { ws: { id: string; name: string; description?: s
       {boards && boards.length > 0 && (
         <div className="ws-boards">
           {boards.slice(0, 4).map((b) => (
-            <div key={b.id} className="ws-board-item">
-              <Link
-                className="ws-board-link"
-                href={`/boards/${b.id}`}
-                onClick={() => setWorkspace(ws.id)}
-              >
-                {b.title}
-              </Link>
-              <span className="ws-board-actions">
-                <button
-                  className="ws-board-btn"
-                  title="复制看板"
-                  onClick={() =>
-                    duplicateBoard.mutate(b.id, {
-                      onSuccess: (copy) => router.push(`/boards/${copy.id}`),
-                    })
-                  }
-                >
-                  ⧉
-                </button>
-                <button
-                  className="ws-board-btn"
-                  title="删除看板"
-                  onClick={() => {
-                    if (window.confirm(`删除看板「${b.title}」？`)) {
-                      deleteBoard.mutate(b.id);
-                    }
-                  }}
-                >
-                  ✕
-                </button>
-              </span>
-            </div>
+            <BoardMini key={b.id} wsId={ws.id} board={b} />
           ))}
           {boards.length > 4 && <span className="muted ws-board-more">+{boards.length - 4} 个</span>}
         </div>
