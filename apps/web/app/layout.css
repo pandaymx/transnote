@@ -423,3 +423,34 @@ input[type='file'] {
 .notion-card.dragging {
   opacity: 0.45;
 }
+
+/* 视图工具栏（Notion View：筛选 + 排序） */
+.notion-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.notion-tool-btn {
+  border: none;
+  background: #f1f1ef;
+  color: #787774;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 18px;
+}
+
+.notion-tool-btn:hover {
+  background: #e9e9e7;
+  color: #37352f;
+}
+
+.notion-tool-btn.active {
+  background: #eef1fb;
+  color: #2f6fec;
+}

@@ -11,7 +11,7 @@ import {
   useUpdateCard,
   sortCardsByColumn,
 } from '@transnote/core';
-import type { BoardColumn } from '@transnote/schema';
+import type { BoardCard, BoardColumn } from '@transnote/schema';
 
 /** 看板详情（T4c + T4d + V7）：Notion 代办样式——勾选完成/划线、属性徽标、列头计数、悬停操作、列内/跨列拖拽排序、内联编辑。 */
 export default function BoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +29,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
 
   const columns: BoardColumn[] = board?.columns ?? [];
   const byColumn = sortCardsByColumn(cards ?? []);
+  /** 视图工具栏（Notion View）：筛选完成态 + 排序。 */
+  const [filterState, setFilterState] = useState<'all' | 'open' | 'done'>('all');
+  const [sortBy, setSortBy] = useState<'manual' | 'due' | 'priority'>('manual');
   const [adding, setAdding] = useState<Record<string, boolean>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [dragCardId, setDragCardId] = useState<string | null>(null);
@@ -40,6 +43,21 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 属性徽标内联编辑（截止日期/负责人）；priority 用点击循环。 */
   const [editPill, setEditPill] = useState<{ cardId: string; field: 'due' | 'assignee'; value: string } | null>(null);
   const [pillValue, setPillValue] = useState('');
+
+  /** 按视图设置过滤+排序后的列卡片（排序不写回，仅展示；manual=后端 position 顺序）。 */
+  const viewCards = (colId: string): BoardCard[] => {
+    let list = byColumn[colId] ?? [];
+    if (filterState === 'open') list = list.filter((c) => !c.checked);
+    if (filterState === 'done') list = list.filter((c) => c.checked);
+    if (sortBy === 'due') {
+      list = [...list].sort(
+        (a, b) => (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31'),
+      );
+    } else if (sortBy === 'priority') {
+      list = [...list].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
+    }
+    return list;
+  };
 
   const onAdd = async (columnId: string) => {
     const title = drafts[columnId]?.trim();
@@ -148,9 +166,40 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {isLoading && <p className="muted">加载中…</p>}
+      <div className="notion-toolbar">
+        <div className="row" style={{ gap: 6 }}>
+          {(['all', 'open', 'done'] as const).map((f) => (
+            <button
+              key={f}
+              className={'notion-tool-btn' + (filterState === f ? ' active' : '')}
+              onClick={() => setFilterState(f)}
+            >
+              {f === 'all' ? '全部' : f === 'open' ? '未完成' : '已完成'}
+            </button>
+          ))}
+        </div>
+        <div className="row" style={{ gap: 6 }}>
+          {(
+            [
+              ['manual', '手动'],
+              ['due', '截止日期'],
+              ['priority', '优先级'],
+            ] as const
+          ).map(([s, label]) => (
+            <button
+              key={s}
+              className={'notion-tool-btn' + (sortBy === s ? ' active' : '')}
+              onClick={() => setSortBy(s)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="columns">
         {columns.map((col) => {
-          const colCards = byColumn[col.id] ?? [];
+          const colCards = viewCards(col.id);
+          const canDrag = sortBy === 'manual' && filterState === 'all';
           return (
             <div
               className="notion-column"
@@ -189,7 +238,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 <div
                   className={'notion-card' + (dragCardId === card.id ? ' dragging' : '')}
                   key={card.id}
-                  draggable
+                  draggable={canDrag}
                   onDragStart={(e) => {
                     setDragCardId(card.id);
                     e.dataTransfer.setData('text/plain', card.id);
