@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(project(":modules:shared"))
     implementation(project(":modules:identity"))
+    implementation(project(":modules:board"))   // 文档 → 看板（todo 块转卡片）
     // Spring Boot 4 BOM 统一版本
     implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
     implementation(libs.spring.boot.starter.data.jpa)

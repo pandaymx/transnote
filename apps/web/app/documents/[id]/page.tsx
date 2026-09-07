@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useDocumentTree, useRenameDocument, useUpdateBlocks } from '@transnote/core';
+import {
+  useDocumentToBoard,
+  useDocumentTree,
+  useRenameDocument,
+  useUpdateBlocks,
+} from '@transnote/core';
 import type { BlockNode } from '@transnote/schema';
 
 /** 块类型 → 展示样式名。 */
@@ -187,6 +192,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const { data: tree, isLoading } = useDocumentTree(docId);
   const renameDocument = useRenameDocument();
   const updateBlocks = useUpdateBlocks(docId);
+  const toBoard = useDocumentToBoard();
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
 
@@ -265,6 +271,24 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
             {tree?.title ?? '文档'}
           </h1>
         )}
+        <button
+          className="btn secondary"
+          disabled={!docId || toBoard.isPending}
+          onClick={() =>
+            toBoard.mutate(
+              { docId },
+              {
+                onSuccess: (r) => {
+                  alert(`已创建看板，转入 ${r.created} 个待办。`);
+                  window.location.href = `/boards/${r.boardId}`;
+                },
+              }
+            )
+          }
+          style={{ marginLeft: 16 }}
+        >
+          {toBoard.isPending ? '转换中…' : '转为看板'}
+        </button>
       </div>
 
       {(tree?.blocks ?? []).map((block, i) => (

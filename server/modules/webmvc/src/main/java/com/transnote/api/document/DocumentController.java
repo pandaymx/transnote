@@ -74,6 +74,21 @@ public class DocumentController {
     return ApiResponse.ok();
   }
 
+  /** 文档 → 看板：todo 块转卡片（boardId 空则自动新建看板）。 */
+  @PostMapping("/{id}/to-board")
+  public ApiResponse<ToBoardResponse> toBoard(
+      @PathVariable UUID id, @RequestBody(required = false) ToBoardRequest request) {
+    DocumentService.ToBoardResult result =
+        documentService.toBoard(id, request == null ? null : request.boardId());
+    return ApiResponse.ok(new ToBoardResponse(result.boardId(), result.created()));
+  }
+
+  /** 文档 → 看板请求体。 */
+  public record ToBoardRequest(UUID boardId) {}
+
+  /** 文档 → 看板响应体。 */
+  public record ToBoardResponse(UUID boardId, int created) {}
+
   private void applyUpdate(UUID documentId, BlockUpdate update) {
     BlockPayload block = update.block();
     if (block == null) {

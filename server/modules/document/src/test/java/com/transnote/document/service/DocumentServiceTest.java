@@ -3,17 +3,23 @@ package com.transnote.document.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.transnote.board.model.Board;
+import com.transnote.board.model.BoardColumn;
+import com.transnote.board.service.BoardService;
 import com.transnote.document.DocumentNotFoundException;
 import com.transnote.document.model.Document;
 import com.transnote.document.repo.DocumentRepository;
 import com.transnote.identity.workspace.Workspace;
 import com.transnote.identity.workspace.WorkspaceNotFoundException;
 import com.transnote.identity.workspace.WorkspaceService;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,13 +30,17 @@ class DocumentServiceTest {
 
   private DocumentRepository repository;
   private WorkspaceService workspaceService;
+  private BlockService blockService;
+  private BoardService boardService;
   private DocumentService service;
 
   @BeforeEach
   void setUp() {
     repository = mock(DocumentRepository.class);
     workspaceService = mock(WorkspaceService.class);
-    service = new DocumentService(repository, workspaceService);
+    blockService = mock(BlockService.class);
+    boardService = mock(BoardService.class);
+    service = new DocumentService(repository, workspaceService, blockService, boardService);
   }
 
   private Workspace workspace(UUID id) {
@@ -103,5 +113,62 @@ class DocumentServiceTest {
     when(repository.existsById(id)).thenReturn(false);
 
     assertThatThrownBy(() -> service.delete(id)).isInstanceOf(DocumentNotFoundException.class);
+  }
+
+  @Test
+  void toBoard_noBoardId_autoCreatesAndMapsTodos() {
+    UUID docId = UUID.randomUUID();
+    UUID wsId = UUID.randomUUID();
+    Document document = new Document(workspace(wsId), "任务清单", null);
+    ReflectionTestUtils.setField(document, "id", docId);
+    when(repository.findById(docId)).thenReturn(Optional.of(document));
+
+    Board board = new Board(workspace(wsId), "任务清单", "kanban", null);
+    ReflectionTestUtils.setField(board, "id", UUID.randomUUID());
+    when(boardService.create(wsId, "任务清单", "kanban", null)).thenReturn(board);
+
+    BoardColumn column = new BoardColumn(board, "待办", 0, "gray");
+    ReflectionTestUtils.setField(column, "id", UUID.randomUUID());
+    when(boardService.addColumn(board.getId(), "待办", "gray")).thenReturn(column);
+
+    BlockNode todo =
+        new BlockNode(
+            UUID.randomUUID(), null, "todo", "写周报", "{\"checked\":false}", 0, 0, List.of());
+    BlockNode done =
+        new BlockNode(
+            UUID.randomUUID(), null, "todo", "发邮件", "{\"checked\":true}", 1, 0, List.of());
+    when(blockService.tree(docId)).thenReturn(List.of(todo, done));
+
+    DocumentService.ToBoardResult result = service.toBoard(docId, null);
+
+    assertThat(result.created()).isEqualTo(2);
+    verify(boardService)
+        .addCard(
+            eq(board.getId()),
+            eq(column.getId()),
+            eq("写周报"),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(docId),
+            isNull(),
+            eq(false));
+    verify(boardService)
+        .addCard(
+            eq(board.getId()),
+            eq(column.getId()),
+            eq("发邮件"),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(docId),
+            isNull(),
+            eq(true));
   }
 }

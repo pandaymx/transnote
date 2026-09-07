@@ -120,6 +120,18 @@ export function useUpdateBlocks(id: string) {
   });
 }
 
+/** 文档 → 看板（todo 块转卡片）。 */
+export function useDocumentToBoard() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ docId, boardId }: { docId: string; boardId?: string }) =>
+      api().toBoard(docId, boardId),
+    onSuccess: (_r, { boardId }) => {
+      if (boardId) qc.invalidateQueries({ queryKey: QK.board(boardId) });
+    },
+  });
+}
+
 // ---- Board ----
 export function useBoards(workspaceId?: string) {
   return useQuery({

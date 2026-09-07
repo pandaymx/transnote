@@ -130,6 +130,13 @@ export class TransnoteClient {
     return request(this.baseUrl,`/api/v1/documents/${id}`, { method: 'DELETE' });
   }
 
+  toBoard(id: string, boardId?: string): Promise<{ boardId: string; created: number }> {
+    return request(this.baseUrl,`/api/v1/documents/${id}/to-board`, {
+      method: 'POST',
+      body: JSON.stringify(boardId ? { boardId } : {}),
+    });
+  }
+
   updateBlocks(id: string, updates: BlockUpdate[]): Promise<void> {
     return request(this.baseUrl,`/api/v1/documents/${id}/blocks`, {
       method: 'PATCH',
