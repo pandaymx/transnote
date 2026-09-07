@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   useAddCard,
@@ -20,6 +21,7 @@ import {
   useRestoreCard,
   useUpdateCard,
   useUpdateBoard,
+  useWorkspaces,
   sortCardsByColumn,
 } from '@transnote/core';
 import type { CardPatch } from '@transnote/core';
@@ -60,6 +62,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const restoreCard = useRestoreCard(boardId);
   const hardDeleteCard = useHardDeleteCard(boardId);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
+  const { data: workspaces } = useWorkspaces();
+  const workspaceName = workspaces?.find((w) => w.id === board?.workspaceId)?.name;
   /** 移动到其他看板（Notion Move to）：目标看板 + 目标列。 */
   const { data: boards } = useBoards(board?.workspaceId ?? '');
   const [moveBoardId, setMoveBoardId] = useState('');
@@ -489,6 +493,18 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             {board?.title ?? '看板'}
           </h1>
         )}
+        <div className="notion-breadcrumb">
+          <Link
+            href="/"
+            onClick={() => {
+              if (board) setWorkspace(board.workspaceId);
+            }}
+          >
+            {workspaceName || '工作区'}
+          </Link>
+          <span>/</span>
+          <span>{board?.title ?? ''}</span>
+        </div>
         <div className="row">
           <button className="btn secondary" onClick={() => router.back()}>
             返回
