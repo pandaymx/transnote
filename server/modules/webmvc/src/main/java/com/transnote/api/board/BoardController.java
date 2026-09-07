@@ -88,11 +88,13 @@ public class BoardController {
             request.title(),
             request.description(),
             request.assigneeId(),
+            request.assigneeName(),
             request.dueDate(),
             request.priority(),
             request.labels(),
             request.sourceDocumentId(),
-            request.sourceEvidence());
+            request.sourceEvidence(),
+            Boolean.TRUE.equals(request.checked()));
     return ApiResponse.ok(BoardCardResponse.from(card));
   }
 
