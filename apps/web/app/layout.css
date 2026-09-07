@@ -388,3 +388,16 @@ input[type='file'] {
 .notion-add-btn:hover {
   background: #dcdcd9;
 }
+
+/* 拖拽插入指示线（V7 列内/跨列排序） */
+.notion-drop-line {
+  height: 2px;
+  background: #2f6fec;
+  border-radius: 1px;
+  margin: 2px 0;
+  flex-shrink: 0;
+}
+
+.notion-card.dragging {
+  opacity: 0.45;
+}

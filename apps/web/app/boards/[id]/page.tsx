@@ -13,7 +13,7 @@ import {
 } from '@transnote/core';
 import type { BoardColumn } from '@transnote/schema';
 
-/** 看板详情（T4c + T4d）：Notion 代办样式——勾选完成/划线、属性徽标、列头计数、悬停操作、拖拽换列、内联编辑。 */
+/** 看板详情（T4c + T4d + V7）：Notion 代办样式——勾选完成/划线、属性徽标、列头计数、悬停操作、列内/跨列拖拽排序、内联编辑。 */
 export default function BoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [id, setId] = useState<string | null>(null);
@@ -33,6 +33,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [dragCardId, setDragCardId] = useState<string | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
+  /** 拖拽悬停的插入位置（列内/跨列共用，index=后端 position 语义）。 */
+  const [dropIndex, setDropIndex] = useState<{ colId: string; index: number } | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
 
@@ -49,13 +51,17 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     updateCard.mutate({ cardId, patch: { checked } });
   };
 
-  /** 拖拽结束：落到目标列末尾（position=目标列当前卡片数）。 */
+  /** 拖拽结束：落到 dropIndex 指示位置（默认目标列末尾，position=目标列当前卡片数）。 */
   const onDropColumn = (columnId: string) => {
     if (!dragCardId) return;
-    const targetCount = (byColumn[columnId] ?? []).filter((c) => c.id !== dragCardId).length;
-    updateCard.mutate({ cardId: dragCardId, patch: { columnId, position: targetCount } });
+    const idx =
+      dropIndex?.colId === columnId
+        ? dropIndex.index
+        : (byColumn[columnId] ?? []).filter((c) => c.id !== dragCardId).length;
+    updateCard.mutate({ cardId: dragCardId, patch: { columnId, position: idx } });
     setDragCardId(null);
     setOverColumnId(null);
+    setDropIndex(null);
   };
 
   const commitEdit = (cardId: string) => {
@@ -128,8 +134,15 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
               onDragOver={(e) => {
                 e.preventDefault();
                 setOverColumnId(col.id);
+                // 悬停列空白区（非卡片上）：指示列尾
+                setDropIndex({ colId: col.id, index: colCards.length });
               }}
-              onDragLeave={() => setOverColumnId((v) => (v === col.id ? null : v))}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setOverColumnId((v) => (v === col.id ? null : v));
+                  setDropIndex((v) => (v?.colId === col.id ? null : v));
+                }
+              }}
               onDrop={(e) => {
                 e.preventDefault();
                 onDropColumn(col.id);
@@ -148,7 +161,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 </button>
               </div>
 
-              {colCards.map((card) => (
+              {colCards.map((card, i) => (
                 <div
                   className={'notion-card' + (dragCardId === card.id ? ' dragging' : '')}
                   key={card.id}
@@ -158,11 +171,28 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     e.dataTransfer.setData('text/plain', card.id);
                     e.dataTransfer.effectAllowed = 'move';
                   }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setOverColumnId(col.id);
+                    // 以卡片中线为界，指示插入卡片前/后
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const before = e.clientY < r.top + r.height / 2;
+                    setDropIndex({ colId: col.id, index: before ? i : i + 1 });
+                  }}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setDropIndex((v) => (v?.colId === col.id ? null : v));
+                    }
+                  }}
                   onDragEnd={() => {
                     setDragCardId(null);
                     setOverColumnId(null);
+                    setDropIndex(null);
                   }}
                 >
+                  {dropIndex?.colId === col.id && dropIndex.index === i && (
+                    <div className="notion-drop-line" />
+                  )}
                   <button
                     className="notion-card-del"
                     title="删除卡片"
@@ -229,6 +259,10 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   )}
                 </div>
               ))}
+
+              {dropIndex?.colId === col.id && dropIndex.index === colCards.length && (
+                <div className="notion-drop-line" />
+              )}
 
               {adding[col.id] ? (
                 <div className="notion-add-input-row">
