@@ -5,6 +5,7 @@ import {
   useBoards,
   useCreateBoard,
   useCreateWorkspace,
+  useUpdateCard,
   useWorkspaces,
   sortCardsByColumn,
 } from '@transnote/core';
@@ -39,6 +40,7 @@ export default function App() {
   const boardId = view.name === 'board' ? view.boardId : '';
   const { data: board } = useBoard(boardId);
   const { data: cards } = useBoardCards(boardId);
+  const updateCard = useUpdateCard(boardId);
 
   const onNewWorkspace = async () => {
     setError(null);
@@ -142,25 +144,51 @@ export default function App() {
             <h1 style={{ margin: 0, fontSize: 22 }}>{board?.title ?? '看板'}</h1>
           </div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            {columns.map((col) => (
-              <div key={col.id} style={{ flex: '1 1 240px', minWidth: 220, background: '#f6f7f9', borderRadius: 12, padding: 12 }}>
-                <h3 style={{ margin: '0 0 8px', fontSize: 14 }}>{col.title}</h3>
-                {(byColumn[col.id] ?? []).map((card) => (
-                  <div
-                    key={card.id}
-                    style={{ background: '#fff', borderRadius: 10, padding: '10px 12px', marginBottom: 8, border: '1px solid #e4e3dd' }}
-                  >
-                    <div>{card.title}</div>
-                    <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
-                      {card.assigneeName && <span>👤 {card.assigneeName}　</span>}
-                      {card.dueDate && <span>📅 {card.dueDate}</span>}
-                      {card.priority != null && <span>　P{card.priority}</span>}
-                    </div>
+            {columns.map((col) => {
+              const colCards = byColumn[col.id] ?? [];
+              const done = colCards.filter((c) => c.checked).length;
+              const rate = colCards.length ? Math.round((done / colCards.length) * 100) : 0;
+              return (
+                <div key={col.id} style={{ flex: '1 1 240px', minWidth: 220, background: '#f6f7f9', borderRadius: 12, padding: 12 }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: 14 }}>
+                    {col.title} <span style={{ color: '#6b7280', fontWeight: 400 }}>{done}/{colCards.length}</span>
+                  </h3>
+                  <div style={{ height: 4, borderRadius: 2, background: '#e4e3dd', marginBottom: 8, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${rate}%`, background: rate === 100 ? '#52c41a' : '#2f6fec' }} />
                   </div>
-                ))}
-                {(byColumn[col.id] ?? []).length === 0 && <p style={{ color: '#6b7280', fontSize: 12 }}>空</p>}
-              </div>
-            ))}
+                  {colCards.map((card) => (
+                    <div
+                      key={card.id}
+                      style={{ background: '#fff', borderRadius: 10, padding: '10px 12px', marginBottom: 8, border: '1px solid #e4e3dd' }}
+                    >
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <button
+                          onClick={() => updateCard.mutate({ cardId: card.id, patch: { checked: !card.checked } })}
+                          style={{
+                            width: 16, height: 16, borderRadius: 4, flex: 'none', marginTop: 2, cursor: 'pointer',
+                            border: card.checked ? 'none' : '1.5px solid #c9c9c7',
+                            background: card.checked ? '#2f6fec' : '#fff', color: '#fff', fontSize: 11, lineHeight: '16px', padding: 0,
+                          }}
+                        >
+                          {card.checked ? '✓' : ''}
+                        </button>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ textDecoration: card.checked ? 'line-through' : 'none', color: card.checked ? '#9b9a97' : '#37352f' }}>
+                            {card.title}
+                          </div>
+                          <div style={{ color: '#6b7280', fontSize: 12, marginTop: 4 }}>
+                            {card.assigneeName && <span>👤 {card.assigneeName}　</span>}
+                            {card.dueDate && <span>📅 {card.dueDate}</span>}
+                            {card.priority != null && <span>　P{card.priority}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {colCards.length === 0 && <p style={{ color: '#6b7280', fontSize: 12 }}>空</p>}
+                </div>
+              );
+            })}
             {columns.length === 0 && <p style={{ color: '#6b7280' }}>看板还没有列。</p>}
           </div>
         </>
