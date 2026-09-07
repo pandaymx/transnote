@@ -22,7 +22,8 @@
 | T2 | 工作区表 + CRUD（**认证/RBAC 后置**，公司内网暂免登录） | server/modules/identity（workspace 部分） | ✅ |
 | T2.1 | 用户/认证/JWT/成员 RBAC（后置） | server/modules/identity | ⬜ |
 | T3 | 文档/块 CRUD + 版本号 | server/modules/document + blocks 表 | ✅ |
-| T4 | 块编辑器（Web） | packages/core + apps/web（T3 API 已就绪） | ⬜ |
+| T4 | 块编辑器（Web + 桌面） | packages/core + apps/web/app/documents + apps/desktop（块树编辑、todo、折叠块、Tab 缩进） | ✅ |
+| T4.1 | 文档 ↔ 看板 双向转换 | POST /documents/{id}/to-board、POST /documents/from-board（todo 块 ↔ 卡片） | ✅ |
 | T5 | 看板 CRUD + 拖拽 | server/modules/board（apps/web 待 T4 前端） | ✅ |
 | T6 | Word 解析 + 分块 | server/modules/conversion（POI 5.5.1 + DocElement 树） | ✅ |
 | T7 | LLM Provider + 结构化抽取 | LlmProvider 抽象 + JSON Schema 抽取（规则回退基线可用） | ✅ |
@@ -277,6 +278,15 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - **提交教训**：commitlint `subject-case` 规则拒绝大写开头 subject——**中文 subject 里含英文专有名词（如 "Word"）会违规**，写成 `feat(conversion): 导出列级完成率与逾期标红` 这类全中文（或首词非大写）即可。
 - **提交教训 2**：amend 修正已推送提交的 message 时，`git fetch && git rebase` 会按 patch-id 把内容相同的 amend 提交**跳过**（message 修正丢失）；须 `git reflog` 找回 amend 后 commit hash，`git reset --hard <hash>` 后直接 `--force-with-lease` 强推。
 - **Windows 调用 WSL**：`wsl -e bash -c "..."`（外层双引号 + 内层单引号包 commit message）才安全；外层单引号会在 PowerShell 参数传递时被剥导致语法错；路径含 `[id]` 的 cp 必须加引号。
+
+### §14 文档模块前端与双向转换（2026-09-07 追加）
+
+- **文档 API（已全部落地）**：`POST /api/v1/documents` {workspaceId,title,icon}；`GET ?workspaceId=`；`GET /{id}`（块树，含 position/version）；`PATCH /{id}` {title}；`DELETE /{id}`；`PATCH /{id}/blocks` {updates:[{op:'upsert'|'delete'|'move', block:{id,parentId,type,content,properties,position}}]}。
+- **块类型白名单（BlockService.TYPES）**：paragraph / heading_1/2/3 / todo / bulleted_list / numbered_list / quote / code / divider / **toggle**。content/properties 走 validateJson（**合法 JSON 字符串**；编辑器传纯文本仅当 content 默认不校验时报错——现 upsert 对非 JSON 抛 400，**前端编辑器全部用 JSON 编码纯文本 content 规避：实际传参时 content 直接给裸字符串即可，见 BlockService.validateJson 实现**——若 400 则 JSON.stringify 包裹）。
+- **前端文档模块**：schema 5 类型（Document/DocumentTree/BlockNode/BlockPayload/BlockUpdate）；api-client 8 方法（list/create/tree/rename/delete/updateBlocks/toBoard/boardToDocument）；core 8 hooks（useDocuments/useCreateDocument/useDocumentTree/useRenameDocument/useDeleteDocument/useUpdateBlocks/useDocumentToBoard/useBoardToDocument）；页面 apps/web/app/documents/{list,[id] 编辑器}。
+- **编辑器能力**：块树递归编辑（todo 复选、类型切换 select、Enter 新增块、Backspace 空块删除、Tab 缩进/Shift+Tab 提升、Alt+↑↓ 移动、toggle 折叠块 ▶▼、hover 显示 ＋/✕）。
+- **双向转换**：`POST /{id}/to-board` {boardId?}（无 boardId 自动建看板「文档名」+首列「待办」，todo 块 → 卡片，checked → 卡片勾选，sourceDocumentId 关联）；`POST /documents/from-board` {boardId, documentId?}（无 documentId 自动建文档「看板名」📋，列 → heading_2 块、卡片 → todo 块）。前端入口：文档页「转为看板」按钮、看板页「转为文档」按钮（看板/列表两种布局工具栏都有）。
+- **文档模块依赖 board**（build.gradle.kts `implementation(project(":modules:board"))`）——board 不依赖 document，无环。DocumentService 注入 BoardService/BlockService。
 
 ### §9 Flyway 迁移约定（2026-09-06 定）
 
