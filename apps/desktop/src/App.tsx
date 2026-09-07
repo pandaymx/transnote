@@ -5,6 +5,8 @@ import {
   useBoards,
   useCreateBoard,
   useCreateWorkspace,
+  useDeleteBoard,
+  useDuplicateBoard,
   useUpdateCard,
   useWorkspaces,
   sortCardsByColumn,
@@ -37,6 +39,8 @@ export default function App() {
   const workspaceId = view.name === 'workspaces' ? '' : view.workspaceId;
   const { data: boards } = useBoards(workspaceId);
   const createBoard = useCreateBoard(workspaceId);
+  const duplicateBoard = useDuplicateBoard(workspaceId);
+  const deleteBoard = useDeleteBoard(workspaceId);
   const boardId = view.name === 'board' ? view.boardId : '';
   const { data: board } = useBoard(boardId);
   const { data: cards } = useBoardCards(boardId);
@@ -123,14 +127,43 @@ export default function App() {
           </div>
           <div>
             {(boards ?? []).map((b) => (
-              <button
+              <div
                 key={b.id}
-                onClick={() => setView({ name: 'board', boardId: b.id, workspaceId })}
-                style={{ ...cardBtnStyle, display: 'block', width: '100%', textAlign: 'left' }}
+                style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}
               >
-                <strong>{b.title}</strong>
-                <div style={{ color: '#6b7280', fontSize: 13 }}>{b.layout === 'kanban' ? '看板布局' : '列表'} · 打开 →</div>
-              </button>
+                <button
+                  onClick={() => setView({ name: 'board', boardId: b.id, workspaceId })}
+                  style={{ ...cardBtnStyle, flex: 1, textAlign: 'left', marginBottom: 0 }}
+                >
+                  <strong>{b.title}</strong>
+                  <div style={{ color: '#6b7280', fontSize: 13 }}>
+                    {b.layout === 'kanban' ? '看板布局' : '列表'} · 打开 →
+                  </div>
+                </button>
+                <button
+                  title="复制看板"
+                  style={ghostBtn}
+                  onClick={() =>
+                    duplicateBoard.mutate(b.id, {
+                      onSuccess: (copy) =>
+                        setView({ name: 'board', boardId: copy.id, workspaceId }),
+                    })
+                  }
+                >
+                  ⧉
+                </button>
+                <button
+                  title="删除看板"
+                  style={{ ...ghostBtn, color: '#cf1322' }}
+                  onClick={() => {
+                    if (window.confirm(`删除看板「${b.title}」？卡片将一并删除。`)) {
+                      deleteBoard.mutate(b.id);
+                    }
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             ))}
             {boards?.length === 0 && <p style={{ color: '#6b7280' }}>还没有看板。</p>}
           </div>
@@ -142,6 +175,30 @@ export default function App() {
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
             <button style={ghostBtn} onClick={() => setView({ name: 'boards', workspaceId })}>← 看板</button>
             <h1 style={{ margin: 0, fontSize: 22 }}>{board?.title ?? '看板'}</h1>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+              <button
+                style={ghostBtn}
+                onClick={() =>
+                  duplicateBoard.mutate(boardId, {
+                    onSuccess: (copy) =>
+                      setView({ name: 'board', boardId: copy.id, workspaceId }),
+                  })
+                }
+              >
+                复制
+              </button>
+              <button
+                style={{ ...ghostBtn, color: '#cf1322' }}
+                onClick={() => {
+                  if (window.confirm('删除当前看板？')) {
+                    deleteBoard.mutate(boardId);
+                    setView({ name: 'boards', workspaceId });
+                  }
+                }}
+              >
+                删除
+              </button>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
             {columns.map((col) => {
