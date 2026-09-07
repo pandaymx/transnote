@@ -1,3 +1,9 @@
+## [1.16.0](https://github.com/pandaymx/transnote/compare/v1.15.0...v1.16.0) (2026-09-07)
+
+### Features
+
+* **web:** 看板列重命名与卡片标签徽标对齐 Notion ([560ad90](https://github.com/pandaymx/transnote/commit/560ad905549ebab939117c29528ba4793b649854))
+
 ## [1.15.0](https://github.com/pandaymx/transnote/compare/v1.14.0...v1.15.0) (2026-09-07)
 
 ### Features
