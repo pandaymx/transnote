@@ -67,11 +67,12 @@ export function useCreateBoard(workspaceId: string) {
   });
 }
 
-/** 看板视图切换（看板/列表），成功后刷新看板。 */
-export function useUpdateBoardLayout(boardId: string) {
+/** 看板更新（改名/视图切换），成功后刷新看板。 */
+export function useUpdateBoard(boardId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (layout: string) => api().updateBoard(boardId, { layout }),
+    mutationFn: (patch: { title?: string; layout?: string }) =>
+      api().updateBoard(boardId, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: QK.board(boardId) }),
   });
 }

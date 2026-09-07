@@ -16,7 +16,7 @@ import {
   useRenameColumn,
   useRestoreCard,
   useUpdateCard,
-  useUpdateBoardLayout,
+  useUpdateBoard,
   sortCardsByColumn,
 } from '@transnote/core';
 import type { CardPatch } from '@transnote/core';
@@ -45,7 +45,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const { data: cards, isLoading } = useBoardCards(boardId);
   const addCard = useAddCard(boardId);
   const updateCard = useUpdateCard(boardId);
-  const updateBoardLayout = useUpdateBoardLayout(boardId);
+  const updateBoard = useUpdateBoard(boardId);
   const deleteCard = useDeleteCard(boardId);
   const deleteColumn = useDeleteColumn(boardId);
   const renameColumn = useRenameColumn(boardId);
@@ -97,6 +97,17 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 卡片描述多行编辑（textarea，Enter 保存 / Shift+Enter 换行）。 */
   const [editDesc, setEditDesc] = useState<{ cardId: string } | null>(null);
   const [descValue, setDescValue] = useState('');
+  /** 看板标题内联编辑（Notion 点击标题改名）。 */
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
+
+  const commitTitle = () => {
+    const t = titleDraft.trim();
+    setEditingTitle(false);
+    if (t && t !== board?.title) {
+      updateBoard.mutate({ title: t });
+    }
+  };
 
   /** 全局快捷键（Notion 风格）：n 新建第一个列卡片、/ 聚焦搜索、Esc 关闭弹窗。 */
   const searchRef = useRef<HTMLInputElement>(null);
@@ -327,7 +338,31 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <div>
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 16 }}>
-        <h1 style={{ margin: 0 }}>{board?.title ?? '看板'}</h1>
+        {editingTitle ? (
+          <input
+            className="notion-title-input"
+            autoFocus
+            type="text"
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onBlur={commitTitle}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitTitle();
+              if (e.key === 'Escape') setEditingTitle(false);
+            }}
+          />
+        ) : (
+          <h1
+            style={{ margin: 0, cursor: 'text' }}
+            title="点击重命名看板"
+            onClick={() => {
+              setTitleDraft(board?.title ?? '');
+              setEditingTitle(true);
+            }}
+          >
+            {board?.title ?? '看板'}
+          </h1>
+        )}
         <div className="row">
           <button className="btn secondary" onClick={() => router.back()}>
             返回
@@ -455,7 +490,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
               <button
                 key={l}
                 className={'notion-tool-btn' + ((board?.layout ?? 'kanban') === l ? ' active' : '')}
-                onClick={() => updateBoardLayout.mutate(l)}
+                onClick={() => updateBoard.mutate({ layout: l })}
               >
                 {l === 'kanban' ? '看板' : '列表'}
               </button>
