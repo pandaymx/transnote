@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   useDocumentToBoard,
@@ -239,6 +239,31 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
 
+  /** 块树统计：块数 / 字数 / 待办完成度。 */
+  const stats = useMemo(() => {
+    let blocks = 0;
+    let words = 0;
+    let todos = 0;
+    let dones = 0;
+    const walk = (bs: BlockNode[]) => {
+      for (const b of bs) {
+        blocks += 1;
+        words += (b.content ?? '').length;
+        if (b.type === 'todo') {
+          todos += 1;
+          try {
+            if (!!JSON.parse(b.properties ?? '{}').checked) dones += 1;
+          } catch {
+            // 忽略非法 properties
+          }
+        }
+        if (b.children?.length) walk(b.children);
+      }
+    };
+    walk(tree?.blocks ?? []);
+    return { blocks, words, todos, dones };
+  }, [tree]);
+
   const onUpdate = (blockId: string, content: string, properties?: string) => {
     updateBlocks.mutate([
       { op: 'upsert', block: { id: blockId, content, ...(properties ? { properties } : {}) } },
@@ -341,6 +366,11 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
             导出 Word
           </a>
         )}
+      </div>
+
+      <div className="doc-stats">
+        {stats.blocks} 个块 · {stats.words} 字
+        {stats.todos > 0 && <> · 待办 {stats.dones}/{stats.todos} 完成</>}
       </div>
 
       {(tree?.blocks ?? []).map((block, i) => (

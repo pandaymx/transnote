@@ -844,6 +844,13 @@ mark.notion-hl {
   color: #37352f;
 }
 
+.doc-stats {
+  font-size: 12px;
+  color: #9b9a97;
+  margin: -6px 0 14px;
+  padding-left: 4px;
+}
+
 .notion-card.selected {
   outline: 2px solid #2f6fec;
   outline-offset: -2px;
