@@ -181,8 +181,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterState, sortBy, collapsed, lsKey]);
 
-  /** 全局快捷键（Notion 风格）：n 新建第一个列卡片、/ 聚焦搜索、Esc 关闭弹窗。 */
+  /** 全局快捷键（Notion 风格）：n 新建第一个列卡片、/ 聚焦搜索、? 快捷键帮助、Esc 关闭弹窗。 */
   const searchRef = useRef<HTMLInputElement>(null);
+  const [shortcutOpen, setShortcutOpen] = useState(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -192,12 +193,16 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
         setDetailCardId(null);
         setTrashOpen(false);
         setStatsOpen(false);
+        setShortcutOpen(false);
         return;
       }
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === '/' && searchRef.current) {
         e.preventDefault();
         searchRef.current.focus();
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShortcutOpen((s) => !s);
       } else if ((e.key === 'n' || e.key === 'N') && columns.length > 0) {
         setAdding((a) => ({ ...a, [columns[0].id]: true }));
       }
@@ -1409,6 +1414,37 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           );
         })()}
+
+      {shortcutOpen && (
+        <div className="notion-modal-overlay" onClick={() => setShortcutOpen(false)}>
+          <div className="notion-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="notion-modal-head">
+              <div className="notion-modal-title" style={{ fontSize: 16 }}>
+                快捷键
+              </div>
+              <button className="notion-modal-close" onClick={() => setShortcutOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="notion-shortcut-list">
+              {(
+                [
+                  ['n', '新建任务'],
+                  ['/', '聚焦搜索'],
+                  ['Shift + 点击卡片', '多选卡片'],
+                  ['?', '打开/关闭快捷键'],
+                  ['Esc', '关闭弹窗'],
+                ] as const
+              ).map(([k, d]) => (
+                <div key={k} className="notion-shortcut-row">
+                  <span className="notion-shortcut-key">{k}</span>
+                  <span className="muted">{d}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {statsOpen && (
         <div className="notion-modal-overlay" onClick={() => setStatsOpen(false)}>
