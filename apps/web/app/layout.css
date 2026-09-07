@@ -50,6 +50,21 @@ body {
   min-width: 0;
 }
 
+@media (max-width: 768px) {
+  .sidebar {
+    width: 128px;
+    padding: 16px 10px;
+  }
+
+  .sidebar .brand {
+    font-size: 15px;
+  }
+
+  .content {
+    padding: 16px 12px;
+  }
+}
+
 .card {
   background: #fff;
   border: 1px solid #e4e3dd;
