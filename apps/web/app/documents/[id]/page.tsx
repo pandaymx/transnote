@@ -6,6 +6,7 @@ import {
   useDocumentToBoard,
   useDocumentTree,
   useRenameDocument,
+  useUpdateDocumentIcon,
   useUpdateBlocks,
 } from '@transnote/core';
 import type { BlockNode } from '@transnote/schema';
@@ -234,6 +235,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
   const { data: tree, isLoading } = useDocumentTree(docId);
   const renameDocument = useRenameDocument();
+  const updateIcon = useUpdateDocumentIcon();
   const updateBlocks = useUpdateBlocks(docId);
   const toBoard = useDocumentToBoard();
   const [editingTitle, setEditingTitle] = useState(false);
@@ -353,6 +355,24 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
             {tree?.icon ? `${tree.icon} ` : ''}
             {tree?.title ?? '文档'}
           </h1>
+        )}
+        {!isLoading && !editingTitle && (
+          <input
+            type="text"
+            className="doc-icon-input"
+            defaultValue={tree?.icon ?? ''}
+            placeholder="📋"
+            maxLength={8}
+            title="设置文档图标（emoji）"
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v !== (tree?.icon ?? '')) updateIcon.mutate({ id: docId, icon: v });
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+              if (e.key === 'Escape') (e.target as HTMLInputElement).blur();
+            }}
+          />
         )}
         <button
           className="btn secondary"

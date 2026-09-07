@@ -60,6 +60,9 @@ public class DocumentController {
   @PatchMapping("/{id}")
   public ApiResponse<DocumentResponse> rename(
       @PathVariable UUID id, @Valid @RequestBody UpdateDocumentRequest request) {
+    if (request.icon() != null) {
+      return ApiResponse.ok(DocumentResponse.from(documentService.updateIcon(id, request.icon())));
+    }
     return ApiResponse.ok(DocumentResponse.from(documentService.rename(id, request.title())));
   }
 

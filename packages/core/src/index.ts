@@ -104,6 +104,18 @@ export function useRenameDocument() {
   });
 }
 
+/** 更新文档图标（emoji）。 */
+export function useUpdateDocumentIcon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, icon }: { id: string; icon: string }) =>
+      api().updateDocumentIcon(id, icon),
+    onSuccess: (_d, { id }) => {
+      qc.invalidateQueries({ queryKey: QK.document(id) });
+    },
+  });
+}
+
 export function useDeleteDocument(workspaceId: string) {
   const qc = useQueryClient();
   return useMutation({

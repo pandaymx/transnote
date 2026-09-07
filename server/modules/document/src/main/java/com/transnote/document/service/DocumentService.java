@@ -257,6 +257,14 @@ public class DocumentService {
     return repository.save(document);
   }
 
+  /** 更新图标（emoji 或空串清除）。 */
+  @Transactional
+  public Document updateIcon(UUID id, String icon) {
+    Document document = get(id);
+    document.setIcon(StringUtils.hasText(icon) ? icon.trim() : null);
+    return repository.save(document);
+  }
+
   @Transactional
   public void delete(UUID id) {
     if (!repository.existsById(id)) {

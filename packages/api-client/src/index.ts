@@ -126,6 +126,13 @@ export class TransnoteClient {
     });
   }
 
+  updateDocumentIcon(id: string, icon: string): Promise<Document> {
+    return request(this.baseUrl,`/api/v1/documents/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ icon }),
+    });
+  }
+
   deleteDocument(id: string): Promise<void> {
     return request(this.baseUrl,`/api/v1/documents/${id}`, { method: 'DELETE' });
   }
