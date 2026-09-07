@@ -121,6 +121,34 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   /** 看板标题内联编辑（Notion 点击标题改名）。 */
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
+  /** Shift 多选（Notion 多选批量操作）：选中卡片集合。 */
+  const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
+
+  const toggleSelectCard = (cardId: string) =>
+    setSelectedCards((s) => {
+      const next = new Set(s);
+      if (next.has(cardId)) {
+        next.delete(cardId);
+      } else {
+        next.add(cardId);
+      }
+      return next;
+    });
+
+  const clearSelection = () => setSelectedCards(new Set());
+
+  /** 批量操作（选中 N 张卡片）：删除 / 勾选完成 / 取消完成。 */
+  const batchAction = (action: 'delete' | 'done' | 'undone') => {
+    const ids = Array.from(selectedCards);
+    if (ids.length === 0) return;
+    if (action === 'delete') {
+      if (!window.confirm(`删除选中的 ${ids.length} 张卡片？`)) return;
+      ids.forEach((id) => deleteCard.mutate(id));
+    } else {
+      ids.forEach((id) => updateCard.mutate({ cardId: id, patch: { checked: action === 'done' } }));
+    }
+    clearSelection();
+  };
 
   const commitTitle = () => {
     const t = titleDraft.trim();
@@ -486,6 +514,23 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           </span>
         </div>
       )}
+      {selectedCards.size > 0 && (
+        <div className="notion-batch-bar">
+          <span className="notion-batch-count">已选 {selectedCards.size} 张</span>
+          <button className="btn secondary" onClick={() => batchAction('done')}>
+            勾选完成
+          </button>
+          <button className="btn secondary" onClick={() => batchAction('undone')}>
+            取消完成
+          </button>
+          <button className="btn" onClick={() => batchAction('delete')}>
+            删除
+          </button>
+          <button className="btn secondary" onClick={clearSelection}>
+            取消选择
+          </button>
+        </div>
+      )}
       <div className="notion-toolbar">
         <div className="row" style={{ gap: 6 }}>
           <input
@@ -609,7 +654,19 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           {allViewCards.map((card) => {
             const col = columns.find((c) => c.id === card.columnId);
             return (
-              <div key={card.id} className="notion-list-row" onClick={() => setDetailCardId(card.id)}>
+              <div
+                key={card.id}
+                className={
+                  'notion-list-row' + (selectedCards.has(card.id) ? ' selected' : '')
+                }
+                onClick={(e) => {
+                  if (e.shiftKey) {
+                    toggleSelectCard(card.id);
+                  } else {
+                    setDetailCardId(card.id);
+                  }
+                }}
+              >
                 <span
                   className={'notion-checkbox' + (card.checked ? ' checked' : '')}
                   onClick={(e) => {
@@ -830,10 +887,22 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   className={
                     'notion-card' +
                     (card.checked ? ' done' : '') +
-                    (dragCardId === card.id ? ' dragging' : '')
+                    (dragCardId === card.id ? ' dragging' : '') +
+                    (selectedCards.has(card.id) ? ' selected' : '')
                   }
                   draggable={canDrag && !card.checked}
-                  onClick={() => setDetailCardId(card.id)}
+                  onClick={(e) => {
+                    if (e.shiftKey) {
+                      toggleSelectCard(card.id);
+                    } else {
+                      if (selectedCards.size > 0) {
+                        setDetailCardId(null);
+                        clearSelection();
+                      } else {
+                        setDetailCardId(card.id);
+                      }
+                    }
+                  }}
                   onDragStart={(e) => {
                     setDragCardId(card.id);
                     e.dataTransfer.setData('text/plain', card.id);
