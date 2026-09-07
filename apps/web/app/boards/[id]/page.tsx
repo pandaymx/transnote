@@ -1354,6 +1354,11 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                         })
                       }
                     />
+                    {card.dueDate &&
+                      !card.checked &&
+                      card.dueDate < new Date().toISOString().slice(0, 10) && (
+                        <span className="notion-overdue-badge">已逾期</span>
+                      )}
                   </label>
                   <label>
                     优先级

@@ -679,6 +679,18 @@ mark.notion-hl {
   padding: 0 1px;
 }
 
+/** 详情弹窗逾期徽标。 */
+.notion-overdue-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: #fff1f0;
+  color: #cf1322;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .notion-card.selected {
   outline: 2px solid #2f6fec;
   outline-offset: -2px;
