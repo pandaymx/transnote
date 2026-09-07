@@ -1,3 +1,9 @@
+## [1.12.1](https://github.com/pandaymx/transnote/compare/v1.12.0...v1.12.1) (2026-09-07)
+
+### Bug Fixes
+
+* **board:** 建卡接口补 assigneeName 与 checked 透传 ([597076e](https://github.com/pandaymx/transnote/commit/597076ecdf32782b545f7c05b3e01e3627ec9d97))
+
 ## [1.12.0](https://github.com/pandaymx/transnote/compare/v1.11.0...v1.12.0) (2026-09-07)
 
 ### Features
