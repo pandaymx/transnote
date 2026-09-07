@@ -306,9 +306,9 @@ bash .agents/tools/check.sh   # 仓库一致性检查（多 Agent 协作必跑�
 - 本地拉取 release 回写提交（semantic-release 的 [skip ci]）与自己的提交并行时：`git rebase github/main` 后 `git push --force-with-lease`。
 - GitHub 分支保护已启用 required_linear_history（allow_force_pushes=true，开发期允许线性化改写）。
 
-## 格式化与 spotless 对齐（必读，v1.44 两次踩坑）
-- **本地格式化工具**：`~/.tools/gjf-1.28.jar`（google-java-format **1.28.0**，与 CI spotless 8.10.1 默认版本一致）。运行：`$HOME/.sdkman/candidates/java/25.0.4-graal/bin/java --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED -jar ~/.tools/gjf-1.28.jar --replace -i <file>`。
-- 本地不能跑 `./gradlew spotlessCheck`（NoClassDefFoundError），必须用上面 jar 手动格式化，再按 CI 日志 diff 兜底。
-- **record 声明必须单行写参数**：gjf 1.28 对 record 头保持输入（不合并也不拆分），CI spotless 期望单行。写法：`public record ExportFilter(String state, String assigneeName, Integer priority, String label) {`；严禁写成多行参数。
+## 格式化与 spotless 对齐（必读，v1.44/v1.47 多次踩坑）
+- **本地格式化工具**：`~/.tools/gjf-1.30.jar`（google-java-format **1.30.0**，server/build.gradle.kts 已锁 `googleJavaFormat("1.30.0")`）。**JVM 25 要求 gjf >= 1.30.0**（1.28.0 会报 jvm-version 错误）。运行：`$HOME/.sdkman/candidates/java/25.0.4-graal/bin/java --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED -jar ~/.tools/gjf-1.30.jar --replace -i <file>`。
+- **本地 spotlessCheck 可用**：`cd server && ./gradlew spotlessCheck`（buildscript 已 force guava 33.4.0-jre 解决 NoClassDefFoundError）——提交前必须本地跑一次全绿，替代"猜 CI diff"。
+- **record 声明必须单行写参数**：gjf 对 record 头保持输入（不合并也不拆分），CI 期望单行。写法：`public record ExportFilter(String state, String assigneeName, Integer priority, String label) {`；严禁写成多行参数。
 - 方法调用长链断行由 gjf 自动做（如 `boardRepository.save(\n  new Board(...))`），无需手动。
-- Java 改动流程：Windows 源编辑 → cp 到 WSL → gjf 格式化 → `./gradlew <模块>:test` 通过 → 格式化结果回拷 Windows 源 → 提交。
+- Java 改动流程：Windows 源编辑 → cp 到 WSL → gjf-1.30 格式化 → `./gradlew spotlessCheck` + `<模块>:test` 通过 → 格式化结果回拷 Windows 源 → 提交。
