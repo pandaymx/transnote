@@ -90,7 +90,18 @@ function BlockItem({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onBlur={commit}
-              placeholder={block.type === 'heading_1' ? '标题 1' : block.type === 'paragraph' ? '输入内容…' : ''}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  commit();
+                  onAddAfter(block.id);
+                }
+                if (e.key === 'Backspace' && value === '' && (block.content ?? '') === '') {
+                  e.preventDefault();
+                  onDelete(block.id);
+                }
+              }}
+              placeholder={block.type === 'heading_1' ? '标题 1' : block.type === 'paragraph' ? '输入内容…（Enter 新建块）' : ''}
             />
           )}
         </div>
