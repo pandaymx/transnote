@@ -8,6 +8,7 @@ import {
   useBoard,
   useBoardCards,
   useBoardUi,
+  useBoards,
   useDeletedCards,
   useDeleteCard,
   useDeleteColumn,
@@ -57,6 +58,11 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const restoreCard = useRestoreCard(boardId);
   const hardDeleteCard = useHardDeleteCard(boardId);
   const setWorkspace = useBoardUi((s) => s.setWorkspace);
+  /** 移动到其他看板（Notion Move to）：目标看板 + 目标列。 */
+  const { data: boards } = useBoards(board?.workspaceId ?? '');
+  const [moveBoardId, setMoveBoardId] = useState('');
+  const [moveColumnId, setMoveColumnId] = useState('');
+  const { data: moveTargetBoard } = useBoard(moveBoardId);
 
   const columns: BoardColumn[] = board?.columns ?? [];
   const byColumn = sortCardsByColumn(cards ?? []);
@@ -1412,6 +1418,58 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                 >
                   复制卡片
                 </button>
+                <div className="notion-modal-field">
+                  <label className="muted" style={{ fontSize: 12 }}>
+                    移动到其他看板
+                  </label>
+                  <select
+                    className="notion-tool-select"
+                    value={moveBoardId}
+                    onChange={(e) => {
+                      setMoveBoardId(e.target.value);
+                      setMoveColumnId('');
+                    }}
+                  >
+                    <option value="">选择目标看板…</option>
+                    {(boards ?? [])
+                      .filter((b) => b.id !== boardId)
+                      .map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.title}
+                        </option>
+                      ))}
+                  </select>
+                  {moveBoardId && moveTargetBoard?.columns && (
+                    <select
+                      className="notion-tool-select"
+                      value={moveColumnId}
+                      onChange={(e) => setMoveColumnId(e.target.value)}
+                    >
+                      <option value="">选择目标列…</option>
+                      {moveTargetBoard.columns.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {moveBoardId && moveColumnId && (
+                    <button
+                      className="notion-tool-btn"
+                      onClick={() => {
+                        updateCard.mutate({
+                          cardId: card.id,
+                          patch: { columnId: moveColumnId },
+                        });
+                        setDetailCardId(null);
+                        setMoveBoardId('');
+                        setMoveColumnId('');
+                      }}
+                    >
+                      移动
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );
