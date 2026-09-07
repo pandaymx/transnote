@@ -99,7 +99,7 @@ function BlockItem({
   };
 
   return (
-    <div className="doc-block" style={{ marginLeft: depth * 20 }}>
+    <div className="doc-block" id={`block-${block.id}`} style={{ marginLeft: depth * 20 }}>
       <div className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
         {block.type === 'toggle' ? (
           <button
@@ -264,6 +264,21 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
     return { blocks, words, todos, dones };
   }, [tree]);
 
+  /** 标题块大纲（heading_1/2/3）供锚点导航。 */
+  const headings = useMemo(() => {
+    const out: Array<{ id: string; text: string; level: number }> = [];
+    const walk = (bs: BlockNode[]) => {
+      for (const b of bs) {
+        if (b.type.startsWith('heading_')) {
+          out.push({ id: b.id, text: b.content ?? '', level: Number(b.type.slice(-1)) });
+        }
+        if (b.children?.length) walk(b.children);
+      }
+    };
+    walk(tree?.blocks ?? []);
+    return out;
+  }, [tree]);
+
   const onUpdate = (blockId: string, content: string, properties?: string) => {
     updateBlocks.mutate([
       { op: 'upsert', block: { id: blockId, content, ...(properties ? { properties } : {}) } },
@@ -372,6 +387,24 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
         {stats.blocks} 个块 · {stats.words} 字
         {stats.todos > 0 && <> · 待办 {stats.dones}/{stats.todos} 完成</>}
       </div>
+
+      {headings.length > 0 && (
+        <nav className="doc-outline">
+          <div className="doc-outline-title">目录</div>
+          {headings.map((h) => (
+            <button
+              key={h.id}
+              className="doc-outline-item"
+              style={{ paddingLeft: 8 + (h.level - 1) * 12 }}
+              onClick={() =>
+                document.getElementById(`block-${h.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+            >
+              {h.text || '（无标题）'}
+            </button>
+          ))}
+        </nav>
+      )}
 
       {(tree?.blocks ?? []).map((block, i) => (
         <BlockItem

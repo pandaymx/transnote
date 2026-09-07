@@ -851,6 +851,44 @@ mark.notion-hl {
   padding-left: 4px;
 }
 
+.doc-outline {
+  position: sticky;
+  top: 16px;
+  float: right;
+  width: 200px;
+  margin: 0 0 16px 24px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  background: #fff;
+  font-size: 12px;
+  max-height: 60vh;
+  overflow: auto;
+}
+.doc-outline-title {
+  font-weight: 600;
+  color: #37352f;
+  margin-bottom: 6px;
+}
+.doc-outline-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  color: #787774;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-outline-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #37352f;
+}
+
 .notion-card.selected {
   outline: 2px solid #2f6fec;
   outline-offset: -2px;
