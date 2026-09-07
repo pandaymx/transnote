@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   useAddCard,
@@ -93,6 +93,10 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [pillValue, setPillValue] = useState('');
   /** 列折叠（Notion：点击列头收起为窄条），持久化。 */
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  /** 列内"已完成"分组折叠（Notion 自动收纳已完成卡片到列尾）。 */
+  const [foldDone, setFoldDone] = useState<Record<string, boolean>>({});
+  const toggleFoldDone = (colId: string) =>
+    setFoldDone((f) => ({ ...f, [colId]: !f[colId] }));
   /** 列重命名（双击列头，Notion 内联编辑）。 */
   const [editCol, setEditCol] = useState<{ colId: string; title: string } | null>(null);
   /** 添加列（Notion 看板最右 ＋ 添加列）。 */
@@ -358,14 +362,25 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const isOverdue = (card: BoardCard) =>
     !card.checked && dueOverdue(card.dueDate);
 
-  /** description 为 JSONB 字符串（{"text":...}），解析出可读文本。 */
+  /** description 为 JSONB 字符串（{"text":...}），解析出可读文本（兼容字符串与 Notion 富文本数组）。 */
   const descText = (raw: string | null | undefined): string => {
     if (!raw || raw === '{}') return '';
     const t = raw.trim();
     if (t.startsWith('{')) {
       try {
-        const obj = JSON.parse(t) as { text?: string };
-        return obj.text ?? '';
+        const obj = JSON.parse(t) as { text?: unknown };
+        if (typeof obj.text === 'string') return obj.text;
+        if (Array.isArray(obj.text)) {
+          return obj.text
+            .map((s) => {
+              if (s && typeof s === 'object' && typeof (s as { t?: unknown }).t === 'string') {
+                return (s as { t: string }).t;
+              }
+              return '';
+            })
+            .join('');
+        }
+        return '';
       } catch {
         return raw;
       }
@@ -621,6 +636,12 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
         <div className="columns">
           {columns.map((col, i) => {
           const colCards = viewCards(col.id);
+          /** 自动收纳分组：未完成在前、已完成列尾（Notion 已完成组）。 */
+          const openCards = colCards.filter((c) => !c.checked);
+          const doneCards = colCards.filter((c) => c.checked);
+          const doneCount = doneCards.length;
+          const doneStartIndex = openCards.length;
+          const sortedCards = [...openCards, ...doneCards];
           const canDrag = sortBy === 'manual' && filterState === 'all';
           return (
             <div
@@ -759,15 +780,28 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
               </div>
 
               {!collapsed[col.id] &&
-                colCards.map((card, i) => (
+                sortedCards.map((card, i) => (
+                <Fragment key={card.id}>
+                  {i === doneStartIndex && doneCount > 0 && (
+                    <button
+                      className="notion-done-head"
+                      title={foldDone[col.id] ? '展开已完成' : '折叠已完成'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFoldDone(col.id);
+                      }}
+                    >
+                      {foldDone[col.id] ? '▸' : '▾'} 已完成 {doneCount}
+                    </button>
+                  )}
+                  {!(card.checked && foldDone[col.id]) && (
                 <div
                   className={
                     'notion-card' +
                     (card.checked ? ' done' : '') +
                     (dragCardId === card.id ? ' dragging' : '')
                   }
-                  key={card.id}
-                  draggable={canDrag}
+                  draggable={canDrag && !card.checked}
                   onClick={() => setDetailCardId(card.id)}
                   onDragStart={(e) => {
                     setDragCardId(card.id);
@@ -775,6 +809,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     e.dataTransfer.effectAllowed = 'move';
                   }}
                   onDragOver={(e) => {
+                    if (card.checked) return;
                     e.preventDefault();
                     setOverColumnId(col.id);
                     // 以卡片中线为界，指示插入卡片前/后
@@ -857,6 +892,9 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                       </span>
                     )}
                   </div>
+                  {descText(card.description) && (
+                    <div className="notion-card-desc">{descText(card.description)}</div>
+                  )}
                   <div className="notion-pills">
                     {editPill?.cardId === card.id && editPill.field === 'assignee' ? (
                       <input
@@ -1001,6 +1039,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                     </div>
                   )}
                 </div>
+                  )}
+                </Fragment>
               ))}
 
               {!collapsed[col.id] && dropIndex?.colId === col.id && dropIndex.index === colCards.length && (

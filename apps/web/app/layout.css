@@ -568,6 +568,40 @@ input[type='file'] {
   opacity: 0.7;
 }
 
+/** 卡片描述摘要（Notion 卡片正文预览，最多 2 行截断）。 */
+.notion-card-desc {
+  margin: 3px 0 4px 23px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #787774;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/** 列尾"已完成"自动收纳分组头（Notion 已完成组）。 */
+.notion-done-head {
+  display: block;
+  width: 100%;
+  margin: 6px 0 4px;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #f1f1ef;
+  color: #6b6a66;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notion-done-head:hover {
+  background: #e9e9e7;
+  color: #37352f;
+}
+
 .notion-title-row {
   display: flex;
   align-items: flex-start;
