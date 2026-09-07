@@ -42,6 +42,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [filterState, setFilterState] = useState<'all' | 'open' | 'done'>('all');
   const [filterAssignee, setFilterAssignee] = useState<string | null>(null);
   const [filterPriority, setFilterPriority] = useState<number | null>(null);
+  /** 看板内搜索（Notion 搜索框）：匹配标题/描述/标签。 */
+  const [searchQ, setSearchQ] = useState('');
   const [sortBy, setSortBy] = useState<'manual' | 'due' | 'priority'>('manual');
   const [adding, setAdding] = useState<Record<string, boolean>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -83,6 +85,15 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     if (filterState === 'done') list = list.filter((c) => c.checked);
     if (filterAssignee) list = list.filter((c) => (c.assigneeName ?? '') === filterAssignee);
     if (filterPriority != null) list = list.filter((c) => (c.priority ?? 0) === filterPriority);
+    if (searchQ) {
+      const q = searchQ.toLowerCase();
+      list = list.filter(
+        (c) =>
+          (c.title ?? '').toLowerCase().includes(q) ||
+          descText(c.description).toLowerCase().includes(q) ||
+          (c.labels ?? []).some((l) => l.toLowerCase().includes(q)),
+      );
+    }
     if (sortBy === 'due') {
       list = [...list].sort(
         (a, b) => (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31'),
@@ -310,6 +321,13 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       )}
       <div className="notion-toolbar">
         <div className="row" style={{ gap: 6 }}>
+          <input
+            className="notion-search-input"
+            type="search"
+            placeholder="搜索任务…"
+            value={searchQ}
+            onChange={(e) => setSearchQ(e.target.value)}
+          />
           {(['all', 'open', 'done'] as const).map((f) => (
             <button
               key={f}
