@@ -32,17 +32,23 @@ function parseChecked(properties?: string | null): boolean {
 function BlockItem({
   block,
   depth,
+  siblings,
+  index,
   onUpdate,
   onUpdateType,
   onAddAfter,
   onDelete,
+  onMove,
 }: {
   block: BlockNode;
   depth: number;
+  siblings: BlockNode[];
+  index: number;
   onUpdate: (blockId: string, content: string, properties?: string) => void;
   onUpdateType: (blockId: string, type: string) => void;
   onAddAfter: (blockId: string) => void;
   onDelete: (blockId: string) => void;
+  onMove: (blockId: string, parentId: string | null, position: number | null) => void;
 }) {
   const [value, setValue] = useState(block.content ?? '');
   const [checked, setChecked] = useState(parseChecked(block.properties));
@@ -102,6 +108,27 @@ function BlockItem({
                   e.preventDefault();
                   onDelete(block.id);
                 }
+                if (e.key === 'Tab' && !e.shiftKey) {
+                  e.preventDefault();
+                  commit();
+                  const prev = siblings[index - 1];
+                  if (prev) onMove(block.id, prev.id, null);
+                }
+                if (e.key === 'Tab' && e.shiftKey) {
+                  e.preventDefault();
+                  commit();
+                  if (depth > 0) onMove(block.id, null, null);
+                }
+                if (e.key === 'ArrowUp' && e.altKey) {
+                  e.preventDefault();
+                  commit();
+                  onMove(block.id, block.parentId ?? null, index - 1);
+                }
+                if (e.key === 'ArrowDown' && e.altKey) {
+                  e.preventDefault();
+                  commit();
+                  onMove(block.id, block.parentId ?? null, index + 1);
+                }
               }}
               placeholder={block.type === 'heading_1' ? '标题 1' : block.type === 'paragraph' ? '输入内容…（Enter 新建块）' : ''}
             />
@@ -133,8 +160,19 @@ function BlockItem({
           </button>
         </span>
       </div>
-      {(block.children ?? []).map((child) => (
-        <BlockItem key={child.id} block={child} depth={depth + 1} onUpdate={onUpdate} onUpdateType={onUpdateType} onAddAfter={onAddAfter} onDelete={onDelete} />
+      {(block.children ?? []).map((child, i) => (
+        <BlockItem
+          key={child.id}
+          block={child}
+          depth={depth + 1}
+          siblings={block.children ?? []}
+          index={i}
+          onUpdate={onUpdate}
+          onUpdateType={onUpdateType}
+          onAddAfter={onAddAfter}
+          onDelete={onDelete}
+          onMove={onMove}
+        />
       ))}
     </div>
   );
@@ -160,6 +198,12 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
 
   const onUpdateType = (blockId: string, type: string) => {
     updateBlocks.mutate([{ op: 'upsert', block: { id: blockId, type } }]);
+  };
+
+  const onMove = (blockId: string, parentId: string | null, position: number | null) => {
+    updateBlocks.mutate([
+      { op: 'move', block: { id: blockId, ...(parentId ? { parentId } : {}), ...(position != null ? { position } : {}) } },
+    ]);
   };
 
   const onAddAfter = (blockId: string) => {
@@ -223,15 +267,18 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
         )}
       </div>
 
-      {(tree?.blocks ?? []).map((block) => (
+      {(tree?.blocks ?? []).map((block, i) => (
         <BlockItem
           key={block.id}
           block={block}
           depth={0}
+          siblings={tree?.blocks ?? []}
+          index={i}
           onUpdate={onUpdate}
           onUpdateType={onUpdateType}
           onAddAfter={onAddAfter}
           onDelete={onDelete}
+          onMove={onMove}
         />
       ))}
       {(tree?.blocks ?? []).length === 0 && !isLoading && (
