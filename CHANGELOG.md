@@ -1,3 +1,9 @@
+## [1.31.0](https://github.com/pandaymx/transnote/compare/v1.30.2...v1.31.0) (2026-09-08)
+
+### Features
+
+* **document:** 卡片勾选回写源文档 todo 块（块级溯源） ([29d9d5b](https://github.com/pandaymx/transnote/commit/29d9d5b0af094a10b4e2b380912acb629f1d0f60))
+
 ## [1.30.2](https://github.com/pandaymx/transnote/compare/v1.30.1...v1.30.2) (2026-09-08)
 
 ### Bug Fixes
