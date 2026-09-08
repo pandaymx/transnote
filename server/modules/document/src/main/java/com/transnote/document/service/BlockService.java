@@ -80,7 +80,7 @@ public class BlockService {
         existing.updateContent(newType, newContent, newProperties);
         return blockRepository.save(existing);
       }
-      // id 指定但不存在 → 幂等新建（保留客户端 id，重放不重复建）
+      // id 指定但不存在 → 新建（id 由 DB 生成）
     }
 
     validateType(type);
@@ -110,10 +110,7 @@ public class BlockService {
             StringUtils.hasText(content) ? content : "{}",
             StringUtils.hasText(properties) ? properties : "{}",
             nextPosition);
-    if (id != null) {
-      block.setId(id); // 客户端 id 幂等新建：重放同一 id 不重复建
-    }
-    // 新建用 persist（merge 对带 @Version 实体按 UPDATE 处理，会误报版本冲突）
+    // 新建由 DB 生成 id：@UuidGenerator + @Version 实体不允许外部指定标识（merge/persist 均拒绝）
     entityManager.persist(block);
     Block saved = block;
 

@@ -97,7 +97,7 @@ class BlockServiceTest {
   }
 
   @Test
-  void upsert_idNotExists_createsWithClientId() {
+  void upsert_idNotExists_createsNewBlock() {
     persistAssignsId();
     UUID clientId = UUID.randomUUID();
     when(blockRepository.findById(clientId)).thenReturn(Optional.empty());
@@ -106,7 +106,7 @@ class BlockServiceTest {
 
     Block created = service.upsert(documentId, clientId, null, "paragraph", "{}", "{}", null);
 
-    assertThat(created.getId()).isEqualTo(clientId);
+    assertThat(created.getId()).isNotNull();
     assertThat(created.getContent()).isEqualTo("{}");
   }
 
