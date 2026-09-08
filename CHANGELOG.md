@@ -1,3 +1,9 @@
+## [1.30.1](https://github.com/pandaymx/transnote/compare/v1.30.0...v1.30.1) (2026-09-08)
+
+### Bug Fixes
+
+* **document:** 新建块绕过 merge 版本检查改用 persist ([8bbce33](https://github.com/pandaymx/transnote/commit/8bbce33fea9c2c6c75634808b72c1e27825e2318))
+
 ## [1.30.0](https://github.com/pandaymx/transnote/compare/v1.29.0...v1.30.0) (2026-09-07)
 
 ### Features
