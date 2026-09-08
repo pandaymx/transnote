@@ -3,6 +3,7 @@ package com.transnote.document.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -15,6 +16,7 @@ import com.transnote.document.model.Document;
 import com.transnote.document.repo.BlockRepository;
 import com.transnote.document.repo.DocumentRepository;
 import com.transnote.identity.workspace.Workspace;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +30,7 @@ class BlockServiceTest {
 
   private BlockRepository blockRepository;
   private DocumentRepository documentRepository;
+  private EntityManager entityManager;
   private BlockService service;
   private Document document;
   private UUID documentId;
@@ -36,7 +39,9 @@ class BlockServiceTest {
   void setUp() {
     blockRepository = mock(BlockRepository.class);
     documentRepository = mock(DocumentRepository.class);
-    service = new BlockService(blockRepository, documentRepository, new ObjectMapper());
+    entityManager = mock(EntityManager.class);
+    service =
+        new BlockService(blockRepository, documentRepository, new ObjectMapper(), entityManager);
     documentId = UUID.randomUUID();
     document = new Document(new Workspace("w", "ws"), "标题", null);
     ReflectionTestUtils.setField(document, "id", documentId);
@@ -62,9 +67,23 @@ class BlockServiceTest {
             });
   }
 
+  /** 新建走 EntityManager.persist：mock 生成 id。 */
+  private void persistAssignsId() {
+    doAnswer(
+            inv -> {
+              Block b = inv.getArgument(0);
+              if (b.getId() == null) {
+                ReflectionTestUtils.setField(b, "id", UUID.randomUUID());
+              }
+              return null;
+            })
+        .when(entityManager)
+        .persist(any(Block.class));
+  }
+
   @Test
   void upsert_createRoot_autoPosition() {
-    saveAssignsId();
+    persistAssignsId();
     when(blockRepository.findByDocumentIdAndParentIdIsNullOrderByPositionAsc(documentId))
         .thenReturn(List.of());
 
@@ -78,10 +97,24 @@ class BlockServiceTest {
   }
 
   @Test
+  void upsert_idNotExists_createsWithClientId() {
+    persistAssignsId();
+    UUID clientId = UUID.randomUUID();
+    when(blockRepository.findById(clientId)).thenReturn(Optional.empty());
+    when(blockRepository.findByDocumentIdAndParentIdIsNullOrderByPositionAsc(documentId))
+        .thenReturn(List.of());
+
+    Block created = service.upsert(documentId, clientId, null, "paragraph", "{}", "{}", null);
+
+    assertThat(created.getId()).isEqualTo(clientId);
+    assertThat(created.getContent()).isEqualTo("{}");
+  }
+
+  @Test
   void upsert_createChild_appendsToParentChildren() {
     UUID parentId = UUID.randomUUID();
     Block parent = block(parentId, null, 0);
-    saveAssignsId();
+    persistAssignsId();
     when(blockRepository.findById(parentId)).thenReturn(Optional.of(parent));
     when(blockRepository.findByDocumentIdOrderByPositionAsc(documentId))
         .thenReturn(List.of(parent));
@@ -91,12 +124,12 @@ class BlockServiceTest {
             documentId, null, parentId, "todo", "{\"text\":[]}", "{\"checked\":false}", null);
 
     assertThat(parent.getChildren()).containsExactly(child.getId());
-    verify(blockRepository, times(2)).save(any(Block.class));
+    verify(blockRepository, times(1)).save(any(Block.class));
   }
 
   @Test
   void upsert_createWithExplicitPosition_shiftsSiblings() {
-    saveAssignsId();
+    persistAssignsId();
     Block a = block(UUID.randomUUID(), null, 0);
     Block b = block(UUID.randomUUID(), null, 1);
     when(blockRepository.findByDocumentIdAndParentIdIsNullOrderByPositionAsc(documentId))
@@ -106,9 +139,10 @@ class BlockServiceTest {
 
     assertThat(b.getPosition()).isEqualTo(2);
     ArgumentCaptor<Block> captor = ArgumentCaptor.forClass(Block.class);
-    verify(blockRepository, times(2)).save(captor.capture());
-    Block newBlock = captor.getAllValues().get(1);
+    verify(entityManager).persist(captor.capture());
+    Block newBlock = captor.getValue();
     assertThat(newBlock.getPosition()).isEqualTo(1);
+    verify(blockRepository, times(1)).save(any(Block.class));
   }
 
   @Test

@@ -111,6 +111,10 @@ public class Block {
     return id;
   }
 
+  public void setId(UUID id) {
+    this.id = id;
+  }
+
   public Document getDocument() {
     return document;
   }

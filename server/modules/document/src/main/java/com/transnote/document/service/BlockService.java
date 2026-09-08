@@ -42,14 +42,17 @@ public class BlockService {
   private final BlockRepository blockRepository;
   private final DocumentRepository documentRepository;
   private final ObjectMapper objectMapper;
+  private final jakarta.persistence.EntityManager entityManager;
 
   public BlockService(
       BlockRepository blockRepository,
       DocumentRepository documentRepository,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      jakarta.persistence.EntityManager entityManager) {
     this.blockRepository = blockRepository;
     this.documentRepository = documentRepository;
     this.objectMapper = objectMapper;
+    this.entityManager = entityManager;
   }
 
   /** 新建块；id 已存在则更新内容（parent/position 变更走 move）。 */
@@ -64,17 +67,20 @@ public class BlockService {
       Integer position) {
     Document document = requireDocument(documentId);
     if (id != null) {
-      Block existing = requireBlock(id);
-      requireBelongsToDocument(existing, documentId);
-      String newType = StringUtils.hasText(type) ? type : existing.getType();
-      validateType(newType);
-      String newContent = StringUtils.hasText(content) ? content : existing.getContent();
-      String newProperties =
-          StringUtils.hasText(properties) ? properties : existing.getProperties();
-      validateJson("content", newContent);
-      validateJson("properties", newProperties);
-      existing.updateContent(newType, newContent, newProperties);
-      return blockRepository.save(existing);
+      Block existing = blockRepository.findById(id).orElse(null);
+      if (existing != null) {
+        requireBelongsToDocument(existing, documentId);
+        String newType = StringUtils.hasText(type) ? type : existing.getType();
+        validateType(newType);
+        String newContent = StringUtils.hasText(content) ? content : existing.getContent();
+        String newProperties =
+            StringUtils.hasText(properties) ? properties : existing.getProperties();
+        validateJson("content", newContent);
+        validateJson("properties", newProperties);
+        existing.updateContent(newType, newContent, newProperties);
+        return blockRepository.save(existing);
+      }
+      // id 指定但不存在 → 幂等新建（保留客户端 id，重放不重复建）
     }
 
     validateType(type);
@@ -104,7 +110,12 @@ public class BlockService {
             StringUtils.hasText(content) ? content : "{}",
             StringUtils.hasText(properties) ? properties : "{}",
             nextPosition);
-    Block saved = blockRepository.save(block);
+    if (id != null) {
+      block.setId(id); // 客户端 id 幂等新建：重放同一 id 不重复建
+    }
+    // 新建用 persist（merge 对带 @Version 实体按 UPDATE 处理，会误报版本冲突）
+    entityManager.persist(block);
+    Block saved = block;
 
     if (parentId != null) {
       Block parent = requireBlock(parentId);
