@@ -1,3 +1,9 @@
+## [1.30.2](https://github.com/pandaymx/transnote/compare/v1.30.1...v1.30.2) (2026-09-08)
+
+### Bug Fixes
+
+* **document:** 新建块由 DB 生成 id 并改用 persist 绕开版本检查 ([717deba](https://github.com/pandaymx/transnote/commit/717debad59cbfb33fe12cfa31ba5a47e03821c8f))
+
 ## [1.30.1](https://github.com/pandaymx/transnote/compare/v1.30.0...v1.30.1) (2026-09-08)
 
 ### Bug Fixes
