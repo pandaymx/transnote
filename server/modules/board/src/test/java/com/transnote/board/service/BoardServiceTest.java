@@ -36,6 +36,7 @@ class BoardServiceTest {
   private BoardColumnRepository columnRepository;
   private BoardCardRepository cardRepository;
   private WorkspaceService workspaceService;
+  private org.springframework.context.ApplicationEventPublisher eventPublisher;
   private BoardService service;
   private UUID boardId;
   private Board board;
@@ -46,13 +47,15 @@ class BoardServiceTest {
     columnRepository = mock(BoardColumnRepository.class);
     cardRepository = mock(BoardCardRepository.class);
     workspaceService = mock(WorkspaceService.class);
+    eventPublisher = mock(org.springframework.context.ApplicationEventPublisher.class);
     service =
         new BoardService(
             boardRepository,
             columnRepository,
             cardRepository,
             workspaceService,
-            new ObjectMapper());
+            new ObjectMapper(),
+            eventPublisher);
     boardId = UUID.randomUUID();
     Workspace workspace = new Workspace("w", "ws");
     ReflectionTestUtils.setField(workspace, "id", UUID.randomUUID());
@@ -199,6 +202,43 @@ class BoardServiceTest {
         service.updateCard(boardId, cardId, null, null, null, null, null, null, null, true, null);
 
     assertThat(updated.isChecked()).isTrue();
+  }
+
+  @Test
+  void updateCard_toggleChecked_publishesWritebackEventWhenSourceKnown() {
+    UUID cardId = UUID.randomUUID();
+    UUID sourceDoc = UUID.randomUUID();
+    UUID sourceBlock = UUID.randomUUID();
+    BoardCard card = card(cardId, UUID.randomUUID(), 0);
+    ReflectionTestUtils.setField(card, "sourceDocumentId", sourceDoc);
+    ReflectionTestUtils.setField(card, "sourceBlockId", sourceBlock);
+    when(cardRepository.findById(cardId)).thenReturn(Optional.of(card));
+    when(cardRepository.save(card)).thenReturn(card);
+
+    service.updateCard(boardId, cardId, null, null, null, null, null, null, null, true, null);
+
+    ArgumentCaptor<com.transnote.board.event.CardCheckedEvent> captor =
+        ArgumentCaptor.forClass(com.transnote.board.event.CardCheckedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    assertThat(captor.getValue().checked()).isTrue();
+    assertThat(captor.getValue().sourceBlockId()).isEqualTo(sourceBlock);
+  }
+
+  @Test
+  void updateCard_sameChecked_publishesNothing() {
+    UUID cardId = UUID.randomUUID();
+    UUID sourceDoc = UUID.randomUUID();
+    UUID sourceBlock = UUID.randomUUID();
+    BoardCard card = card(cardId, UUID.randomUUID(), 0);
+    card.setChecked(true);
+    ReflectionTestUtils.setField(card, "sourceDocumentId", sourceDoc);
+    ReflectionTestUtils.setField(card, "sourceBlockId", sourceBlock);
+    when(cardRepository.findById(cardId)).thenReturn(Optional.of(card));
+    when(cardRepository.save(card)).thenReturn(card);
+
+    service.updateCard(boardId, cardId, null, null, null, null, null, null, null, true, null);
+
+    verify(eventPublisher, never()).publishEvent(any());
   }
 
   @Test

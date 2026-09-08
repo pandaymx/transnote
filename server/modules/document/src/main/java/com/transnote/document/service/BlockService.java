@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** 块服务：upsert/delete/move/整文档树。version 由 @Version 乐观锁自动递增。 */
 @Service
@@ -131,6 +132,21 @@ public class BlockService {
       blockRepository.findById(block.getParentId()).ifPresent(parent -> parent.removeChild(id));
     }
     blockRepository.delete(block);
+  }
+
+  /** 回写源文档 todo 块勾选态（V9）：仅改 properties.checked，不动 content/结构。 */
+  @Transactional
+  public void setTodoChecked(UUID blockId, boolean checked) {
+    Block block = requireBlock(blockId);
+    String props = StringUtils.hasText(block.getProperties()) ? block.getProperties() : "{}";
+    try {
+      ObjectNode node = (ObjectNode) objectMapper.readTree(props);
+      node.put("checked", checked);
+      block.setProperties(node.toString());
+      blockRepository.save(block);
+    } catch (JacksonException e) {
+      throw new IllegalArgumentException("回写勾选态失败：properties 非合法 JSON");
+    }
   }
 
   /** 移动块到目标父（可空=根级）与同级位置；防环校验。 */

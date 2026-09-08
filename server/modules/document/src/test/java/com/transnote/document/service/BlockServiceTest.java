@@ -206,6 +206,28 @@ class BlockServiceTest {
   }
 
   @Test
+  void setTodoChecked_updatesPropertiesOnly() {
+    UUID blockId = UUID.randomUUID();
+    Block target = block(blockId, null, 0);
+    when(blockRepository.findById(blockId)).thenReturn(Optional.of(target));
+
+    service.setTodoChecked(blockId, true);
+
+    assertThat(target.getProperties()).contains("\"checked\":true");
+    assertThat(target.getContent()).isEqualTo("{}");
+    verify(blockRepository).save(target);
+  }
+
+  @Test
+  void setTodoChecked_missing_throws() {
+    UUID blockId = UUID.randomUUID();
+    when(blockRepository.findById(blockId)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> service.setTodoChecked(blockId, true))
+        .isInstanceOf(BlockNotFoundException.class);
+  }
+
+  @Test
   void delete_missing_throws() {
     UUID blockId = UUID.randomUUID();
     when(blockRepository.findById(blockId)).thenReturn(Optional.empty());

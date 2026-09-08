@@ -155,6 +155,7 @@ class DocumentServiceTest {
             isNull(),
             isNull(),
             eq(docId),
+            eq(todo.id()),
             isNull(),
             eq(false));
     verify(boardService)
@@ -169,6 +170,7 @@ class DocumentServiceTest {
             isNull(),
             isNull(),
             eq(docId),
+            eq(done.id()),
             isNull(),
             eq(true));
   }

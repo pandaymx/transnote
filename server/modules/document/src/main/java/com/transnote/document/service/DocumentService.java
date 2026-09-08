@@ -85,7 +85,19 @@ public class DocumentService {
         }
       }
       boardService.addCard(
-          boardId, columnId, text, null, null, null, null, null, null, documentId, null, checked);
+          boardId,
+          columnId,
+          text,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          documentId,
+          node.id(),
+          null,
+          checked);
       created++;
     }
     for (BlockNode child : node.children()) {

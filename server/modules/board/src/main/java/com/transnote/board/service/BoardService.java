@@ -38,18 +38,21 @@ public class BoardService {
   private final BoardCardRepository cardRepository;
   private final WorkspaceService workspaceService;
   private final ObjectMapper objectMapper;
+  private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   public BoardService(
       BoardRepository boardRepository,
       BoardColumnRepository columnRepository,
       BoardCardRepository cardRepository,
       WorkspaceService workspaceService,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      org.springframework.context.ApplicationEventPublisher eventPublisher) {
     this.boardRepository = boardRepository;
     this.columnRepository = columnRepository;
     this.cardRepository = cardRepository;
     this.workspaceService = workspaceService;
     this.objectMapper = objectMapper;
+    this.eventPublisher = eventPublisher;
   }
 
   // ---------- 看板 ----------
@@ -246,6 +249,7 @@ public class BoardService {
         priority,
         labels,
         sourceDocumentId,
+        null,
         sourceEvidence,
         false);
   }
@@ -263,6 +267,38 @@ public class BoardService {
       Short priority,
       List<String> labels,
       UUID sourceDocumentId,
+      String sourceEvidence,
+      boolean checked) {
+    return addCard(
+        boardId,
+        columnId,
+        title,
+        description,
+        assigneeId,
+        assigneeName,
+        dueDate,
+        priority,
+        labels,
+        sourceDocumentId,
+        null,
+        sourceEvidence,
+        checked);
+  }
+
+  /** 带块级溯源（V9）：sourceBlockId 指向源文档 todo 块，勾选完成可回写。 */
+  @Transactional
+  public BoardCard addCard(
+      UUID boardId,
+      UUID columnId,
+      String title,
+      String description,
+      UUID assigneeId,
+      String assigneeName,
+      LocalDate dueDate,
+      Short priority,
+      List<String> labels,
+      UUID sourceDocumentId,
+      UUID sourceBlockId,
       String sourceEvidence,
       boolean checked) {
     validateTitle(title, BoardCard.MAX_TITLE_LENGTH);
@@ -289,7 +325,8 @@ public class BoardService {
             priority == null ? (short) 1 : priority,
             labels,
             sourceDocumentId,
-            sourceEvidence);
+            sourceEvidence,
+            sourceBlockId);
     card.setChecked(checked);
     return cardRepository.save(card);
   }
@@ -362,6 +399,7 @@ public class BoardService {
     validatePriority(priority);
     validateJson("description", description);
     validateLabels(labels);
+    boolean oldChecked = card.isChecked();
     card.update(
         title == null ? null : title.trim(),
         description,
@@ -372,7 +410,17 @@ public class BoardService {
         labels,
         checked,
         color);
-    return cardRepository.save(card);
+    BoardCard saved = cardRepository.save(card);
+    // 勾选态变化且卡片有块级溯源 → 发布事件，由 document 模块回写源文档 todo 块（V9）
+    if (checked != null
+        && !checked.equals(oldChecked)
+        && card.getSourceDocumentId() != null
+        && card.getSourceBlockId() != null) {
+      eventPublisher.publishEvent(
+          new com.transnote.board.event.CardCheckedEvent(
+              boardId, cardId, checked, card.getSourceDocumentId(), card.getSourceBlockId()));
+    }
+    return saved;
   }
 
   /** 拖拽：换列 + 重排，一次提交。columnId 为空时仅同列重排。 */

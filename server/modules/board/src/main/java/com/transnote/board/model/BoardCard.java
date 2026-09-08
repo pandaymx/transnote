@@ -68,6 +68,10 @@ public class BoardCard {
   @Column(name = "source_document_id")
   private UUID sourceDocumentId;
 
+  /** 块级溯源（V9）：源文档中对应 todo 块 id，勾选完成时回写 checked。 */
+  @Column(name = "source_block_id")
+  private UUID sourceBlockId;
+
   /** 卡片级完成态（Notion 代办勾选，V6）。 */
   @Column(nullable = false)
   private boolean checked = false;
@@ -110,7 +114,8 @@ public class BoardCard {
       short priority,
       List<String> labels,
       UUID sourceDocumentId,
-      String sourceEvidence) {
+      String sourceEvidence,
+      UUID sourceBlockId) {
     this.board = board;
     this.column = column;
     this.position = position;
@@ -127,9 +132,10 @@ public class BoardCard {
     }
     this.sourceDocumentId = sourceDocumentId;
     this.sourceEvidence = sourceEvidence;
+    this.sourceBlockId = sourceBlockId;
   }
 
-  /** 兼容旧构造（assigneeName=null）。 */
+  /** 兼容旧构造（assigneeName/sourceBlockId=null）。 */
   public BoardCard(
       Board board,
       BoardColumn column,
@@ -154,7 +160,38 @@ public class BoardCard {
         priority,
         labels,
         sourceDocumentId,
-        sourceEvidence);
+        sourceEvidence,
+        null);
+  }
+
+  /** 带负责人人名、无块级溯源（复制卡片等场景；副本不回写源文档）。 */
+  public BoardCard(
+      Board board,
+      BoardColumn column,
+      int position,
+      String title,
+      String description,
+      UUID assigneeId,
+      String assigneeName,
+      LocalDate dueDate,
+      short priority,
+      List<String> labels,
+      UUID sourceDocumentId,
+      String sourceEvidence) {
+    this(
+        board,
+        column,
+        position,
+        title,
+        description,
+        assigneeId,
+        assigneeName,
+        dueDate,
+        priority,
+        labels,
+        sourceDocumentId,
+        sourceEvidence,
+        null);
   }
 
   public void moveTo(BoardColumn column, int position) {
@@ -279,6 +316,10 @@ public class BoardCard {
 
   public UUID getSourceDocumentId() {
     return sourceDocumentId;
+  }
+
+  public UUID getSourceBlockId() {
+    return sourceBlockId;
   }
 
   public String getSourceEvidence() {

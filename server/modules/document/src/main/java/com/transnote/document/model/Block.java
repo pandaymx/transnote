@@ -88,6 +88,11 @@ public class Block {
     this.properties = properties;
   }
 
+  /** 仅更新 properties（回写勾选态等局部变更）。 */
+  public void setProperties(String properties) {
+    this.properties = properties;
+  }
+
   public void move(UUID parentId, int position) {
     this.parentId = parentId;
     this.position = position;
