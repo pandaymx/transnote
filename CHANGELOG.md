@@ -1,3 +1,10 @@
+## [1.32.0](https://github.com/pandaymx/transnote/compare/v1.31.0...v1.32.0) (2026-09-09)
+
+### Features
+
+* **board:** 文档侧勾选 todo 反向同步看板卡片；前端 Notion 视觉美化 ([d69cdc0](https://github.com/pandaymx/transnote/commit/d69cdc089fc09a8c319717b767a0c5a0ce012c0b))
+* **board:** 文档勾选反向同步看板卡片；打磨 Notion 交互细节（勾选动效/头部去重/列拖拽色） ([d497e53](https://github.com/pandaymx/transnote/commit/d497e53cb65cef69f5266be45a2e58f1fb46e006))
+
 ## [1.31.0](https://github.com/pandaymx/transnote/compare/v1.30.2...v1.31.0) (2026-09-08)
 
 ### Features
