@@ -1047,6 +1047,11 @@ mark.notion-hl {
   transition: background 0.1s ease, border-color 0.1s ease;
 }
 
+.notion-checkbox {
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease,
+    border-radius 0.12s ease;
+}
+
 .notion-checkbox:hover {
   border-color: #787774;
 }
@@ -1054,6 +1059,19 @@ mark.notion-hl {
 .notion-checkbox.checked {
   background: #2383e2;
   border-color: #2383e2;
+  animation: notion-check-pop 0.22s ease;
+}
+
+@keyframes notion-check-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .notion-title {
@@ -1222,6 +1240,18 @@ mark.notion-hl {
 
 .notion-add-btn:hover {
   background: #dcdcd9;
+  color: #2383e2;
+}
+
+/* 空列占位：Notion 虚线提示区 */
+.notion-col-empty {
+  font-size: 12px;
+  color: #787774;
+  padding: 6px 2px;
+  border: 1px dashed #d3d1cb;
+  border-radius: 6px;
+  text-align: center;
+  background: #fbfbfa;
 }
 
 /* 拖拽插入指示线（V7 列内/跨列排序） */

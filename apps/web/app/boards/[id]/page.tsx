@@ -537,29 +537,6 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           >
             导出 Word{filterState !== 'all' || filterAssignee || filterPriority != null || filterLabel ? '（当前视图）' : ''}
           </button>
-          <button className="btn secondary" onClick={() => setTrashOpen(true)}>
-            回收站
-            {(trashCards?.length ?? 0) > 0 && (
-              <span className="notion-trash-count">{(trashCards ?? []).length}</span>
-            )}
-          </button>
-          <button className="btn secondary" onClick={() => setStatsOpen(true)}>
-            统计
-          </button>
-          <button
-            className="btn secondary"
-            disabled={!boardId || toDocument.isPending}
-            onClick={() =>
-              toDocument.mutate({ boardId }, {
-                onSuccess: (r) => {
-                  alert(`已生成文档，转入 ${r.created} 个待办。`);
-                  router.push(`/documents/${r.documentId}`);
-                },
-              })
-            }
-          >
-            {toDocument.isPending ? "转换中…" : "转为文档"}
-          </button>
           <button
             className="btn"
             onClick={() => {

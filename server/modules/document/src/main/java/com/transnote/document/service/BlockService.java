@@ -28,8 +28,7 @@ import tools.jackson.databind.node.ObjectNode;
 @Transactional(readOnly = true)
 public class BlockService {
 
-  private static final org.slf4j.Logger log =
-      org.slf4j.LoggerFactory.getLogger(BlockService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BlockService.class);
 
   /** 契约 §7.2 定义的块类型白名单。 */
   public static final Set<String> TYPES =

@@ -29,8 +29,7 @@ import tools.jackson.databind.ObjectMapper;
 @Transactional(readOnly = true)
 public class BoardService {
 
-  private static final org.slf4j.Logger log =
-      org.slf4j.LoggerFactory.getLogger(BoardService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BoardService.class);
 
   /** 契约 §7.2 定义的看板布局。 */
   public static final Set<String> LAYOUTS = Set.of("kanban", "list", "calendar");
@@ -436,7 +435,11 @@ public class BoardService {
   @Transactional
   public void onBlockChecked(BlockCheckedEvent event) {
     List<BoardCard> cards = cardRepository.findBySourceBlockIdAndDeletedFalse(event.blockId());
-    log.info("onBlockChecked blockId={} checked={} matched={} cards", event.blockId(), event.checked(), cards.size());
+    log.info(
+        "onBlockChecked blockId={} checked={} matched={} cards",
+        event.blockId(),
+        event.checked(),
+        cards.size());
     if (cards.isEmpty()) {
       return;
     }
