@@ -242,6 +242,37 @@ class BoardServiceTest {
   }
 
   @Test
+  void onBlockChecked_syncsCardsWithSourceBlock() {
+    UUID blockId = UUID.randomUUID();
+    UUID cardA = UUID.randomUUID();
+    UUID cardB = UUID.randomUUID();
+    BoardCard a = card(cardA, UUID.randomUUID(), 0);
+    BoardCard b = card(cardB, UUID.randomUUID(), 1);
+    a.setChecked(false);
+    b.setChecked(false);
+    when(cardRepository.findBySourceBlockIdAndDeletedFalse(blockId)).thenReturn(List.of(a, b));
+    when(cardRepository.saveAll(any())).thenReturn(List.of(a, b));
+
+    service.onBlockChecked(
+        new com.transnote.shared.event.BlockCheckedEvent(blockId, true, UUID.randomUUID()));
+
+    assertThat(a.isChecked()).isTrue();
+    assertThat(b.isChecked()).isTrue();
+    verify(cardRepository).saveAll(List.of(a, b));
+  }
+
+  @Test
+  void onBlockChecked_noMatchingCards_doesNothing() {
+    UUID blockId = UUID.randomUUID();
+    when(cardRepository.findBySourceBlockIdAndDeletedFalse(blockId)).thenReturn(List.of());
+
+    service.onBlockChecked(
+        new com.transnote.shared.event.BlockCheckedEvent(blockId, true, UUID.randomUUID()));
+
+    verify(cardRepository, never()).saveAll(any());
+  }
+
+  @Test
   void moveCard_acrossColumns_reordersBoth() {
     UUID colA = UUID.randomUUID();
     UUID colB = UUID.randomUUID();

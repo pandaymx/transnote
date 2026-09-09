@@ -2,7 +2,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #f4f3ee;
+  background: #ffffff;
   color: #1a1b1c;
   font-family: 'PingFang SC', 'Segoe UI', Arial, sans-serif;
   font-size: 14px;
@@ -16,7 +16,7 @@ body {
 .app-sidebar {
   width: 220px;
   flex: none;
-  background: #f1efe9;
+  background: #f7f7f5;
   border-right: 1px solid #e4e3dd;
   padding: 16px 10px;
   position: sticky;
@@ -167,7 +167,7 @@ body {
 }
 
 .btn {
-  background: #2f54eb;
+  background: #2383e2;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -182,13 +182,13 @@ body {
 }
 
 .btn.secondary {
-  background: #eef0f8;
-  color: #2f54eb;
+  background: #f1f1ef;
+  color: #37352f;
 }
 
 .btn.danger {
-  background: #fff1f0;
-  color: #cf1322;
+  background: #fdecec;
+  color: #e03e3e;
 }
 
 input[type='text'],
@@ -207,8 +207,8 @@ input[type='file'] {
 }
 
 .error {
-  color: #cf1322;
-  background: #fff1f0;
+  color: #e03e3e;
+  background: #fdecec;
   border: 1px solid #ffa39e;
   border-radius: 8px;
   padding: 10px 12px;
@@ -225,8 +225,8 @@ input[type='file'] {
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 12px;
-  background: #eef0f8;
-  color: #2f54eb;
+  background: #f1f1ef;
+  color: #2383e2;
 }
 
 .badge.confirmed {
@@ -240,8 +240,8 @@ input[type='file'] {
 }
 
 .badge.rejected {
-  background: #fff1f0;
-  color: #cf1322;
+  background: #fdecec;
+  color: #e03e3e;
 }
 
 .columns {
@@ -492,8 +492,8 @@ input[type='file'] {
 }
 
 .notion-add-col-btn:hover {
-  border-color: #2f6fec;
-  color: #2f6fec;
+  border-color: #2383e2;
+  color: #2383e2;
   background: rgba(47, 111, 236, 0.04);
 }
 
@@ -515,7 +515,7 @@ input[type='file'] {
   box-sizing: border-box;
   font-size: 13px;
   color: #37352f;
-  border: 1px solid #2f6fec;
+  border: 1px solid #2383e2;
   border-radius: 6px;
   padding: 5px 8px;
   outline: none;
@@ -544,7 +544,7 @@ input[type='file'] {
 .notion-progress-bar {
   height: 100%;
   border-radius: 3px;
-  background: #2f6fec;
+  background: #2383e2;
   transition: width 0.2s ease;
 }
 
@@ -560,7 +560,7 @@ input[type='file'] {
   font-size: 13px;
   font-weight: 600;
   color: #37352f;
-  border: 1px solid #2f6fec;
+  border: 1px solid #2383e2;
   border-radius: 5px;
   padding: 1px 4px;
   outline: none;
@@ -611,7 +611,7 @@ input[type='file'] {
   box-sizing: border-box;
   font-size: 12px;
   color: #37352f;
-  border: 1px solid #2f6fec;
+  border: 1px solid #2383e2;
   border-radius: 5px;
   padding: 2px 5px;
   outline: none;
@@ -649,7 +649,8 @@ input[type='file'] {
 }
 
 .notion-card:hover {
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-color: #d3d1cb;
 }
 
 .notion-card.dragging {
@@ -764,7 +765,7 @@ input[type='file'] {
 }
 
 .notion-breadcrumb a {
-  color: #2f54eb;
+  color: #2383e2;
   text-decoration: none;
 }
 
@@ -796,8 +797,8 @@ mark.notion-hl {
   margin-top: 4px;
   padding: 1px 8px;
   border-radius: 4px;
-  background: #fff1f0;
-  color: #cf1322;
+  background: #fdecec;
+  color: #e03e3e;
   font-size: 12px;
   font-weight: 500;
 }
@@ -878,7 +879,7 @@ mark.notion-hl {
   width: 16px;
   height: 16px;
   margin-top: 4px;
-  accent-color: #2f54eb;
+  accent-color: #2383e2;
   flex: none;
 }
 
@@ -999,7 +1000,7 @@ mark.notion-hl {
 }
 
 .notion-card.selected {
-  outline: 2px solid #2f6fec;
+  outline: 2px solid #2383e2;
   outline-offset: -2px;
 }
 
@@ -1032,7 +1033,7 @@ mark.notion-hl {
   width: 15px;
   height: 15px;
   margin-top: 2px;
-  border: 1.5px solid #c9c9c7;
+  border: 1.5px solid #d3d1cb;
   border-radius: 3px;
   cursor: pointer;
   background: #fff;
@@ -1047,12 +1048,12 @@ mark.notion-hl {
 }
 
 .notion-checkbox:hover {
-  border-color: #37352f;
+  border-color: #787774;
 }
 
 .notion-checkbox.checked {
-  background: #2f6fec;
-  border-color: #2f6fec;
+  background: #2383e2;
+  border-color: #2383e2;
 }
 
 .notion-title {
@@ -1064,7 +1065,7 @@ mark.notion-hl {
 }
 
 .notion-title.done {
-  color: #9b9b9b;
+  color: #9b9a97;
   text-decoration: line-through;
 }
 
@@ -1096,7 +1097,7 @@ mark.notion-hl {
 
 .notion-pill.p3 {
   background: #eef1fb;
-  color: #2f6fec;
+  color: #2383e2;
 }
 
 .notion-pill.due-overdue {
@@ -1119,7 +1120,7 @@ mark.notion-hl {
   font-size: 11px;
   padding: 1px 6px;
   border-radius: 6px;
-  border: 1px solid #2f6fec;
+  border: 1px solid #2383e2;
   outline: none;
   line-height: 18px;
   min-width: 72px;
@@ -1156,7 +1157,7 @@ mark.notion-hl {
   line-height: 1.5;
   font-family: inherit;
   color: #37352f;
-  border: 1px solid #2f6fec;
+  border: 1px solid #2383e2;
   border-radius: 6px;
   padding: 4px 6px;
   resize: vertical;
@@ -1226,7 +1227,7 @@ mark.notion-hl {
 /* 拖拽插入指示线（V7 列内/跨列排序） */
 .notion-drop-line {
   height: 2px;
-  background: #2f6fec;
+  background: #2383e2;
   border-radius: 1px;
   margin: 2px 0;
   flex-shrink: 0;
@@ -1264,7 +1265,7 @@ mark.notion-hl {
 
 .notion-tool-btn.active {
   background: #eef1fb;
-  color: #2f6fec;
+  color: #2383e2;
 }
 
 .notion-search-input {
@@ -1279,7 +1280,7 @@ mark.notion-hl {
 }
 
 .notion-search-input:focus {
-  border-color: #2f6fec;
+  border-color: #2383e2;
 }
 
 .ws-boards {
@@ -1487,7 +1488,7 @@ mark.notion-hl {
 }
 
 .notion-modal-fields input:focus {
-  border-color: #2f6fec;
+  border-color: #2383e2;
 }
 
 .notion-modal-labels {
@@ -1505,8 +1506,8 @@ mark.notion-hl {
 .notion-modal-delete {
   align-self: flex-start;
   border: none;
-  background: #fff1f0;
-  color: #cf1322;
+  background: #fdecec;
+  color: #e03e3e;
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 13px;
@@ -1535,7 +1536,7 @@ mark.notion-hl {
 .notion-trash-count {
   display: inline-block;
   margin-left: 6px;
-  background: #cf1322;
+  background: #e03e3e;
   color: #fff;
   border-radius: 9px;
   padding: 0 6px;
@@ -1555,8 +1556,8 @@ mark.notion-hl {
 
 .notion-trash-hard {
   border: none;
-  background: #fff1f0;
-  color: #cf1322;
+  background: #fdecec;
+  color: #e03e3e;
   border-radius: 6px;
   padding: 3px 10px;
   font-size: 12px;
@@ -1596,7 +1597,7 @@ mark.notion-hl {
   font-weight: 700;
   color: #37352f;
   border: none;
-  border-bottom: 2px solid #2f6fec;
+  border-bottom: 2px solid #2383e2;
   outline: none;
   background: transparent;
   padding: 0;

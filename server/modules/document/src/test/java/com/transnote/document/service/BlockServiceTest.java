@@ -16,6 +16,7 @@ import com.transnote.document.model.Document;
 import com.transnote.document.repo.BlockRepository;
 import com.transnote.document.repo.DocumentRepository;
 import com.transnote.identity.workspace.Workspace;
+import com.transnote.shared.event.BlockCheckedEvent;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import tools.jackson.databind.ObjectMapper;
 
@@ -31,6 +33,7 @@ class BlockServiceTest {
   private BlockRepository blockRepository;
   private DocumentRepository documentRepository;
   private EntityManager entityManager;
+  private ApplicationEventPublisher eventPublisher;
   private BlockService service;
   private Document document;
   private UUID documentId;
@@ -40,8 +43,10 @@ class BlockServiceTest {
     blockRepository = mock(BlockRepository.class);
     documentRepository = mock(DocumentRepository.class);
     entityManager = mock(EntityManager.class);
+    eventPublisher = mock(ApplicationEventPublisher.class);
     service =
-        new BlockService(blockRepository, documentRepository, new ObjectMapper(), entityManager);
+        new BlockService(
+            blockRepository, documentRepository, new ObjectMapper(), entityManager, eventPublisher);
     documentId = UUID.randomUUID();
     document = new Document(new Workspace("w", "ws"), "标题", null);
     ReflectionTestUtils.setField(document, "id", documentId);
@@ -225,6 +230,50 @@ class BlockServiceTest {
 
     assertThatThrownBy(() -> service.setTodoChecked(blockId, true))
         .isInstanceOf(BlockNotFoundException.class);
+  }
+
+  @Test
+  void upsert_todoCheckedChanged_publishesEvent() {
+    UUID blockId = UUID.randomUUID();
+    Block existing = block(blockId, null, 0);
+    existing.updateContent("todo", "{}", "{\"checked\":false}");
+    when(blockRepository.findById(blockId)).thenReturn(Optional.of(existing));
+    when(blockRepository.save(existing)).thenReturn(existing);
+
+    service.upsert(documentId, blockId, null, "todo", "{}", "{\"checked\":true}", null);
+
+    ArgumentCaptor<BlockCheckedEvent> captor = ArgumentCaptor.forClass(BlockCheckedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    BlockCheckedEvent event = captor.getValue();
+    assertThat(event.blockId()).isEqualTo(blockId);
+    assertThat(event.checked()).isTrue();
+    assertThat(event.documentId()).isEqualTo(documentId);
+  }
+
+  @Test
+  void upsert_todoCheckedUnchanged_publishesNothing() {
+    UUID blockId = UUID.randomUUID();
+    Block existing = block(blockId, null, 0);
+    existing.updateContent("todo", "{}", "{\"checked\":true}");
+    when(blockRepository.findById(blockId)).thenReturn(Optional.of(existing));
+    when(blockRepository.save(existing)).thenReturn(existing);
+
+    service.upsert(documentId, blockId, null, "todo", "{}", "{\"checked\":true}", null);
+
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  void upsert_nonTodoCheckedChange_publishesNothing() {
+    UUID blockId = UUID.randomUUID();
+    Block existing = block(blockId, null, 0);
+    existing.updateContent("paragraph", "{}", "{\"checked\":true}");
+    when(blockRepository.findById(blockId)).thenReturn(Optional.of(existing));
+    when(blockRepository.save(existing)).thenReturn(existing);
+
+    service.upsert(documentId, blockId, null, "paragraph", "{}", "{}", null);
+
+    verify(eventPublisher, never()).publishEvent(any());
   }
 
   @Test

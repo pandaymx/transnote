@@ -12,6 +12,9 @@ public interface BoardCardRepository extends JpaRepository<BoardCard, UUID> {
 
   List<BoardCard> findByColumn_IdAndDeletedFalseOrderByPositionAsc(UUID columnId);
 
+  /** 按源块溯源（V9）：同一 todo 块可被多次 to-board 引用，全部返回。 */
+  List<BoardCard> findBySourceBlockIdAndDeletedFalse(UUID sourceBlockId);
+
   /** 回收站列表：软删除卡片按删除时间倒序。 */
   List<BoardCard> findByBoard_IdAndDeletedTrueOrderByUpdatedAtDesc(UUID boardId);
 

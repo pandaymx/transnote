@@ -6,6 +6,7 @@ import com.transnote.document.model.Block;
 import com.transnote.document.model.Document;
 import com.transnote.document.repo.BlockRepository;
 import com.transnote.document.repo.DocumentRepository;
+import com.transnote.shared.event.BlockCheckedEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,10 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -24,6 +27,9 @@ import tools.jackson.databind.node.ObjectNode;
 @Service
 @Transactional(readOnly = true)
 public class BlockService {
+
+  private static final org.slf4j.Logger log =
+      org.slf4j.LoggerFactory.getLogger(BlockService.class);
 
   /** 契约 §7.2 定义的块类型白名单。 */
   public static final Set<String> TYPES =
@@ -44,16 +50,19 @@ public class BlockService {
   private final DocumentRepository documentRepository;
   private final ObjectMapper objectMapper;
   private final jakarta.persistence.EntityManager entityManager;
+  private final ApplicationEventPublisher eventPublisher;
 
   public BlockService(
       BlockRepository blockRepository,
       DocumentRepository documentRepository,
       ObjectMapper objectMapper,
-      jakarta.persistence.EntityManager entityManager) {
+      jakarta.persistence.EntityManager entityManager,
+      ApplicationEventPublisher eventPublisher) {
     this.blockRepository = blockRepository;
     this.documentRepository = documentRepository;
     this.objectMapper = objectMapper;
     this.entityManager = entityManager;
+    this.eventPublisher = eventPublisher;
   }
 
   /** 新建块；id 已存在则更新内容（parent/position 变更走 move）。 */
@@ -78,8 +87,12 @@ public class BlockService {
             StringUtils.hasText(properties) ? properties : existing.getProperties();
         validateJson("content", newContent);
         validateJson("properties", newProperties);
+        // 旧勾选态必须在 updateContent 前快照（同一对象更新后无法再读旧值）
+        Boolean oldChecked = readChecked(existing.getProperties());
         existing.updateContent(newType, newContent, newProperties);
-        return blockRepository.save(existing);
+        Block saved = blockRepository.save(existing);
+        publishTodoCheckedChanged(saved, oldChecked);
+        return saved;
       }
       // id 指定但不存在 → 新建（id 由 DB 生成）
     }
@@ -146,6 +159,39 @@ public class BlockService {
       blockRepository.save(block);
     } catch (JacksonException e) {
       throw new IllegalArgumentException("回写勾选态失败：properties 非合法 JSON");
+    }
+  }
+
+  /** 文档→看板反向同步（V10）：todo 块勾选态变化时发布事件，board 监听同步卡片。 仅更新路径发布；新建块尚无卡片引用，无需同步。oldChecked 由调用方在更新前快照。 */
+  private void publishTodoCheckedChanged(Block after, Boolean oldChecked) {
+    if (!"todo".equals(after.getType())) {
+      return;
+    }
+    Boolean newChecked = readChecked(after.getProperties());
+    if (newChecked != null && !newChecked.equals(oldChecked)) {
+      log.info(
+          "publish BlockCheckedEvent blockId={} checked={} (was {})",
+          after.getId(),
+          newChecked,
+          oldChecked);
+      eventPublisher.publishEvent(
+          new BlockCheckedEvent(after.getId(), newChecked, after.getDocument().getId()));
+    }
+  }
+
+  /** 读取 properties 中 checked 值；缺失/非法返回 null（表示无变化依据）。 */
+  private Boolean readChecked(String properties) {
+    if (!StringUtils.hasText(properties)) {
+      return null;
+    }
+    try {
+      JsonNode node = objectMapper.readTree(properties);
+      if (node.has("checked")) {
+        return node.path("checked").asBoolean(false);
+      }
+      return null;
+    } catch (JacksonException e) {
+      return null;
     }
   }
 

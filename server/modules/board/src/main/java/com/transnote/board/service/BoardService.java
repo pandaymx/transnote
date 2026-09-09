@@ -11,11 +11,13 @@ import com.transnote.board.repo.BoardColumnRepository;
 import com.transnote.board.repo.BoardRepository;
 import com.transnote.identity.workspace.Workspace;
 import com.transnote.identity.workspace.WorkspaceService;
+import com.transnote.shared.event.BlockCheckedEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +28,9 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 @Transactional(readOnly = true)
 public class BoardService {
+
+  private static final org.slf4j.Logger log =
+      org.slf4j.LoggerFactory.getLogger(BoardService.class);
 
   /** 契约 §7.2 定义的看板布局。 */
   public static final Set<String> LAYOUTS = Set.of("kanban", "list", "calendar");
@@ -421,6 +426,24 @@ public class BoardService {
               boardId, cardId, checked, card.getSourceDocumentId(), card.getSourceBlockId()));
     }
     return saved;
+  }
+
+  /**
+   * 文档→看板反向同步（V10）：文档侧 todo 块勾选态变化时，同步引用该块的全部未删除卡片。 直接 repository 写入，不再发布卡片事件，避免
+   * board→document→board 事件环。
+   */
+  @EventListener
+  @Transactional
+  public void onBlockChecked(BlockCheckedEvent event) {
+    List<BoardCard> cards = cardRepository.findBySourceBlockIdAndDeletedFalse(event.blockId());
+    log.info("onBlockChecked blockId={} checked={} matched={} cards", event.blockId(), event.checked(), cards.size());
+    if (cards.isEmpty()) {
+      return;
+    }
+    for (BoardCard card : cards) {
+      card.setChecked(event.checked());
+    }
+    cardRepository.saveAll(cards);
   }
 
   /** 拖拽：换列 + 重排，一次提交。columnId 为空时仅同列重排。 */
